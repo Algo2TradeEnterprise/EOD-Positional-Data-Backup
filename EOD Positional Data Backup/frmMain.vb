@@ -218,7 +218,13 @@ Public Class frmMain
 
     Private canceller As CancellationTokenSource
 
+    Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        SetObjectEnableDisable_ThreadSafe(btnStop, False)
+    End Sub
+
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
+        SetObjectEnableDisable_ThreadSafe(btnStop, True)
+        SetObjectEnableDisable_ThreadSafe(btnStart, False)
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
     End Sub
@@ -275,6 +281,8 @@ Public Class frmMain
         Catch ex As Exception
             MsgBox(ex.ToString)
         Finally
+            SetObjectEnableDisable_ThreadSafe(btnStop, False)
+            SetObjectEnableDisable_ThreadSafe(btnStart, True)
             SetLabelText_ThreadSafe(lblProgress, "")
             SetLabelText_ThreadSafe(lblOverallProgress, "Process Complete")
         End Try

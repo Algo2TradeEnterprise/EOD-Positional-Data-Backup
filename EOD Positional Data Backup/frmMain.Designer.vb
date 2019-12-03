@@ -46,7 +46,6 @@ Partial Class frmMain
         Me.lblProgress.Name = "lblProgress"
         Me.lblProgress.Size = New System.Drawing.Size(694, 50)
         Me.lblProgress.TabIndex = 2
-        Me.lblProgress.Text = "Progress Status ....."
         '
         'DataGridView1
         '
@@ -66,7 +65,7 @@ Partial Class frmMain
         Me.lblOverallProgress.Name = "lblOverallProgress"
         Me.lblOverallProgress.Size = New System.Drawing.Size(795, 26)
         Me.lblOverallProgress.TabIndex = 4
-        Me.lblOverallProgress.Text = "Overall Progress Status ....."
+        Me.lblOverallProgress.Text = "Progress Status ....."
         '
         'btnStop
         '
