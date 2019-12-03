@@ -225,7 +225,7 @@ Public Class frmMain
 
     Private Async Function StartProcessingAsync() As Task
         Try
-            Dim lastDateToCheck As Date = New Date(2014, 12, 31)
+            Dim lastDateToCheck As Date = Now
             Dim stockList As List(Of String) = Await GetStockListAsync().ConfigureAwait(False)
             Dim cmn As Common = New Common(canceller)
             AddHandler cmn.Heartbeat, AddressOf OnHeartbeat

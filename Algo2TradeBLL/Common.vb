@@ -675,7 +675,7 @@ Public Class Common
             Case DataBaseTable.Intraday_Cash, DataBaseTable.Intraday_Commodity, DataBaseTable.Intraday_Currency, DataBaseTable.Intraday_Futures
                 ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
         End Select
-        Dim instrument As Tuple(Of String, String) = GetCurrentTradingSymbolWithInstrumentToken(tableName, Now.Date, rawInstrumentName)
+        Dim instrument As Tuple(Of String, String) = GetCurrentTradingSymbolWithInstrumentToken(tableName, endDate, rawInstrumentName)
         If instrument IsNot Nothing Then
             tradingSymbol = instrument.Item1
             instrumentToken = instrument.Item2
