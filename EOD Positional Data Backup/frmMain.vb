@@ -225,6 +225,7 @@ Public Class frmMain
 
     Private Async Function StartProcessingAsync() As Task
         Try
+            Dim lastDateToCheck As Date = New Date(2014, 12, 31)
             Dim stockList As List(Of String) = Await GetStockListAsync().ConfigureAwait(False)
             Dim cmn As Common = New Common(canceller)
             AddHandler cmn.Heartbeat, AddressOf OnHeartbeat
@@ -243,7 +244,7 @@ Public Class frmMain
                         canceller.Token.ThrowIfCancellationRequested()
                         counter += 1
                         OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, stockList.Count))
-                        Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, runningStock, Now.Date.AddYears(-5), Now.Date)
+                        Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, runningStock, lastDateToCheck.Date.AddYears(-5), lastDateToCheck.Date)
                         If eodHistoricalData IsNot Nothing AndAlso eodHistoricalData.Count > 0 Then
                             Dim insertDataString As String = Nothing
                             For Each runningPayload In eodHistoricalData.Values
