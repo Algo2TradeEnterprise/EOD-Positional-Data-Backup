@@ -376,13 +376,13 @@ Public Class frmMain
                     End If
                 Case InstrumentDetails.TypeOfInstrument.Commodity
                     If typeOfData = DataType.EOD Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                        If instrument.Segment.ToUpper = "MCX" Then
                             tableName = "eod_prices_commodity"
                         Else
                             tableName = "eod_prices_opt_commodity"
                         End If
                     ElseIf typeOfData = DataType.Intraday Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                        If instrument.Segment.ToUpper = "MCX" Then
                             tableName = "intraday_prices_commodity"
                         Else
                             tableName = "intraday_prices_opt_commodity"
@@ -390,13 +390,13 @@ Public Class frmMain
                     End If
                 Case InstrumentDetails.TypeOfInstrument.Currency
                     If typeOfData = DataType.EOD Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                        If instrument.Segment.ToUpper = "CDS-FUT" Then
                             tableName = "eod_prices_currency"
                         Else
                             tableName = "eod_prices_opt_currency"
                         End If
                     ElseIf typeOfData = DataType.Intraday Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                        If instrument.Segment.ToUpper = "CDS-FUT" Then
                             tableName = "intraday_prices_currency"
                         Else
                             tableName = "intraday_prices_opt_currency"
