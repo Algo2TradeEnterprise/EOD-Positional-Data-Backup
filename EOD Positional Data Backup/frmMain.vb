@@ -220,6 +220,12 @@ Public Class frmMain
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
+        Dim arguments As String() = Environment.GetCommandLineArgs()
+        If arguments.Length > 1 Then
+            Timer1.Enabled = True
+        Else
+            Timer1.Enabled = False
+        End If
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
@@ -313,5 +319,10 @@ Public Class frmMain
 
     Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
         canceller.Cancel()
+    End Sub
+
+    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        Timer1.Enabled = False
+        btnStart_Click(sender, e)
     End Sub
 End Class
