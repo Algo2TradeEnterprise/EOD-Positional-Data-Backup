@@ -282,14 +282,38 @@ Public Class frmMain
                         AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
                         AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-                        Dim counter As Integer = 0
-                        For Each runningStock In positionalStockList
-                            canceller.Token.ThrowIfCancellationRequested()
-                            counter += 1
-                            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, positionalStockList.Count))
+                        'Dim counter As Integer = 0
+                        'For Each runningStock In positionalStockList
+                        '    canceller.Token.ThrowIfCancellationRequested()
+                        '    counter += 1
+                        '    OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, positionalStockList.Count))
 
-                            Await ProcessData(lastDateToCheck, runningStock, sqlHlpr, zerodhaUser, DataType.EOD)
-                        Next
+                        '    Await ProcessData(lastDateToCheck, runningStock, sqlHlpr, zerodhaUser, DataType.EOD)
+                        'Next
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = positionalStockList.Select(Async Function(x)
+                                                               Try
+                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                               Catch ex As Exception
+                                                                   Throw ex
+                                                               End Try
+                                                               Return True
+                                                           End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                        'Dim tasks As New List(Of Task)()
+                        'For Each tradableStrategyInstrument As PetDGandhiStrategyInstrument In TradableStrategyInstruments
+                        '    _cts.Token.ThrowIfCancellationRequested()
+                        '    tasks.Add(Task.Run(AddressOf tradableStrategyInstrument.MonitorAsync, _cts.Token))
+                        'Next
+                        'tasks.Add(Task.Run(AddressOf ForceExitAllTradesAsync, _cts.Token))
+                        'If CType(Me.UserSettings, PetDGandhiUserInputs).AutoSelectStock Then tasks.Add(Task.Run(AddressOf CompleteProcessAsync, _cts.Token))
+                        'Await Task.WhenAll(tasks).ConfigureAwait(False)
                     End Using
                 End If
 #End Region
@@ -338,8 +362,15 @@ Public Class frmMain
     End Function
 
 #Region "Main Task"
+    Private _internetHitCount As Integer = 0
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
+            While _internetHitCount >= 10
+                Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
+            End While
+            Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
+            Interlocked.Increment(_internetHitCount)
+
             Dim startDate As Date = Date.MinValue
             Dim endDate As Date = Date.MinValue
             Select Case instrument.InstrumentType
@@ -405,6 +436,7 @@ Public Class frmMain
             End Select
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue Then
                 Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                canceller.Token.ThrowIfCancellationRequested()
                 If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
                     Dim insertDataString As String = Nothing
                     For Each runningPayload In historicalData.Values
@@ -430,7 +462,9 @@ Public Class frmMain
                 End If
             End If
         Catch ex As Exception
-
+            Throw ex
+        Finally
+            Interlocked.Decrement(_internetHitCount)
         End Try
     End Function
 #End Region
@@ -522,6 +556,7 @@ Public Class frmMain
                 headers.Add("sec-fetch-site", "same-origin")
                 headers.Add("Connection", "keep-alive")
 
+                canceller.Token.ThrowIfCancellationRequested()
                 Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
                                                                                     HttpMethod.Get,
                                                                                     Nothing,
@@ -529,6 +564,7 @@ Public Class frmMain
                                                                                     headers,
                                                                                     True,
                                                                                     "application/json").ConfigureAwait(False)
+                canceller.Token.ThrowIfCancellationRequested()
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     historicalCandlesJSONDict = l.Item2
                 End If
@@ -547,6 +583,7 @@ Public Class frmMain
                     OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
                     Dim previousPayload As Payload = Nothing
                     For Each historicalCandle In historicalCandles
+                        canceller.Token.ThrowIfCancellationRequested()
                         Dim runningSnapshotTime As Date = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
 
                         Dim runningPayload As Payload = New Payload
