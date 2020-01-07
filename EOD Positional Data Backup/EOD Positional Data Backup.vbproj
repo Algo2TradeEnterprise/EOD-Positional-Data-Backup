@@ -51,10 +51,14 @@
     <ApplicationIcon>algo2tradericon_512x512.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="KiteConnect">
+      <HintPath>..\packages\KiteConnect.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
@@ -83,6 +87,7 @@
       <DependentUpon>frmMain.vb</DependentUpon>
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="InstrumentDetails.vb" />
     <Compile Include="My Project\AssemblyInfo.vb" />
     <Compile Include="My Project\Application.Designer.vb">
       <AutoGen>True</AutoGen>
@@ -98,6 +103,8 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="Payload.vb" />
+    <Compile Include="ZerodhaLogin.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="frmMain.resx">
@@ -123,10 +130,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Algo2TradeBLL\Algo2TradeBLL.vbproj">
-      <Project>{92c02644-75d1-43af-a3d3-392ec95f137f}</Project>
-      <Name>Algo2TradeBLL</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.vbproj">
       <Project>{0524d87f-b8bf-4cc2-b955-49950110fe9a}</Project>
       <Name>Utilities</Name>

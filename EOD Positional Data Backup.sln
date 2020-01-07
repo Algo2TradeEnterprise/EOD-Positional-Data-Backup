@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28010.2050
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "EOD Positional Data Backup", "EOD Positional Data Backup\EOD Positional Data Backup.vbproj", "{BCDA821C-00F1-4098-808F-C8438751E026}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Algo2TradeBLL", "Algo2TradeBLL\Algo2TradeBLL.vbproj", "{92C02644-75D1-43AF-A3D3-392EC95F137F}"
-EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "Utilities", "Utilities\Utilities.vbproj", "{0524D87F-B8BF-4CC2-B955-49950110FE9A}"
 EndProject
 Global
@@ -25,14 +23,6 @@ Global
 		{BCDA821C-00F1-4098-808F-C8438751E026}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BCDA821C-00F1-4098-808F-C8438751E026}.Release|x64.ActiveCfg = Release|Any CPU
 		{BCDA821C-00F1-4098-808F-C8438751E026}.Release|x64.Build.0 = Release|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Debug|x64.Build.0 = Debug|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Release|x64.ActiveCfg = Release|Any CPU
-		{92C02644-75D1-43AF-A3D3-392EC95F137F}.Release|x64.Build.0 = Release|Any CPU
 		{0524D87F-B8BF-4CC2-B955-49950110FE9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0524D87F-B8BF-4CC2-B955-49950110FE9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0524D87F-B8BF-4CC2-B955-49950110FE9A}.Debug|x64.ActiveCfg = Debug|x64

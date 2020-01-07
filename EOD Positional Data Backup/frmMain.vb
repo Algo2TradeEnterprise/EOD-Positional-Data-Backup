@@ -1,6 +1,8 @@
-﻿Imports Algo2TradeBLL
-Imports Utilities.DAL
+﻿Imports Utilities.DAL
 Imports System.Threading
+Imports Utilities.Network
+Imports System.Net.Http
+Imports System.Net
 
 Public Class frmMain
 
@@ -216,6 +218,11 @@ Public Class frmMain
     End Sub
 #End Region
 
+    Enum DataType
+        EOD = 1
+        Intraday
+    End Enum
+
     Private canceller As CancellationTokenSource
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -228,6 +235,15 @@ Public Class frmMain
         End If
     End Sub
 
+    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
+        canceller.Cancel()
+    End Sub
+
+    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        Timer1.Enabled = False
+        btnStart_Click(sender, e)
+    End Sub
+
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
         SetObjectEnableDisable_ThreadSafe(btnStop, True)
         SetObjectEnableDisable_ThreadSafe(btnStart, False)
@@ -238,49 +254,76 @@ Public Class frmMain
     Private Async Function StartProcessingAsync() As Task
         Try
             Dim lastDateToCheck As Date = Now
-            Dim stockList As List(Of String) = Await GetStockListAsync().ConfigureAwait(False)
-            Dim cmn As Common = New Common(canceller)
-            AddHandler cmn.Heartbeat, AddressOf OnHeartbeat
-            AddHandler cmn.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-            AddHandler cmn.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            AddHandler cmn.WaitingFor, AddressOf OnWaitingFor
+            Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
+                                                               password:="Zerodha@123a",
+                                                               apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
+                                                               apiKey:="hcwmefsivttbchla",
+                                                               apiVersion:="3",
+                                                               _2FA:="111111",
+                                                               canceller:=canceller)
+            AddHandler zerodhaUser.Heartbeat, AddressOf OnHeartbeat
+            AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+            AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
+            Dim loginSuccesful As Boolean = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
 
-            If stockList IsNot Nothing AndAlso stockList.Count > 0 Then
-                Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                    AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                    AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                    AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                    AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                    Dim counter As Integer = 0
-                    For Each runningStock In stockList
-                        canceller.Token.ThrowIfCancellationRequested()
-                        counter += 1
-                        OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, stockList.Count))
-                        Dim eodHistoricalData As Dictionary(Of Date, Payload) = Await cmn.GetHistoricalDataAsync(Common.DataBaseTable.EOD_Cash, runningStock, lastDateToCheck.Date.AddYears(-5), lastDateToCheck.Date)
-                        If eodHistoricalData IsNot Nothing AndAlso eodHistoricalData.Count > 0 Then
-                            Dim insertDataString As String = Nothing
-                            For Each runningPayload In eodHistoricalData.Values
-                                canceller.Token.ThrowIfCancellationRequested()
-                                insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},'{7}',TIMESTAMP(CURRENT_TIME))",
-                                                                 insertDataString,
-                                                                 runningPayload.TradingSymbol,
-                                                                 runningPayload.Open,
-                                                                 runningPayload.Low,
-                                                                 runningPayload.High,
-                                                                 runningPayload.Close,
-                                                                 runningPayload.Volume,
-                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
-                            Next
-                            If insertDataString IsNot Nothing Then
-                                Dim insertString As String = String.Format("INSERT INTO `eod_positional_data` (`TradingSymbol`,`Open`,`Low`,`High`,`Close`,`Volume`,`SnapshotDate`,`UpdateToDBTime`) VALUES {0} ON DUPLICATE KEY UPDATE `TradingSymbol`=VALUES(`TradingSymbol`), `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), `High`=VALUES(`High`), `Close`=VALUES(`Close`), `Volume`=VALUES(`Volume`), `SnapshotDate`=VALUES(`SnapshotDate`), `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", insertDataString.Substring(1))
+            If loginSuccesful Then
+                Dim positionalStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Positional, lastDateToCheck).ConfigureAwait(False)
+                Dim cashStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Cash, lastDateToCheck).ConfigureAwait(False)
+                Dim futureStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
+                Dim commodityStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Commodity, lastDateToCheck).ConfigureAwait(False)
+                Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
 
-                                canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfdata As Integer = Await sqlHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
+#Region "Positional"
+                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-                            End If
-                        End If
-                    Next
-                End Using
+                        Dim counter As Integer = 0
+                        For Each runningStock In positionalStockList
+                            canceller.Token.ThrowIfCancellationRequested()
+                            counter += 1
+                            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, positionalStockList.Count))
+
+                            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.EOD)
+                        Next
+                    End Using
+                End If
+#End Region
+
+#Region "Normal"
+                'If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                '    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                '        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                '        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                '        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                '        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+
+                '        Dim counter As Integer = 0
+                '        For Each runningStock In cashStockList
+                '            canceller.Token.ThrowIfCancellationRequested()
+                '            counter += 1
+                '            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, cashStockList.Count))
+
+                '            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.EOD)
+                '        Next
+
+                '        counter = 0
+                '        For Each runningStock In cashStockList
+                '            canceller.Token.ThrowIfCancellationRequested()
+                '            counter += 1
+                '            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, cashStockList.Count))
+
+                '            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.Intraday)
+                '        Next
+                '    End Using
+                'End If
+#End Region
+            Else
+                Throw New ApplicationException("Zerodha login fail")
             End If
         Catch cex As OperationCanceledException
             MsgBox(cex.Message)
@@ -294,22 +337,142 @@ Public Class frmMain
         End Try
     End Function
 
-    Private Async Function GetStockListAsync() As Task(Of List(Of String))
-        Dim ret As List(Of String) = Nothing
+#Region "Main Task"
+    Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
+        Try
+            Dim startDate As Date = Date.MinValue
+            Dim endDate As Date = Date.MinValue
+            Select Case instrument.InstrumentType
+                Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Commodity, InstrumentDetails.TypeOfInstrument.Currency, InstrumentDetails.TypeOfInstrument.Futures
+                    startDate = currentDate.AddDays(-30)
+                    endDate = currentDate
+                Case InstrumentDetails.TypeOfInstrument.Positional
+                    startDate = currentDate.AddYears(-3)
+                    endDate = currentDate
+            End Select
+            Dim tableName As String = Nothing
+            Select Case instrument.InstrumentType
+                Case InstrumentDetails.TypeOfInstrument.Positional
+                    tableName = "eod_positional_data"
+                Case InstrumentDetails.TypeOfInstrument.Cash
+                    If typeOfData = DataType.EOD Then
+                        tableName = "eod_prices_cash"
+                    ElseIf typeOfData = DataType.Intraday Then
+                        tableName = "intraday_prices_cash"
+                    End If
+                Case InstrumentDetails.TypeOfInstrument.Futures
+                    If typeOfData = DataType.EOD Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "eod_prices_futures"
+                        Else
+                            tableName = "eod_prices_opt_futures"
+                        End If
+                    ElseIf typeOfData = DataType.Intraday Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "intraday_prices_futures"
+                        Else
+                            tableName = "intraday_prices_opt_futures"
+                        End If
+                    End If
+                Case InstrumentDetails.TypeOfInstrument.Commodity
+                    If typeOfData = DataType.EOD Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "eod_prices_commodity"
+                        Else
+                            tableName = "eod_prices_opt_commodity"
+                        End If
+                    ElseIf typeOfData = DataType.Intraday Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "intraday_prices_commodity"
+                        Else
+                            tableName = "intraday_prices_opt_commodity"
+                        End If
+                    End If
+                Case InstrumentDetails.TypeOfInstrument.Currency
+                    If typeOfData = DataType.EOD Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "eod_prices_currency"
+                        Else
+                            tableName = "eod_prices_opt_currency"
+                        End If
+                    ElseIf typeOfData = DataType.Intraday Then
+                        If instrument.Segment.ToUpper = "NFO-FUT" Then
+                            tableName = "intraday_prices_currency"
+                        Else
+                            tableName = "intraday_prices_opt_currency"
+                        End If
+                    End If
+            End Select
+            If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue Then
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
+                    Dim insertDataString As String = Nothing
+                    For Each runningPayload In historicalData.Values
+                        canceller.Token.ThrowIfCancellationRequested()
+                        insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
+                                                         insertDataString,
+                                                         runningPayload.TradingSymbol,
+                                                         runningPayload.Open,
+                                                         runningPayload.Low,
+                                                         runningPayload.High,
+                                                         runningPayload.Close,
+                                                         runningPayload.Volume,
+                                                         runningPayload.OI,
+                                                         runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                    Next
+                    If insertDataString IsNot Nothing Then
+                        Dim insertString As String = String.Format("INSERT INTO `{0}` (`TradingSymbol`,`Open`,`Low`,`High`,`Close`,`Volume`,`OI`,`SnapshotDate`,`UpdateToDBTime`) VALUES {1} ON DUPLICATE KEY UPDATE `TradingSymbol`=VALUES(`TradingSymbol`), `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), `High`=VALUES(`High`), `Close`=VALUES(`Close`), `Volume`=VALUES(`Volume`), `OI`=VALUES(`OI`), `SnapshotDate`=VALUES(`SnapshotDate`), `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", tableName, insertDataString.Substring(1))
+
+                        canceller.Token.ThrowIfCancellationRequested()
+                        Dim numberOfdata As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
+
+                    End If
+                End If
+            End If
+        Catch ex As Exception
+
+        End Try
+    End Function
+#End Region
+
+#Region "Required Functions"
+    Private Async Function GetStockListAsync(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal currentDate As Date) As Task(Of List(Of InstrumentDetails))
+        Dim ret As List(Of InstrumentDetails) = Nothing
+        Dim tableName As String = Nothing
+        Select Case instrumentType
+            Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Positional
+                tableName = "active_instruments_cash"
+            Case InstrumentDetails.TypeOfInstrument.Commodity
+                tableName = "active_instruments_commodity"
+            Case InstrumentDetails.TypeOfInstrument.Currency
+                tableName = "active_instruments_currency"
+            Case InstrumentDetails.TypeOfInstrument.Futures
+                tableName = "active_instruments_futures"
+        End Select
+
         Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
             AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
             AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
             AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-            Dim dt As DataTable = Await sqlHlpr.RunSelectAsync("SELECT DISTINCT(`TRADING_SYMBOL`) FROM `active_instruments_cash`").ConfigureAwait(False)
+            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT` FROM `{0}` WHERE `AS_ON_DATE`<={1}"
+            queryString = String.Format(queryString, tableName, currentDate.ToString("yyyy-MM-dd"))
+
+            Dim dt As DataTable = Await sqlHlpr.RunSelectAsync(queryString).ConfigureAwait(False)
             canceller.Token.ThrowIfCancellationRequested()
             If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
                 For i = 0 To dt.Rows.Count - 1
                     canceller.Token.ThrowIfCancellationRequested()
-                    If Not IsDBNull(dt.Rows(i).Item(0)) Then
-                        If ret Is Nothing Then ret = New List(Of String)
-                        ret.Add(dt.Rows(i).Item(0))
+                    If Not IsDBNull(dt.Rows(i).Item(0)) AndAlso Not IsDBNull(dt.Rows(i).Item(1)) AndAlso Not IsDBNull(dt.Rows(i).Item(2)) Then
+                        Dim runningInstrument As InstrumentDetails = New InstrumentDetails
+                        runningInstrument.InstrumentToken = dt.Rows(i).Item(0)
+                        runningInstrument.TradingSymbol = dt.Rows(i).Item(1)
+                        runningInstrument.Segment = dt.Rows(i).Item(2)
+                        runningInstrument.InstrumentType = instrumentType
+
+                        If ret Is Nothing Then ret = New List(Of InstrumentDetails)
+                        ret.Add(runningInstrument)
                     End If
                 Next
             End If
@@ -317,12 +480,93 @@ Public Class frmMain
         Return ret
     End Function
 
-    Private Sub btnStop_Click(sender As Object, e As EventArgs) Handles btnStop.Click
-        canceller.Cancel()
-    End Sub
+    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
+        'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
+        'Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
+        Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
+        Dim ZerodhaIntradayHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/minute?oi=1&from={1}&to={2}"
+        Dim ZerodhaHistoricalURL As String = Nothing
+        Select Case typeOfData
+            Case DataType.EOD
+                ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
+            Case DataType.Intraday
+                ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
+        End Select
+        If instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
+            Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+            OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
+            Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
 
-    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
-        Timer1.Enabled = False
-        btnStart_Click(sender, e)
-    End Sub
+            ServicePointManager.Expect100Continue = False
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+            ServicePointManager.ServerCertificateValidationCallback = Function(s, Ca, CaC, sslPE)
+                                                                          Return True
+                                                                      End Function
+
+            Dim proxyToBeUsed As HttpProxy = Nothing
+            Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
+                AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+                AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+
+                Dim headers As New Dictionary(Of String, String)
+                headers.Add("Host", "kite.zerodha.com")
+                headers.Add("Accept", "*/*")
+                headers.Add("Accept-Encoding", "gzip, deflate")
+                headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
+                headers.Add("Authorization", String.Format("enctoken {0}", zerodhaDetails.ENCToken))
+                headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
+                headers.Add("sec-fetch-mode", "cors")
+                headers.Add("sec-fetch-site", "same-origin")
+                headers.Add("Connection", "keep-alive")
+
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+                                                                                    HttpMethod.Get,
+                                                                                    Nothing,
+                                                                                    False,
+                                                                                    headers,
+                                                                                    True,
+                                                                                    "application/json").ConfigureAwait(False)
+                If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                    historicalCandlesJSONDict = l.Item2
+                End If
+                RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
+                RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
+                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            End Using
+
+            If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
+                historicalCandlesJSONDict.ContainsKey("data") Then
+                Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
+                If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
+                    Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
+                    If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+                    OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
+                    Dim previousPayload As Payload = Nothing
+                    For Each historicalCandle In historicalCandles
+                        Dim runningSnapshotTime As Date = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+
+                        Dim runningPayload As Payload = New Payload
+                        With runningPayload
+                            .PayloadDate = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+                            .TradingSymbol = tradingSymbol
+                            .Open = historicalCandle(1)
+                            .High = historicalCandle(2)
+                            .Low = historicalCandle(3)
+                            .Close = historicalCandle(4)
+                            .Volume = historicalCandle(5)
+                            .OI = historicalCandle(6)
+                        End With
+                        ret.Add(runningSnapshotTime, runningPayload)
+                    Next
+                End If
+            End If
+        End If
+        Return ret
+    End Function
+#End Region
+
 End Class

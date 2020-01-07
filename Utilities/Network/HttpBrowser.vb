@@ -136,8 +136,12 @@ Namespace Network
                 ElseIf response.Content.Headers.ContentType.MediaType = "application/json" Then
                     logger.Debug("Inside application/json output conversion")
                     Dim jsonString As String = Await response.Content.ReadAsStringAsync().ConfigureAwait(False)
-                    Dim retDictionary As Dictionary(Of String, Object) = JsonDeserialize(jsonString)
-                    Return retDictionary
+                    Try
+                        Dim retDictionary As Dictionary(Of String, Object) = JsonDeserialize(jsonString)
+                        Return retDictionary
+                    Catch ex As Exception
+                        Throw ex
+                    End Try
                 ElseIf response.Content.Headers.ContentType.MediaType = "text/csv" Then
                     logger.Debug("Inside text/csv output conversion")
                     Throw New NotImplementedException
