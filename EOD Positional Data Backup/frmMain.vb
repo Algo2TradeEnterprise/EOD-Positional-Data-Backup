@@ -288,7 +288,7 @@ Public Class frmMain
                             counter += 1
                             OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, positionalStockList.Count))
 
-                            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.EOD)
+                            Await ProcessData(lastDateToCheck, runningStock, sqlHlpr, zerodhaUser, DataType.EOD)
                         Next
                     End Using
                 End If
