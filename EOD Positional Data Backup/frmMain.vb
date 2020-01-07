@@ -456,7 +456,7 @@ Public Class frmMain
             AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT` FROM `{0}` WHERE `AS_ON_DATE`<={1}"
+            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT` FROM `{0}` WHERE `AS_ON_DATE`='{1}'"
             queryString = String.Format(queryString, tableName, currentDate.ToString("yyyy-MM-dd"))
 
             Dim dt As DataTable = Await sqlHlpr.RunSelectAsync(queryString).ConfigureAwait(False)
