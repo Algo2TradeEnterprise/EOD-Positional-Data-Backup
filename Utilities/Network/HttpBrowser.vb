@@ -457,12 +457,6 @@ Namespace Network
                         logger.Debug("Processing response")
                         Dim tempRet = Await GenerateResponseOutputAsync(response, responseType).ConfigureAwait(False)
 
-                        'TO DO: Remove below block
-                        If retryCtr < 3 Then
-                            tempRet = Nothing
-                        End If
-
-
                         If tempRet IsNot Nothing Then
                             logger.Debug("Processing object to be returned (Response URL:{0})", response.RequestMessage.RequestUri)
                             lastException = Nothing
