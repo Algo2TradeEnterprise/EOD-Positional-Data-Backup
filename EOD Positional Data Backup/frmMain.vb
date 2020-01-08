@@ -392,9 +392,10 @@ Public Class frmMain
                 Dim commodityStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Commodity, lastDateToCheck).ConfigureAwait(False)
                 Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
 
-#Region "Positional"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
-                UpdateDataType = DataType.EOD
+#Region "Future"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+                UpdateDataType = DataType.Intraday
                 total = 0
                 queued = 0
                 gettingData = 0
@@ -402,8 +403,8 @@ Public Class frmMain
                 writingData = 0
                 errorWritingData = 0
                 completed = 0
-                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
-                    total = positionalStockList.Count
+                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                    total = futureStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
                         AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
@@ -413,14 +414,14 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = positionalStockList.Select(Async Function(x)
-                                                               Try
-                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                               Catch ex As Exception
-                                                                   Throw ex
-                                                               End Try
-                                                               Return True
-                                                           End Function)
+                        tasks = futureStockList.Select(Async Function(x)
+                                                           Try
+                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                           Catch ex As Exception
+                                                               Throw ex
+                                                           End Try
+                                                           Return True
+                                                       End Function)
 
                         Dim mainTask As Task = Task.WhenAll(tasks)
                         Await mainTask.ConfigureAwait(False)
@@ -430,6 +431,48 @@ Public Class frmMain
                     End Using
                 End If
 #End Region
+
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                    total = futureStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = futureStockList.Select(Async Function(x)
+                                                           Try
+                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                           Catch ex As Exception
+                                                               Throw ex
+                                                           End Try
+                                                           Return True
+                                                       End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+#End Region
+
+                Exit Function
 
 #Region "Cash"
 #Region "Intraday"
@@ -511,48 +554,8 @@ Public Class frmMain
 #End Region
 #End Region
 
-#Region "Future"
-#Region "Intraday"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
-                UpdateDataType = DataType.Intraday
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
-                    total = futureStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
-
-                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = futureStockList.Select(Async Function(x)
-                                                           Try
-                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                           Catch ex As Exception
-                                                               Throw ex
-                                                           End Try
-                                                           Return True
-                                                       End Function)
-
-                        Dim mainTask As Task = Task.WhenAll(tasks)
-                        Await mainTask.ConfigureAwait(False)
-                        If mainTask.Exception IsNot Nothing Then
-                            Throw mainTask.Exception
-                        End If
-                    End Using
-                End If
-#End Region
-
-#Region "EOD"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+#Region "Positional"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
                 UpdateDataType = DataType.EOD
                 total = 0
                 queued = 0
@@ -561,8 +564,8 @@ Public Class frmMain
                 writingData = 0
                 errorWritingData = 0
                 completed = 0
-                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
-                    total = futureStockList.Count
+                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                    total = positionalStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
                         AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
@@ -572,14 +575,14 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = futureStockList.Select(Async Function(x)
-                                                           Try
-                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                           Catch ex As Exception
-                                                               Throw ex
-                                                           End Try
-                                                           Return True
-                                                       End Function)
+                        tasks = positionalStockList.Select(Async Function(x)
+                                                               Try
+                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                               Catch ex As Exception
+                                                                   Throw ex
+                                                               End Try
+                                                               Return True
+                                                           End Function)
 
                         Dim mainTask As Task = Task.WhenAll(tasks)
                         Await mainTask.ConfigureAwait(False)
@@ -589,7 +592,9 @@ Public Class frmMain
                     End Using
                 End If
 #End Region
-#End Region
+
+
+
 
 #Region "Commodity"
 #Region "Intraday"
@@ -770,13 +775,13 @@ Public Class frmMain
     Private _internetHitCount As Integer = 0
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
-            queued += 1
+            Interlocked.Increment(queued)
             UpdateLabels()
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
-            queued -= 1
-            gettingData += 1
+            Interlocked.Decrement(queued)
+            Interlocked.Increment(gettingData)
             UpdateLabels()
 
             Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
@@ -870,9 +875,11 @@ Public Class frmMain
                 UpdateLabels()
                 Dim historicalDataReturn As Tuple(Of Boolean, Dictionary(Of Date, Payload)) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
+                Interlocked.Decrement(gettingData)
+                UpdateLabels()
                 If historicalDataReturn IsNot Nothing Then
-                    gettingData -= 1
-                    If historicalDataReturn.Item1 Then errorGettingData -= 1
+                    If historicalDataReturn.Item1 Then Interlocked.Decrement(errorGettingData)
+                    Interlocked.Increment(writingData)
                     UpdateLabels()
 
                     Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
@@ -956,16 +963,25 @@ Public Class frmMain
                                                              tableName, insertDataString.Substring(1))
                             End If
                             canceller.Token.ThrowIfCancellationRequested()
-                            writingData += 1
-                            UpdateLabels()
                             Dim numberOfRetry As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
-                            writingData -= 1
+                            Interlocked.Decrement(writingData)
                             If numberOfRetry < 0 Then errorWritingData -= 1
                             completed += 1
                             UpdateLabels()
                         End If
+                    Else
+                        gettingData -= 1
+                        errorGettingData += 1
+                        UpdateLabels()
                     End If
+                Else
+                    gettingData -= 1
+                    errorGettingData += 1
+                    UpdateLabels()
+                    'If historicalDataReturn.Item1 Then errorGettingData -= 1
                 End If
+            Else
+                Console.Write(instrument.TradingSymbol)
             End If
         Catch ex As Exception
             Throw ex
@@ -1015,7 +1031,7 @@ Public Class frmMain
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                         ret.Add(runningInstrument)
 
-                        If i >= 10 Then Exit For
+                        If i >= 100 Then Exit For
                     End If
                 Next
             End If
