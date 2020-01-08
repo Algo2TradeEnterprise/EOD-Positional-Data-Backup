@@ -505,7 +505,7 @@ Public Class frmMain
                 canceller.Token.ThrowIfCancellationRequested()
                 If historicalDataReturn IsNot Nothing Then
                     gettingData -= 1
-                    If historicalDataReturn.Item1 > 1 Then errorGettingData -= 1
+                    If historicalDataReturn.Item1 Then errorGettingData -= 1
                     UpdateLabels()
 
                     Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
