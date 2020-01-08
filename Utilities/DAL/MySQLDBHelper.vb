@@ -206,6 +206,7 @@ Namespace DAL
                             End If
                         Catch ex As Exception
                             logger.Error(ex)
+                            Console.WriteLine(ex.Message)
                             lastException = ex
                             If Not firstTimeErrorSend Then
                                 OnFirstError()
