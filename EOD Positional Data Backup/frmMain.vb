@@ -942,7 +942,7 @@ Public Class frmMain
                                                             `SnapshotTime`,
                                                             `UpdateToDBTime`)
                                                             VALUES {1}
-                                                            ON ON DUPLICATE KEY UPDATE
+                                                            ON DUPLICATE KEY UPDATE
                                                             `TradingSymbol`=VALUES(`TradingSymbol`),
                                                             `SnapshotDateTime`=VALUES(`SnapshotDateTime`),
                                                             `Open`=VALUES(`Open`),
