@@ -204,9 +204,6 @@ Public Class frmMain
     Private Sub OnHeartbeat(message As String)
         SetLabelText_ThreadSafe(lblProgress, message)
     End Sub
-    Private Sub OnHeartbeatMain(message As String)
-        SetLabelText_ThreadSafe(lblOverallProgress, message)
-    End Sub
     Private Sub OnDocumentDownloadComplete()
         'OnHeartbeat("Document download compelete")
     End Sub
@@ -223,7 +220,33 @@ Public Class frmMain
         Intraday
     End Enum
 
+    Private total As Integer = 0
+    Private historicalCount As Integer = 0
+    Private databaseCount As Integer = 0
+
     Private canceller As CancellationTokenSource
+
+    Private Sub UpdateLabels(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal dataTyp As DataType)
+        Dim totalLabel As Label = Nothing
+        Dim historicalDoneLabel As Label = Nothing
+        Dim databaseDoneLabel As Label = Nothing
+        Dim totalDoneLabel As Label = Nothing
+        Dim waitingLabel As Label = Nothing
+        Select Case instrumentType
+            Case InstrumentDetails.TypeOfInstrument.Positional
+                totalLabel = lblPstnlTotal
+                historicalDoneLabel = lblPstnlHstrclDone
+                databaseDoneLabel = lblPstnlDBDone
+                totalDoneLabel = lblPstnlTotalDone
+                waitingLabel = lblPstnlWaiting
+        End Select
+
+        SetLabelText_ThreadSafe(totalLabel, String.Format("Total : {0}", total))
+        SetLabelText_ThreadSafe(historicalDoneLabel, String.Format("Historical Done : {0}", historicalCount))
+        SetLabelText_ThreadSafe(databaseDoneLabel, String.Format("Database Done : {0}", databaseCount))
+        SetLabelText_ThreadSafe(totalDoneLabel, String.Format("Total Done : {0}", databaseCount))
+        SetLabelText_ThreadSafe(waitingLabel, String.Format("Waiting : {0}", total - historicalCount))
+    End Sub
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
@@ -276,20 +299,13 @@ Public Class frmMain
 
 #Region "Positional"
                 If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                    total = positionalStockList.Count
+
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
                         AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
                         AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                         AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
                         AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-
-                        'Dim counter As Integer = 0
-                        'For Each runningStock In positionalStockList
-                        '    canceller.Token.ThrowIfCancellationRequested()
-                        '    counter += 1
-                        '    OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, positionalStockList.Count))
-
-                        '    Await ProcessData(lastDateToCheck, runningStock, sqlHlpr, zerodhaUser, DataType.EOD)
-                        'Next
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                         tasks = positionalStockList.Select(Async Function(x)
@@ -306,14 +322,6 @@ Public Class frmMain
                         If mainTask.Exception IsNot Nothing Then
                             Throw mainTask.Exception
                         End If
-                        'Dim tasks As New List(Of Task)()
-                        'For Each tradableStrategyInstrument As PetDGandhiStrategyInstrument In TradableStrategyInstruments
-                        '    _cts.Token.ThrowIfCancellationRequested()
-                        '    tasks.Add(Task.Run(AddressOf tradableStrategyInstrument.MonitorAsync, _cts.Token))
-                        'Next
-                        'tasks.Add(Task.Run(AddressOf ForceExitAllTradesAsync, _cts.Token))
-                        'If CType(Me.UserSettings, PetDGandhiUserInputs).AutoSelectStock Then tasks.Add(Task.Run(AddressOf CompleteProcessAsync, _cts.Token))
-                        'Await Task.WhenAll(tasks).ConfigureAwait(False)
                     End Using
                 End If
 #End Region
@@ -356,8 +364,7 @@ Public Class frmMain
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
             SetObjectEnableDisable_ThreadSafe(btnStart, True)
-            SetLabelText_ThreadSafe(lblProgress, "")
-            SetLabelText_ThreadSafe(lblOverallProgress, "Process Complete")
+            SetLabelText_ThreadSafe(lblProgress, "Process Complete")
         End Try
     End Function
 
@@ -365,14 +372,13 @@ Public Class frmMain
     Private _internetHitCount As Integer = 0
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
-            Console.WriteLine(String.Format("Before:{0}", _internetHitCount))
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
-            Console.WriteLine(String.Format("After:{0}", _internetHitCount))
             Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
             Interlocked.Increment(_internetHitCount)
 
+#Region "table name & date selection"
             Dim startDate As Date = Date.MinValue
             Dim endDate As Date = Date.MinValue
             Select Case instrument.InstrumentType
@@ -384,67 +390,84 @@ Public Class frmMain
                     endDate = currentDate
             End Select
             Dim tableName As String = Nothing
-            Select Case instrument.InstrumentType
-                Case InstrumentDetails.TypeOfInstrument.Positional
-                    tableName = "eod_positional_data"
-                Case InstrumentDetails.TypeOfInstrument.Cash
-                    If typeOfData = DataType.EOD Then
-                        tableName = "eod_prices_cash"
-                    ElseIf typeOfData = DataType.Intraday Then
-                        tableName = "intraday_prices_cash"
-                    End If
-                Case InstrumentDetails.TypeOfInstrument.Futures
-                    If typeOfData = DataType.EOD Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
-                            tableName = "eod_prices_futures"
-                        Else
-                            tableName = "eod_prices_opt_futures"
-                        End If
-                    ElseIf typeOfData = DataType.Intraday Then
-                        If instrument.Segment.ToUpper = "NFO-FUT" Then
-                            tableName = "intraday_prices_futures"
-                        Else
-                            tableName = "intraday_prices_opt_futures"
-                        End If
-                    End If
-                Case InstrumentDetails.TypeOfInstrument.Commodity
-                    If typeOfData = DataType.EOD Then
-                        If instrument.Segment.ToUpper = "MCX" Then
-                            tableName = "eod_prices_commodity"
-                        Else
-                            tableName = "eod_prices_opt_commodity"
-                        End If
-                    ElseIf typeOfData = DataType.Intraday Then
-                        If instrument.Segment.ToUpper = "MCX" Then
-                            tableName = "intraday_prices_commodity"
-                        Else
-                            tableName = "intraday_prices_opt_commodity"
-                        End If
-                    End If
-                Case InstrumentDetails.TypeOfInstrument.Currency
-                    If typeOfData = DataType.EOD Then
-                        If instrument.Segment.ToUpper = "CDS-FUT" Then
-                            tableName = "eod_prices_currency"
-                        Else
-                            tableName = "eod_prices_opt_currency"
-                        End If
-                    ElseIf typeOfData = DataType.Intraday Then
-                        If instrument.Segment.ToUpper = "CDS-FUT" Then
-                            tableName = "intraday_prices_currency"
-                        Else
-                            tableName = "intraday_prices_opt_currency"
-                        End If
-                    End If
-            End Select
-            If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue Then
-                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
-                If historicalData IsNot Nothing Then
-                    Console.WriteLine("After hit for:{0}, count:{1}", instrument.TradingSymbol, historicalData.Count)
-                End If
-                canceller.Token.ThrowIfCancellationRequested()
-                'TO DO: Removwe below line
-                'historicalData = Nothing
+            If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
+                tableName = "eod_positional_data"
+            Else
+                Select Case instrument.Exchange
+                    Case "NSE"
+                        Select Case instrument.Segment
+                            Case "NSE", "NSE-INDICES", "INDICES"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_cash"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_cash"
+                                End If
+                            Case Else
+                                Throw New NotImplementedException
+                        End Select
+                    Case "NFO"
+                        Select Case instrument.Segment
+                            Case "NFO-FUT"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_futures"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_futures"
+                                End If
+                            Case "NFO-OPT"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_opt_futures"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_opt_futures"
+                                End If
+                            Case Else
+                                Throw New NotImplementedException
+                        End Select
+                    Case "MCX"
+                        Select Case instrument.Segment
+                            Case "MCX"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_commodity"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_commodity"
+                                End If
+                            Case "MCX-OPT"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_opt_commodity"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_opt_commodity"
+                                End If
+                            Case Else
+                                Throw New NotImplementedException
+                        End Select
+                    Case "CDS"
+                        Select Case instrument.Segment
+                            Case "CDS-FUT"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_currency"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_currency"
+                                End If
+                            Case "CDS-OPT"
+                                If typeOfData = DataType.Intraday Then
+                                    tableName = "intraday_prices_opt_currency"
+                                ElseIf typeOfData = DataType.EOD Then
+                                    tableName = "eod_prices_opt_currency"
+                                End If
+                            Case Else
+                                Throw New NotImplementedException
+                        End Select
+                    Case Else
+                        Throw New NotImplementedException
+                End Select
+            End If
+#End Region
 
+            If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
+                UpdateLabels(instrument.InstrumentType, typeOfData)
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                historicalCount += 1
+                UpdateLabels(instrument.InstrumentType, typeOfData)
+                canceller.Token.ThrowIfCancellationRequested()
                 If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
                     Dim insertDataString As String = Nothing
                     For Each runningPayload In historicalData.Values
@@ -465,7 +488,8 @@ Public Class frmMain
 
                         canceller.Token.ThrowIfCancellationRequested()
                         Dim numberOfdata As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
-
+                        databaseCount += 1
+                        UpdateLabels(instrument.InstrumentType, typeOfData)
                     End If
                 End If
             End If
@@ -498,7 +522,7 @@ Public Class frmMain
             AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT` FROM `{0}` WHERE `AS_ON_DATE`='{1}'"
+            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE` FROM `{0}` WHERE `AS_ON_DATE`='{1}'"
             queryString = String.Format(queryString, tableName, currentDate.ToString("yyyy-MM-dd"))
 
             Dim dt As DataTable = Await sqlHlpr.RunSelectAsync(queryString).ConfigureAwait(False)
@@ -511,6 +535,7 @@ Public Class frmMain
                         runningInstrument.InstrumentToken = dt.Rows(i).Item(0)
                         runningInstrument.TradingSymbol = dt.Rows(i).Item(1)
                         runningInstrument.Segment = dt.Rows(i).Item(2)
+                        runningInstrument.Exchange = dt.Rows(i).Item(3)
                         runningInstrument.InstrumentType = instrumentType
 
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)

@@ -507,6 +507,14 @@ Namespace Network
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 'Since site service is blocked, no need to consume retries
                                 retryCtr -= 1
+                            ElseIf ExceptionExtensions.GetExceptionMessages(hex).Contains("Authentication failed because the remote party has closed the transport stream") Then
+                                logger.Debug("HTTP->'Closed the transport stream' error without internet problem:{0}",
+                                             hex.Message)
+                                _canceller.Token.ThrowIfCancellationRequested()
+                                Waiter.SleepRequiredDuration(WaitDurationOnServiceUnavailbleFailure.TotalSeconds, "Closed the transport stream")
+                                _canceller.Token.ThrowIfCancellationRequested()
+                                'Since site service is blocked, no need to consume retries
+                                retryCtr -= 1
                             ElseIf hex.Message.Contains("404") Then
                                 logger.Debug("HTTP->404 error without internet problem:{0}",
                                              hex.Message)
