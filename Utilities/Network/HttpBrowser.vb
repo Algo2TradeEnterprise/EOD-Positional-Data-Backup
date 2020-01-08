@@ -20,6 +20,7 @@ Namespace Network
         Public Event DocumentRetryStatus(ByVal currentTry As Integer, ByVal totalTries As Integer)
         Public Event Heartbeat(ByVal msg As String)
         Public Event WaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
+        Public Event FirstError()
         'The below functions are needed to allow the derived classes to raise the above two events
         Protected Overridable Sub OnDocumentDownloadComplete()
             RaiseEvent DocumentDownloadComplete()
@@ -32,6 +33,12 @@ Namespace Network
         End Sub
         Protected Overridable Sub OnWaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
             RaiseEvent WaitingFor(elapsedSecs, totalSecs, msg)
+        End Sub
+        Protected Overridable Sub OnFirstError()
+            If Not Me.FirstErrorSend Then
+                RaiseEvent FirstError()
+                Me.FirstErrorSend = True
+            End If
         End Sub
 #End Region
 
@@ -116,7 +123,7 @@ Namespace Network
         Public Property WaitDurationOnServiceUnavailbleFailure As TimeSpan = TimeSpan.FromSeconds(30)
         Public Property WaitDurationOnAnyFailure As TimeSpan = TimeSpan.FromSeconds(10)
 
-        Public Property RetryCounterForDisplay As Integer = 0
+        Public Property FirstErrorSend As Boolean = False
 #End Region
 
 #Region "Private Methods"
@@ -461,7 +468,6 @@ Namespace Network
                             lastException = Nothing
                             allOKWithoutException = True
                             retTuple = New Tuple(Of Uri, Object)(response.RequestMessage.RequestUri, tempRet)
-                            Me.RetryCounterForDisplay = retryCtr
                             Exit For
                         Else
                             Throw New ApplicationException(String.Format("HTML download did not succeed, URL attempted:{0}, Proxy:{1}", URLToBrowse, If(_httpHandler.Proxy IsNot Nothing, _httpHandler.Proxy.ToString, "NULL")))
@@ -475,6 +481,7 @@ Namespace Network
                             Exit For
                         End If
                         If Not _canceller.Token.IsCancellationRequested Then
+                            OnFirstError()
                             _canceller.Token.ThrowIfCancellationRequested()
                             If Not Waiter.WaitOnInternetFailure(Me.WaitDurationOnConnectionFailure) Then
                                 'Provide required wait in case internet was already up
@@ -494,6 +501,7 @@ Namespace Network
                         logger.Error(hex)
                         lastException = hex
                         'Need to relogin, no point retrying
+                        OnFirstError()
                         If (response IsNot Nothing AndAlso response.StatusCode = "400") Then
                             Throw New URLMisFormedException(hex.Message, hex, URLMisFormedException.TypeOfException.BadURL)
                         End If
@@ -559,6 +567,7 @@ Namespace Network
                         lastException = ex
                         'Exit if it is a network failure check and stop retry to avoid stack overflow
                         'Need to relogin, no point retrying
+                        OnFirstError()
                         If ExceptionExtensions.GetExceptionMessages(ex).Contains("disposed") Then
                             Throw New ForbiddenException(ex.Message, ex, ForbiddenException.TypeOfException.ExceptionInBetweenLoginProcess)
                         End If

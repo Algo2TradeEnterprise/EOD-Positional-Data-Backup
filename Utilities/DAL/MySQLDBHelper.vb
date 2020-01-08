@@ -10,6 +10,13 @@ Namespace DAL
         Implements IDisposable
 
         '************** Events and loggers are in the base class ***************
+#Region "Event"
+        Public Event FirstError()
+        Protected Sub OnFirstError()
+            RaiseEvent FirstError()
+        End Sub
+#End Region
+
 #Region "Constructor"
         Public Sub New(ByVal serverName As String,
                        ByVal dbName As String,
@@ -145,6 +152,7 @@ Namespace DAL
             Using waiter As New Waiter(_canceller)
                 AddHandler waiter.Heartbeat, AddressOf OnHeartbeat
                 AddHandler waiter.WaitingFor, AddressOf OnWaitingFor
+                Dim firstTimeErrorSend As Boolean = False
                 For retryCtr = 1 To MaxReTries
                     _canceller.Token.ThrowIfCancellationRequested()
                     ret = 0
@@ -168,8 +176,8 @@ Namespace DAL
                                 End If
                                 lastException = Nothing
                                 allOKWithoutException = True
-                                'Below line is written to fufill the purpose specific to this project
-                                ret = retryCtr
+                                'Below line is done to fulfil the purpose of this project
+                                If firstTimeErrorSend Then ret = -1
                                 Exit For
                             End Using
                             _canceller.Token.ThrowIfCancellationRequested()
@@ -177,6 +185,10 @@ Namespace DAL
                             logger.Error(opx)
                             lastException = opx
                             If Not _canceller.Token.IsCancellationRequested Then
+                                If Not firstTimeErrorSend Then
+                                    OnFirstError()
+                                    firstTimeErrorSend = True
+                                End If
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 If Not waiter.WaitOnInternetFailure(Me.WaitDurationOnConnectionFailure) Then
                                     'Provide required wait in case internet was already up
@@ -195,6 +207,10 @@ Namespace DAL
                         Catch ex As Exception
                             logger.Error(ex)
                             lastException = ex
+                            If Not firstTimeErrorSend Then
+                                OnFirstError()
+                                firstTimeErrorSend = True
+                            End If
                             _canceller.Token.ThrowIfCancellationRequested()
                             If Not waiter.WaitOnInternetFailure(Me.WaitDurationOnConnectionFailure) Then
                                 'Provide required wait in case internet was already up

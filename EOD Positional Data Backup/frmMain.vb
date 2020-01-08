@@ -207,18 +207,19 @@ Public Class frmMain
     Private Sub OnDocumentDownloadComplete()
         'OnHeartbeat("Document download compelete")
     End Sub
-    Private Sub OnDocumentRetryStatusGettingData(currentTry As Integer, totalTries As Integer)
+    Private Sub OnDocumentRetryStatus(currentTry As Integer, totalTries As Integer)
         OnHeartbeat(String.Format("Try #{0}/{1}: Connecting...", currentTry, totalTries))
-        If currentTry = 2 Then errorGettingData += 1
-        UpdateLabels()
-    End Sub
-    Private Sub OnDocumentRetryStatusWritingData(currentTry As Integer, totalTries As Integer)
-        OnHeartbeat(String.Format("Try #{0}/{1}: Connecting...", currentTry, totalTries))
-        If currentTry = 2 Then errorWritingData += 1
-        UpdateLabels()
     End Sub
     Public Sub OnWaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
         OnHeartbeat(String.Format("{0}, waiting {1}/{2} secs", msg, elapsedSecs, totalSecs))
+    End Sub
+    Private Sub OnFirstErrorGettingData()
+        errorGettingData += 1
+        UpdateLabels()
+    End Sub
+    Private Sub OnFirstErrorWritingData()
+        errorWritingData += 1
+        UpdateLabels()
     End Sub
 #End Region
 
@@ -333,8 +334,9 @@ Public Class frmMain
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
                         AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
                         AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatusWritingData
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
                         AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                         tasks = positionalStockList.Take(20).Select(Async Function(x)
@@ -403,7 +405,6 @@ Public Class frmMain
         Try
             queued += 1
             UpdateLabels()
-            Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
@@ -500,14 +501,11 @@ Public Class frmMain
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
-                Dim historicalDataReturn As Tuple(Of Integer, Dictionary(Of Date, Payload)) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                Dim historicalDataReturn As Tuple(Of Boolean, Dictionary(Of Date, Payload)) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
                 If historicalDataReturn IsNot Nothing Then
                     gettingData -= 1
-                    If historicalDataReturn.Item1 > 1 Then
-                        Console.WriteLine(instrument.TradingSymbol)
-                        'errorGettingData -= 1
-                    End If
+                    If historicalDataReturn.Item1 > 1 Then errorGettingData -= 1
                     UpdateLabels()
 
                     Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
@@ -533,7 +531,7 @@ Public Class frmMain
                             UpdateLabels()
                             Dim numberOfRetry As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
                             writingData -= 1
-                            If numberOfRetry > 1 Then errorWritingData -= 1
+                            If numberOfRetry < 0 Then errorWritingData -= 1
                             completed += 1
                             UpdateLabels()
                         End If
@@ -594,8 +592,8 @@ Public Class frmMain
         Return ret
     End Function
 
-    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Tuple(Of Integer, Dictionary(Of Date, Payload)))
-        Dim ret As Tuple(Of Integer, Dictionary(Of Date, Payload)) = Nothing
+    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Tuple(Of Boolean, Dictionary(Of Date, Payload)))
+        Dim ret As Tuple(Of Boolean, Dictionary(Of Date, Payload)) = Nothing
         'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
         'Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
@@ -619,12 +617,13 @@ Public Class frmMain
                                                                       End Function
 
             Dim proxyToBeUsed As HttpProxy = Nothing
-            Dim retryCounter As Integer = 0
+            Dim errorSend As Boolean = False
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
                 AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 AddHandler browser.Heartbeat, AddressOf OnHeartbeat
                 AddHandler browser.WaitingFor, AddressOf OnWaitingFor
-                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatusGettingData
+                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                AddHandler browser.FirstError, AddressOf OnFirstErrorGettingData
 
                 Dim headers As New Dictionary(Of String, String)
                 headers.Add("Host", "kite.zerodha.com")
@@ -648,12 +647,13 @@ Public Class frmMain
                 canceller.Token.ThrowIfCancellationRequested()
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     historicalCandlesJSONDict = l.Item2
-                    retryCounter = browser.RetryCounterForDisplay
+                    errorSend = browser.FirstErrorSend
                 End If
                 RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
                 RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
-                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatusGettingData
+                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                RemoveHandler browser.FirstError, AddressOf OnFirstErrorGettingData
             End Using
 
             If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
@@ -682,7 +682,7 @@ Public Class frmMain
                         historicalData.Add(runningSnapshotTime, runningPayload)
                     Next
 
-                    ret = New Tuple(Of Integer, Dictionary(Of Date, Payload))(retryCounter, historicalData)
+                    ret = New Tuple(Of Boolean, Dictionary(Of Date, Payload))(errorSend, historicalData)
                 End If
             End If
         End If
