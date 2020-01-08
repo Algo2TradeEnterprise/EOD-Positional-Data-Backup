@@ -503,7 +503,10 @@ Public Class frmMain
                 canceller.Token.ThrowIfCancellationRequested()
                 If historicalDataReturn IsNot Nothing Then
                     gettingData -= 1
-                    If historicalDataReturn.Item1 > 1 Then errorGettingData -= 1
+                    If historicalDataReturn.Item1 > 1 Then
+                        Console.WriteLine(instrument.TradingSymbol)
+                        errorGettingData -= 1
+                    End If
                     UpdateLabels()
 
                     Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
