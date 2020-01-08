@@ -505,7 +505,7 @@ Public Class frmMain
                     gettingData -= 1
                     If historicalDataReturn.Item1 > 1 Then
                         Console.WriteLine(instrument.TradingSymbol)
-                        errorGettingData -= 1
+                        'errorGettingData -= 1
                     End If
                     UpdateLabels()
 
