@@ -249,6 +249,7 @@ Public Class frmMain
         Dim errorWritingDataLabel As Label = Nothing
         Dim completedLabel As Label = Nothing
 
+#Region "Label Selection"
         Select Case UpdateIntrumentType
             Case InstrumentDetails.TypeOfInstrument.Positional
                 totalLabel = lblPstnlTotal
@@ -258,7 +259,80 @@ Public Class frmMain
                 writingDataLabel = lblPstnlWritingData
                 errorWritingDataLabel = lblPstnlErrorWritingData
                 completedLabel = lblPstnlCompleted
+            Case InstrumentDetails.TypeOfInstrument.Cash
+                If UpdateDataType = DataType.Intraday Then
+                    totalLabel = lblIntradayCashTotal
+                    queuedLabel = lblIntradayCashQueue
+                    gettingDataLabel = lblIntradayCashGettingData
+                    errorGettingDataLabel = lblIntradayCashErrorGettingData
+                    writingDataLabel = lblIntradayCashWritingData
+                    errorWritingDataLabel = lblIntradayCashErrorWritingData
+                    completedLabel = lblIntradayCashCompleted
+                ElseIf UpdateDataType = DataType.EOD Then
+                    totalLabel = lblEODCashTotal
+                    queuedLabel = lblEODCashQueue
+                    gettingDataLabel = lblEODCashGettingData
+                    errorGettingDataLabel = lblEODCashErrorGettingData
+                    writingDataLabel = lblEODCashWritingData
+                    errorWritingDataLabel = lblEODCashErrorWritingData
+                    completedLabel = lblEODCashCompleted
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Futures
+                If UpdateDataType = DataType.Intraday Then
+                    totalLabel = lblIntradayFutureTotal
+                    queuedLabel = lblIntradayFutureQueue
+                    gettingDataLabel = lblIntradayFutureGettingData
+                    errorGettingDataLabel = lblIntradayFutureErrorGettingData
+                    writingDataLabel = lblIntradayFutureWritingData
+                    errorWritingDataLabel = lblIntradayFutureErrorWritingData
+                    completedLabel = lblIntradayFutureCompleted
+                ElseIf UpdateDataType = DataType.EOD Then
+                    totalLabel = lblEODFutureTotal
+                    queuedLabel = lblEODFutureQueue
+                    gettingDataLabel = lblEODFutureGettingData
+                    errorGettingDataLabel = lblEODFutureErrorGettingData
+                    writingDataLabel = lblEODFutureWritingData
+                    errorWritingDataLabel = lblEODFutureErrorWritingData
+                    completedLabel = lblEODFutureCompleted
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Commodity
+                If UpdateDataType = DataType.Intraday Then
+                    totalLabel = lblIntradayCommodityTotal
+                    queuedLabel = lblIntradayCommodityQueue
+                    gettingDataLabel = lblIntradayCommodityGettingData
+                    errorGettingDataLabel = lblIntradayCommodityErrorGettingData
+                    writingDataLabel = lblIntradayCommodityWritingData
+                    errorWritingDataLabel = lblIntradayCommodityErrorWritingData
+                    completedLabel = lblIntradayCommodityCompleted
+                ElseIf UpdateDataType = DataType.EOD Then
+                    totalLabel = lblEODCommodityTotal
+                    queuedLabel = lblEODCommodityQueue
+                    gettingDataLabel = lblEODCommodityGettingData
+                    errorGettingDataLabel = lblEODCommodityErrorGettingData
+                    writingDataLabel = lblEODCommodityWritingData
+                    errorWritingDataLabel = lblEODCommodityErrorWritingData
+                    completedLabel = lblEODCommodityCompleted
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Currency
+                If UpdateDataType = DataType.Intraday Then
+                    totalLabel = lblIntradayCurrencyTotal
+                    queuedLabel = lblIntradayCurrencyQueue
+                    gettingDataLabel = lblIntradayCurrencyGettingData
+                    errorGettingDataLabel = lblIntradayCurrencyErrorGettingData
+                    writingDataLabel = lblIntradayCurrencyWritingData
+                    errorWritingDataLabel = lblIntradayCurrencyErrorWritingData
+                    completedLabel = lblIntradayCurrencyCompleted
+                ElseIf UpdateDataType = DataType.EOD Then
+                    totalLabel = lblEODCurrencyTotal
+                    queuedLabel = lblEODCurrencyQueue
+                    gettingDataLabel = lblEODCurrencyGettingData
+                    errorGettingDataLabel = lblEODCurrencyErrorGettingData
+                    writingDataLabel = lblEODCurrencyWritingData
+                    errorWritingDataLabel = lblEODCurrencyErrorWritingData
+                    completedLabel = lblEODCurrencyCompleted
+                End If
         End Select
+#End Region
 
         SetLabelText_ThreadSafe(totalLabel, String.Format("Total: {0}", total))
         SetLabelText_ThreadSafe(queuedLabel, String.Format("Queued: {0}", queued))
@@ -357,34 +431,327 @@ Public Class frmMain
                 End If
 #End Region
 
-#Region "Normal"
-                'If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
-                '    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                '        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                '        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                '        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                '        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+#Region "Cash"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                UpdateDataType = DataType.Intraday
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                    total = cashStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
-                '        Dim counter As Integer = 0
-                '        For Each runningStock In cashStockList
-                '            canceller.Token.ThrowIfCancellationRequested()
-                '            counter += 1
-                '            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, cashStockList.Count))
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = cashStockList.Select(Async Function(x)
+                                                         Try
+                                                             Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                         Catch ex As Exception
+                                                             Throw ex
+                                                         End Try
+                                                         Return True
+                                                     End Function)
 
-                '            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.EOD)
-                '        Next
-
-                '        counter = 0
-                '        For Each runningStock In cashStockList
-                '            canceller.Token.ThrowIfCancellationRequested()
-                '            counter += 1
-                '            OnHeartbeatMain(String.Format("Processing for {0} ({1}/{2})", runningStock, counter, cashStockList.Count))
-
-                '            Await ProcessData(lastDateToCheck, runningStock, Nothing, zerodhaUser, DataType.Intraday)
-                '        Next
-                '    End Using
-                'End If
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
 #End Region
+
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                    total = cashStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = cashStockList.Select(Async Function(x)
+                                                         Try
+                                                             Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                         Catch ex As Exception
+                                                             Throw ex
+                                                         End Try
+                                                         Return True
+                                                     End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+#End Region
+
+#Region "Future"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+                UpdateDataType = DataType.Intraday
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                    total = futureStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = futureStockList.Select(Async Function(x)
+                                                           Try
+                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                           Catch ex As Exception
+                                                               Throw ex
+                                                           End Try
+                                                           Return True
+                                                       End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                    total = futureStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = futureStockList.Select(Async Function(x)
+                                                           Try
+                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                           Catch ex As Exception
+                                                               Throw ex
+                                                           End Try
+                                                           Return True
+                                                       End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+#End Region
+
+#Region "Commodity"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Commodity
+                UpdateDataType = DataType.Intraday
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
+                    total = commodityStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = commodityStockList.Select(Async Function(x)
+                                                              Try
+                                                                  Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                              Catch ex As Exception
+                                                                  Throw ex
+                                                              End Try
+                                                              Return True
+                                                          End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Commodity
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
+                    total = commodityStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = commodityStockList.Select(Async Function(x)
+                                                              Try
+                                                                  Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                              Catch ex As Exception
+                                                                  Throw ex
+                                                              End Try
+                                                              Return True
+                                                          End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+#End Region
+
+#Region "Currency"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Currency
+                UpdateDataType = DataType.Intraday
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
+                    total = currencyStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = currencyStockList.Select(Async Function(x)
+                                                             Try
+                                                                 Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                             Catch ex As Exception
+                                                                 Throw ex
+                                                             End Try
+                                                             Return True
+                                                         End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Currency
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
+                    total = currencyStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = currencyStockList.Select(Async Function(x)
+                                                             Try
+                                                                 Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                             Catch ex As Exception
+                                                                 Throw ex
+                                                             End Try
+                                                             Return True
+                                                         End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+#End Region
+
+
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
@@ -513,19 +880,81 @@ Public Class frmMain
                         Dim insertDataString As String = Nothing
                         For Each runningPayload In historicalData.Values
                             canceller.Token.ThrowIfCancellationRequested()
-                            insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
-                                                         insertDataString,
-                                                         runningPayload.TradingSymbol,
-                                                         runningPayload.Open,
-                                                         runningPayload.Low,
-                                                         runningPayload.High,
-                                                         runningPayload.Close,
-                                                         runningPayload.Volume,
-                                                         runningPayload.OI,
-                                                         runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                            If typeOfData = DataType.EOD Then
+                                insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
+                                                                 insertDataString,
+                                                                 runningPayload.TradingSymbol,
+                                                                 runningPayload.Open,
+                                                                 runningPayload.Low,
+                                                                 runningPayload.High,
+                                                                 runningPayload.Close,
+                                                                 runningPayload.Volume,
+                                                                 runningPayload.OI,
+                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                            ElseIf typeOfData = DataType.Intraday Then
+                                insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
+                                                                 insertDataString,
+                                                                 runningPayload.TradingSymbol,
+                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                                 runningPayload.Open,
+                                                                 runningPayload.Low,
+                                                                 runningPayload.High,
+                                                                 runningPayload.Close,
+                                                                 runningPayload.Volume,
+                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
+                                                                 runningPayload.PayloadDate.ToString("HH:mm:ss"))
+                            End If
                         Next
                         If insertDataString IsNot Nothing Then
-                            Dim insertString As String = String.Format("INSERT INTO `{0}` (`TradingSymbol`,`Open`,`Low`,`High`,`Close`,`Volume`,`OI`,`SnapshotDate`,`UpdateToDBTime`) VALUES {1} ON DUPLICATE KEY UPDATE `TradingSymbol`=VALUES(`TradingSymbol`), `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), `High`=VALUES(`High`), `Close`=VALUES(`Close`), `Volume`=VALUES(`Volume`), `OI`=VALUES(`OI`), `SnapshotDate`=VALUES(`SnapshotDate`), `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", tableName, insertDataString.Substring(1))
+                            Dim insertString As String = Nothing
+                            If typeOfData = DataType.EOD Then
+                                insertString = String.Format("INSERT INTO `{0}` 
+                                                            (`TradingSymbol`,
+                                                            `Open`,
+                                                            `Low`,
+                                                            `High`,
+                                                            `Close`,
+                                                            `Volume`,
+                                                            `OI`,
+                                                            `SnapshotDate`,
+                                                            `UpdateToDBTime`) 
+                                                            VALUES {1} 
+                                                            ON DUPLICATE KEY UPDATE 
+                                                            `TradingSymbol`=VALUES(`TradingSymbol`), 
+                                                            `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), 
+                                                            `High`=VALUES(`High`), 
+                                                            `Close`=VALUES(`Close`), 
+                                                            `Volume`=VALUES(`Volume`), 
+                                                            `OI`=VALUES(`OI`), 
+                                                            `SnapshotDate`=VALUES(`SnapshotDate`), 
+                                                            `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
+                                                             tableName, insertDataString.Substring(1))
+                            ElseIf typeOfData = DataType.Intraday Then
+                                insertString = String.Format("INSERT INTO `{0}` 
+                                                            (`TradingSymbol`,
+                                                            `SnapshotDateTime`,
+                                                            `Open`,
+                                                            `Low`,
+                                                            `High`,
+                                                            `Close`,
+                                                            `Volume`,
+                                                            `SnapshotDate`,
+                                                            `SnapshotTime`,
+                                                            `UpdateToDBTime`)
+                                                            VALUES {1}
+                                                            ON ON DUPLICATE KEY UPDATE
+                                                            `TradingSymbol`=VALUES(`TradingSymbol`),
+                                                            `SnapshotDateTime`=VALUES(`SnapshotDateTime`),
+                                                            `Open`=VALUES(`Open`),
+                                                            `Low`=VALUES(`Low`),
+                                                            `High`=VALUES(`High`),
+                                                            `Close`=VALUES(`Close`),
+                                                            `Volume`=VALUES(`Volume`),
+                                                            `SnapshotDate`=VALUES(`SnapshotDate`),
+                                                            `SnapshotTime`=VALUES(`SnapshotTime`),
+                                                            `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
+                                                             tableName, insertDataString.Substring(1))
+                            End If
                             canceller.Token.ThrowIfCancellationRequested()
                             writingData += 1
                             UpdateLabels()
@@ -585,6 +1014,8 @@ Public Class frmMain
 
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                         ret.Add(runningInstrument)
+
+                        If i >= 10 Then Exit For
                     End If
                 Next
             End If

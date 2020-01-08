@@ -30,7 +30,7 @@ Namespace DAL
             _userID = userID
             _password = password
             Me._canceller = canceller
-            _connectionString = String.Format("Server={0};Database={1};Port={2};Uid={3};Pwd={4};default command timeout=180;Pooling=True;Min Pool Size=2;Max Pool Size=30;UseAffectedRows=false;Allow User Variables=True", _serverName, _dbName, _port, _userID, _password)
+            _connectionString = String.Format("Server={0};Database={1};Port={2};Uid={3};Pwd={4};default command timeout=180;Pooling=True;Min Pool Size=1;Max Pool Size=1;UseAffectedRows=false;Allow User Variables=True", _serverName, _dbName, _port, _userID, _password)
         End Sub
 #End Region
 
@@ -206,7 +206,6 @@ Namespace DAL
                             End If
                         Catch ex As Exception
                             logger.Error(ex)
-                            Console.WriteLine(ex.Message)
                             lastException = ex
                             If Not firstTimeErrorSend Then
                                 OnFirstError()
