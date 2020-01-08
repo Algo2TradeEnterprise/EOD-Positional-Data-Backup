@@ -403,6 +403,7 @@ Public Class frmMain
         Try
             queued += 1
             UpdateLabels()
+            Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
