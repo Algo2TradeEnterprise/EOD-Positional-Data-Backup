@@ -451,7 +451,7 @@ Namespace Network
                         Dim tempRet = Await GenerateResponseOutputAsync(response, responseType).ConfigureAwait(False)
 
                         'TO DO: Remove below block
-                        If retryCtr < 3 Then
+                        If retryCtr < 15 Then
                             tempRet = Nothing
                         End If
 
