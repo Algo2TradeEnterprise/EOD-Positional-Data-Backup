@@ -530,6 +530,7 @@ Public Class frmMain
                             Dim numberOfRetry As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
                             writingData -= 1
                             If numberOfRetry > 1 Then errorWritingData -= 1
+                            completed += 1
                             UpdateLabels()
                         End If
                     End If
