@@ -339,14 +339,14 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = positionalStockList.Take(20).Select(Async Function(x)
-                                                                        Try
-                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                        Catch ex As Exception
-                                                                            Throw ex
-                                                                        End Try
-                                                                        Return True
-                                                                    End Function)
+                        tasks = positionalStockList.Select(Async Function(x)
+                                                               Try
+                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                               Catch ex As Exception
+                                                                   Throw ex
+                                                               End Try
+                                                               Return True
+                                                           End Function)
 
                         Dim mainTask As Task = Task.WhenAll(tasks)
                         Await mainTask.ConfigureAwait(False)
