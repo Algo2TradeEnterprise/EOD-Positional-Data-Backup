@@ -11,9 +11,9 @@ Namespace DAL
 
         '************** Events and loggers are in the base class ***************
 #Region "Event"
-        Public Event FirstError()
-        Protected Sub OnFirstError()
-            RaiseEvent FirstError()
+        Public Event FirstError(ByVal increaseOrDecrease As Integer)
+        Protected Sub OnFirstError(ByVal increaseOrDecrease As Integer)
+            RaiseEvent FirstError(increaseOrDecrease)
         End Sub
 #End Region
 
@@ -176,8 +176,7 @@ Namespace DAL
                                 End If
                                 lastException = Nothing
                                 allOKWithoutException = True
-                                'Below line is done to fulfil the purpose of this project
-                                If firstTimeErrorSend Then ret = -1
+                                If firstTimeErrorSend Then OnFirstError(-1)
                                 Exit For
                             End Using
                             _canceller.Token.ThrowIfCancellationRequested()
@@ -186,7 +185,7 @@ Namespace DAL
                             lastException = opx
                             If Not _canceller.Token.IsCancellationRequested Then
                                 If Not firstTimeErrorSend Then
-                                    OnFirstError()
+                                    OnFirstError(1)
                                     firstTimeErrorSend = True
                                 End If
                                 _canceller.Token.ThrowIfCancellationRequested()
@@ -208,7 +207,7 @@ Namespace DAL
                             logger.Error(ex)
                             lastException = ex
                             If Not firstTimeErrorSend Then
-                                OnFirstError()
+                                OnFirstError(1)
                                 firstTimeErrorSend = True
                             End If
                             _canceller.Token.ThrowIfCancellationRequested()

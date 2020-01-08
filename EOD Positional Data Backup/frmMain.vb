@@ -213,12 +213,14 @@ Public Class frmMain
     Public Sub OnWaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
         OnHeartbeat(String.Format("{0}, waiting {1}/{2} secs", msg, elapsedSecs, totalSecs))
     End Sub
-    Private Sub OnFirstErrorGettingData()
-        errorGettingData += 1
+    Private Sub OnFirstErrorGettingData(ByVal increaseDecrease As Integer)
+        If increaseDecrease > 0 Then Interlocked.Increment(errorGettingData)
+        If increaseDecrease < 0 Then Interlocked.Decrement(errorGettingData)
         UpdateLabels()
     End Sub
-    Private Sub OnFirstErrorWritingData()
-        errorWritingData += 1
+    Private Sub OnFirstErrorWritingData(ByVal increaseDecrease As Integer)
+        If increaseDecrease > 0 Then Interlocked.Increment(errorWritingData)
+        If increaseDecrease < 0 Then Interlocked.Decrement(errorWritingData)
         UpdateLabels()
     End Sub
 #End Region
@@ -593,9 +595,6 @@ Public Class frmMain
                 End If
 #End Region
 
-
-
-
 #Region "Commodity"
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Commodity
@@ -873,49 +872,46 @@ Public Class frmMain
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
-                Dim historicalDataReturn As Tuple(Of Boolean, Dictionary(Of Date, Payload)) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
                 Interlocked.Decrement(gettingData)
                 UpdateLabels()
-                If historicalDataReturn IsNot Nothing Then
-                    If historicalDataReturn.Item1 Then Interlocked.Decrement(errorGettingData)
+
+                If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
                     Interlocked.Increment(writingData)
                     UpdateLabels()
-
-                    Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
-                    If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
-                        Dim insertDataString As String = Nothing
-                        For Each runningPayload In historicalData.Values
-                            canceller.Token.ThrowIfCancellationRequested()
-                            If typeOfData = DataType.EOD Then
-                                insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
-                                                                 insertDataString,
-                                                                 runningPayload.TradingSymbol,
-                                                                 runningPayload.Open,
-                                                                 runningPayload.Low,
-                                                                 runningPayload.High,
-                                                                 runningPayload.Close,
-                                                                 runningPayload.Volume,
-                                                                 runningPayload.OI,
-                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
-                            ElseIf typeOfData = DataType.Intraday Then
-                                insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
-                                                                 insertDataString,
-                                                                 runningPayload.TradingSymbol,
-                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                                                                 runningPayload.Open,
-                                                                 runningPayload.Low,
-                                                                 runningPayload.High,
-                                                                 runningPayload.Close,
-                                                                 runningPayload.Volume,
-                                                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
-                                                                 runningPayload.PayloadDate.ToString("HH:mm:ss"))
-                            End If
-                        Next
-                        If insertDataString IsNot Nothing Then
-                            Dim insertString As String = Nothing
-                            If typeOfData = DataType.EOD Then
-                                insertString = String.Format("INSERT INTO `{0}` 
+                    Dim insertDataString As String = Nothing
+                    For Each runningPayload In historicalData.Values
+                        canceller.Token.ThrowIfCancellationRequested()
+                        If typeOfData = DataType.EOD Then
+                            insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
+                                                             insertDataString,
+                                                             runningPayload.TradingSymbol,
+                                                             runningPayload.Open,
+                                                             runningPayload.Low,
+                                                             runningPayload.High,
+                                                             runningPayload.Close,
+                                                             runningPayload.Volume,
+                                                             runningPayload.OI,
+                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                        ElseIf typeOfData = DataType.Intraday Then
+                            insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
+                                                             insertDataString,
+                                                             runningPayload.TradingSymbol,
+                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                                                             runningPayload.Open,
+                                                             runningPayload.Low,
+                                                             runningPayload.High,
+                                                             runningPayload.Close,
+                                                             runningPayload.Volume,
+                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
+                                                             runningPayload.PayloadDate.ToString("HH:mm:ss"))
+                        End If
+                    Next
+                    If insertDataString IsNot Nothing Then
+                        Dim insertString As String = Nothing
+                        If typeOfData = DataType.EOD Then
+                            insertString = String.Format("INSERT INTO `{0}` 
                                                             (`TradingSymbol`,
                                                             `Open`,
                                                             `Low`,
@@ -935,9 +931,9 @@ Public Class frmMain
                                                             `OI`=VALUES(`OI`), 
                                                             `SnapshotDate`=VALUES(`SnapshotDate`), 
                                                             `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                                                             tableName, insertDataString.Substring(1))
-                            ElseIf typeOfData = DataType.Intraday Then
-                                insertString = String.Format("INSERT INTO `{0}` 
+                                                         tableName, insertDataString.Substring(1))
+                        ElseIf typeOfData = DataType.Intraday Then
+                            insertString = String.Format("INSERT INTO `{0}` 
                                                             (`TradingSymbol`,
                                                             `SnapshotDateTime`,
                                                             `Open`,
@@ -960,25 +956,17 @@ Public Class frmMain
                                                             `SnapshotDate`=VALUES(`SnapshotDate`),
                                                             `SnapshotTime`=VALUES(`SnapshotTime`),
                                                             `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                                                             tableName, insertDataString.Substring(1))
-                            End If
-                            canceller.Token.ThrowIfCancellationRequested()
-                            Dim numberOfRetry As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
-                            Interlocked.Decrement(writingData)
-                            If numberOfRetry < 0 Then errorWritingData -= 1
-                            completed += 1
-                            UpdateLabels()
+                                                         tableName, insertDataString.Substring(1))
                         End If
-                    Else
-                        gettingData -= 1
-                        errorGettingData += 1
+                        canceller.Token.ThrowIfCancellationRequested()
+                        Dim numberOfData As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
+                        Interlocked.Decrement(writingData)
+                        Interlocked.Increment(completed)
                         UpdateLabels()
                     End If
                 Else
-                    gettingData -= 1
-                    errorGettingData += 1
+                    Interlocked.Increment(errorGettingData)
                     UpdateLabels()
-                    'If historicalDataReturn.Item1 Then errorGettingData -= 1
                 End If
             Else
                 Console.Write(instrument.TradingSymbol)
@@ -1039,8 +1027,8 @@ Public Class frmMain
         Return ret
     End Function
 
-    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Tuple(Of Boolean, Dictionary(Of Date, Payload)))
-        Dim ret As Tuple(Of Boolean, Dictionary(Of Date, Payload)) = Nothing
+    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
+        Dim ret As Dictionary(Of Date, Payload) = Nothing
         'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
         'Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
@@ -1065,7 +1053,6 @@ Public Class frmMain
 
             HttpBrowser.KillCookies()
             Dim proxyToBeUsed As HttpProxy = Nothing
-            Dim errorSend As Boolean = False
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
                 AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 AddHandler browser.Heartbeat, AddressOf OnHeartbeat
@@ -1095,7 +1082,6 @@ Public Class frmMain
                 canceller.Token.ThrowIfCancellationRequested()
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     historicalCandlesJSONDict = l.Item2
-                    errorSend = browser.FirstErrorSend
                 End If
                 RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
@@ -1109,7 +1095,6 @@ Public Class frmMain
                 Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
                 If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
                     Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
-                    Dim historicalData As Dictionary(Of Date, Payload) = New Dictionary(Of Date, Payload)
                     OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
                     Dim previousPayload As Payload = Nothing
                     For Each historicalCandle In historicalCandles
@@ -1127,10 +1112,9 @@ Public Class frmMain
                             .Volume = historicalCandle(5)
                             .OI = historicalCandle(6)
                         End With
-                        historicalData.Add(runningSnapshotTime, runningPayload)
+                        If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+                        ret.Add(runningSnapshotTime, runningPayload)
                     Next
-
-                    ret = New Tuple(Of Boolean, Dictionary(Of Date, Payload))(errorSend, historicalData)
                 End If
             End If
         End If
