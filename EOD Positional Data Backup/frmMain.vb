@@ -207,8 +207,15 @@ Public Class frmMain
     Private Sub OnDocumentDownloadComplete()
         'OnHeartbeat("Document download compelete")
     End Sub
-    Private Sub OnDocumentRetryStatus(currentTry As Integer, totalTries As Integer)
+    Private Sub OnDocumentRetryStatusGettingData(currentTry As Integer, totalTries As Integer)
         OnHeartbeat(String.Format("Try #{0}/{1}: Connecting...", currentTry, totalTries))
+        If currentTry = 2 Then errorGettingData += 1
+        UpdateLabels()
+    End Sub
+    Private Sub OnDocumentRetryStatusWritingData(currentTry As Integer, totalTries As Integer)
+        OnHeartbeat(String.Format("Try #{0}/{1}: Connecting...", currentTry, totalTries))
+        If currentTry = 2 Then errorWritingData += 1
+        UpdateLabels()
     End Sub
     Public Sub OnWaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
         OnHeartbeat(String.Format("{0}, waiting {1}/{2} secs", msg, elapsedSecs, totalSecs))
@@ -220,32 +227,45 @@ Public Class frmMain
         Intraday
     End Enum
 
+    Private UpdateIntrumentType As InstrumentDetails.TypeOfInstrument
+    Private UpdateDataType As DataType
     Private total As Integer = 0
-    Private historicalCount As Integer = 0
-    Private databaseCount As Integer = 0
+    Private queued As Integer = 0
+    Private gettingData As Integer = 0
+    Private errorGettingData As Integer = 0
+    Private writingData As Integer = 0
+    Private errorWritingData As Integer = 0
+    Private completed As Integer = 0
 
     Private canceller As CancellationTokenSource
 
-    Private Sub UpdateLabels(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal dataTyp As DataType)
+    Private Sub UpdateLabels()
         Dim totalLabel As Label = Nothing
-        Dim historicalDoneLabel As Label = Nothing
-        Dim databaseDoneLabel As Label = Nothing
-        Dim totalDoneLabel As Label = Nothing
-        Dim waitingLabel As Label = Nothing
-        Select Case instrumentType
+        Dim queuedLabel As Label = Nothing
+        Dim gettingDataLabel As Label = Nothing
+        Dim errorGettingDataLabel As Label = Nothing
+        Dim writingDataLabel As Label = Nothing
+        Dim errorWritingDataLabel As Label = Nothing
+        Dim completedLabel As Label = Nothing
+
+        Select Case UpdateIntrumentType
             Case InstrumentDetails.TypeOfInstrument.Positional
                 totalLabel = lblPstnlTotal
-                historicalDoneLabel = lblPstnlHstrclDone
-                databaseDoneLabel = lblPstnlDBDone
-                totalDoneLabel = lblPstnlTotalDone
-                waitingLabel = lblPstnlWaiting
+                queuedLabel = lblPstnlQueue
+                gettingDataLabel = lblPstnlGettingData
+                errorGettingDataLabel = lblPstnlErrorGettingData
+                writingDataLabel = lblPstnlWritingData
+                errorWritingDataLabel = lblPstnlErrorWritingData
+                completedLabel = lblPstnlCompleted
         End Select
 
-        SetLabelText_ThreadSafe(totalLabel, String.Format("Total : {0}", total))
-        SetLabelText_ThreadSafe(historicalDoneLabel, String.Format("Historical Done : {0}", historicalCount))
-        SetLabelText_ThreadSafe(databaseDoneLabel, String.Format("Database Done : {0}", databaseCount))
-        SetLabelText_ThreadSafe(totalDoneLabel, String.Format("Total Done : {0}", databaseCount))
-        SetLabelText_ThreadSafe(waitingLabel, String.Format("Waiting : {0}", total - historicalCount))
+        SetLabelText_ThreadSafe(totalLabel, String.Format("Total: {0}", total))
+        SetLabelText_ThreadSafe(queuedLabel, String.Format("Queued: {0}", queued))
+        SetLabelText_ThreadSafe(gettingDataLabel, String.Format("Getting Data: {0}", gettingData))
+        SetLabelText_ThreadSafe(errorGettingDataLabel, String.Format("Error Getting Data: {0}", errorGettingData))
+        SetLabelText_ThreadSafe(writingDataLabel, String.Format("Writing Data: {0}", writingData))
+        SetLabelText_ThreadSafe(errorWritingDataLabel, String.Format("Error Writing Data: {0}", errorWritingData))
+        SetLabelText_ThreadSafe(completedLabel, String.Format("Completed: {0}", completed))
     End Sub
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
@@ -276,7 +296,7 @@ Public Class frmMain
 
     Private Async Function StartProcessingAsync() As Task
         Try
-            Dim lastDateToCheck As Date = DateAdd(DateInterval.Day, -1, Now)
+            Dim lastDateToCheck As Date = Now
             Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
                                                                password:="Zerodha@123a",
                                                                apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
@@ -285,9 +305,9 @@ Public Class frmMain
                                                                _2FA:="111111",
                                                                canceller:=canceller)
             AddHandler zerodhaUser.Heartbeat, AddressOf OnHeartbeat
-            AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-            AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
+            'AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+            'AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            'AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
             Dim loginSuccesful As Boolean = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
 
             If loginSuccesful Then
@@ -298,24 +318,33 @@ Public Class frmMain
                 Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
 
 #Region "Positional"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
                 If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
                     total = positionalStockList.Count
-
+                    UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
                         AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
                         AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatusWritingData
                         AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = positionalStockList.Select(Async Function(x)
-                                                               Try
-                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                               Catch ex As Exception
-                                                                   Throw ex
-                                                               End Try
-                                                               Return True
-                                                           End Function)
+                        tasks = positionalStockList.Take(10).Select(Async Function(x)
+                                                                        Try
+                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                        Catch ex As Exception
+                                                                            Throw ex
+                                                                        End Try
+                                                                        Return True
+                                                                    End Function)
 
                         Dim mainTask As Task = Task.WhenAll(tasks)
                         Await mainTask.ConfigureAwait(False)
@@ -372,9 +401,15 @@ Public Class frmMain
     Private _internetHitCount As Integer = 0
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
+            queued += 1
+            UpdateLabels()
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
+            queued -= 1
+            gettingData += 1
+            UpdateLabels()
+
             Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
             Interlocked.Increment(_internetHitCount)
 
@@ -463,16 +498,20 @@ Public Class frmMain
 #End Region
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
-                UpdateLabels(instrument.InstrumentType, typeOfData)
-                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
-                historicalCount += 1
-                UpdateLabels(instrument.InstrumentType, typeOfData)
+                UpdateLabels()
+                Dim historicalDataReturn As Tuple(Of Integer, Dictionary(Of Date, Payload)) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
-                If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
-                    Dim insertDataString As String = Nothing
-                    For Each runningPayload In historicalData.Values
-                        canceller.Token.ThrowIfCancellationRequested()
-                        insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
+                If historicalDataReturn IsNot Nothing Then
+                    gettingData -= 1
+                    If historicalDataReturn.Item1 > 1 Then errorGettingData -= 1
+                    UpdateLabels()
+
+                    Dim historicalData As Dictionary(Of Date, Payload) = historicalDataReturn.Item2
+                    If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
+                        Dim insertDataString As String = Nothing
+                        For Each runningPayload In historicalData.Values
+                            canceller.Token.ThrowIfCancellationRequested()
+                            insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
                                                          insertDataString,
                                                          runningPayload.TradingSymbol,
                                                          runningPayload.Open,
@@ -482,14 +521,17 @@ Public Class frmMain
                                                          runningPayload.Volume,
                                                          runningPayload.OI,
                                                          runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
-                    Next
-                    If insertDataString IsNot Nothing Then
-                        Dim insertString As String = String.Format("INSERT INTO `{0}` (`TradingSymbol`,`Open`,`Low`,`High`,`Close`,`Volume`,`OI`,`SnapshotDate`,`UpdateToDBTime`) VALUES {1} ON DUPLICATE KEY UPDATE `TradingSymbol`=VALUES(`TradingSymbol`), `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), `High`=VALUES(`High`), `Close`=VALUES(`Close`), `Volume`=VALUES(`Volume`), `OI`=VALUES(`OI`), `SnapshotDate`=VALUES(`SnapshotDate`), `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", tableName, insertDataString.Substring(1))
-
-                        canceller.Token.ThrowIfCancellationRequested()
-                        Dim numberOfdata As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
-                        databaseCount += 1
-                        UpdateLabels(instrument.InstrumentType, typeOfData)
+                        Next
+                        If insertDataString IsNot Nothing Then
+                            Dim insertString As String = String.Format("INSERT INTO `{0}` (`TradingSymbol`,`Open`,`Low`,`High`,`Close`,`Volume`,`OI`,`SnapshotDate`,`UpdateToDBTime`) VALUES {1} ON DUPLICATE KEY UPDATE `TradingSymbol`=VALUES(`TradingSymbol`), `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), `High`=VALUES(`High`), `Close`=VALUES(`Close`), `Volume`=VALUES(`Volume`), `OI`=VALUES(`OI`), `SnapshotDate`=VALUES(`SnapshotDate`), `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", tableName, insertDataString.Substring(1))
+                            canceller.Token.ThrowIfCancellationRequested()
+                            writingData += 1
+                            UpdateLabels()
+                            Dim numberOfRetry As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
+                            writingData -= 1
+                            If numberOfRetry > 1 Then errorWritingData -= 1
+                            UpdateLabels()
+                        End If
                     End If
                 End If
             End If
@@ -518,9 +560,9 @@ Public Class frmMain
 
         Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
             AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-            AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-            AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+            'AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+            'AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            'AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
             Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE` FROM `{0}` WHERE `AS_ON_DATE`='{1}'"
             queryString = String.Format(queryString, tableName, currentDate.ToString("yyyy-MM-dd"))
@@ -547,8 +589,8 @@ Public Class frmMain
         Return ret
     End Function
 
-    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
-        Dim ret As Dictionary(Of Date, Payload) = Nothing
+    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Tuple(Of Integer, Dictionary(Of Date, Payload)))
+        Dim ret As Tuple(Of Integer, Dictionary(Of Date, Payload)) = Nothing
         'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
         'Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
@@ -572,11 +614,12 @@ Public Class frmMain
                                                                       End Function
 
             Dim proxyToBeUsed As HttpProxy = Nothing
+            Dim retryCounter As Integer = 0
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
                 AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 AddHandler browser.Heartbeat, AddressOf OnHeartbeat
                 AddHandler browser.WaitingFor, AddressOf OnWaitingFor
-                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatusGettingData
 
                 Dim headers As New Dictionary(Of String, String)
                 headers.Add("Host", "kite.zerodha.com")
@@ -600,11 +643,12 @@ Public Class frmMain
                 canceller.Token.ThrowIfCancellationRequested()
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     historicalCandlesJSONDict = l.Item2
+                    retryCounter = browser.RetryCounterForDisplay
                 End If
                 RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                 RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
                 RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
-                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatusGettingData
             End Using
 
             If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
@@ -612,7 +656,7 @@ Public Class frmMain
                 Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
                 If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
                     Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
-                    If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
+                    Dim historicalData As Dictionary(Of Date, Payload) = New Dictionary(Of Date, Payload)
                     OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
                     Dim previousPayload As Payload = Nothing
                     For Each historicalCandle In historicalCandles
@@ -630,8 +674,10 @@ Public Class frmMain
                             .Volume = historicalCandle(5)
                             .OI = historicalCandle(6)
                         End With
-                        ret.Add(runningSnapshotTime, runningPayload)
+                        historicalData.Add(runningSnapshotTime, runningPayload)
                     Next
+
+                    ret = New Tuple(Of Integer, Dictionary(Of Date, Payload))(retryCounter, historicalData)
                 End If
             End If
         End If

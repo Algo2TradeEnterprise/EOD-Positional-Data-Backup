@@ -115,6 +115,8 @@ Namespace Network
         Public Property WaitDurationOnConnectionFailure As TimeSpan = TimeSpan.FromSeconds(5)
         Public Property WaitDurationOnServiceUnavailbleFailure As TimeSpan = TimeSpan.FromSeconds(30)
         Public Property WaitDurationOnAnyFailure As TimeSpan = TimeSpan.FromSeconds(10)
+
+        Public Property RetryCounterForDisplay As Integer = 0
 #End Region
 
 #Region "Private Methods"
@@ -453,6 +455,7 @@ Namespace Network
                             lastException = Nothing
                             allOKWithoutException = True
                             retTuple = New Tuple(Of Uri, Object)(response.RequestMessage.RequestUri, tempRet)
+                            Me.RetryCounterForDisplay = retryCtr
                             Exit For
                         Else
                             Throw New ApplicationException(String.Format("HTML download did not succeed, URL attempted:{0}, Proxy:{1}", URLToBrowse, If(_httpHandler.Proxy IsNot Nothing, _httpHandler.Proxy.ToString, "NULL")))

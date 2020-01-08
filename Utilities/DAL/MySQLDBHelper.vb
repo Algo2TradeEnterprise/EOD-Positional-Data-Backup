@@ -168,6 +168,8 @@ Namespace DAL
                                 End If
                                 lastException = Nothing
                                 allOKWithoutException = True
+                                'Below line is written to fufill the purpose specific to this project
+                                ret = retryCtr
                                 Exit For
                             End Using
                             _canceller.Token.ThrowIfCancellationRequested()
