@@ -337,7 +337,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
                         Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = positionalStockList.Take(10).Select(Async Function(x)
+                        tasks = positionalStockList.Take(20).Select(Async Function(x)
                                                                         Try
                                                                             Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
                                                                         Catch ex As Exception
