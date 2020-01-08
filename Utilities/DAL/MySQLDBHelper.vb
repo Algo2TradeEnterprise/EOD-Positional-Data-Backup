@@ -169,6 +169,7 @@ Namespace DAL
                             OnHeartbeat("Updating to DB")
                             Using cmd As New MySqlCommand(stmtUpdate, dbConn)
                                 logger.Debug("Firing UPDATE/INSERT/DELETE statement:{0}", cmd.CommandText)
+                                If retryCtr < 3 Then Throw New ApplicationException("Test Exception")
                                 ret = Await cmd.ExecuteNonQueryAsync().ConfigureAwait(False)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 If ret = 0 Then

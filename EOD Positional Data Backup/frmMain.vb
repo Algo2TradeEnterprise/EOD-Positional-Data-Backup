@@ -616,6 +616,7 @@ Public Class frmMain
                                                                           Return True
                                                                       End Function
 
+            HttpBrowser.KillCookies()
             Dim proxyToBeUsed As HttpProxy = Nothing
             Dim errorSend As Boolean = False
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
