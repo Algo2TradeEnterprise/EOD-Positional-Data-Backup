@@ -253,7 +253,7 @@ Public Class frmMain
 
     Private Async Function StartProcessingAsync() As Task
         Try
-            Dim lastDateToCheck As Date = Now
+            Dim lastDateToCheck As Date = DateAdd(DateInterval.Day, -1, Now)
             Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
                                                                password:="Zerodha@123a",
                                                                apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
@@ -365,9 +365,11 @@ Public Class frmMain
     Private _internetHitCount As Integer = 0
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
+            Console.WriteLine(String.Format("Before:{0}", _internetHitCount))
             While _internetHitCount >= 10
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
             End While
+            Console.WriteLine(String.Format("After:{0}", _internetHitCount))
             Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
             Interlocked.Increment(_internetHitCount)
 
@@ -436,7 +438,13 @@ Public Class frmMain
             End Select
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue Then
                 Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                If historicalData IsNot Nothing Then
+                    Console.WriteLine("After hit for:{0}, count:{1}", instrument.TradingSymbol, historicalData.Count)
+                End If
                 canceller.Token.ThrowIfCancellationRequested()
+                'TO DO: Removwe below line
+                'historicalData = Nothing
+
                 If historicalData IsNot Nothing AndAlso historicalData.Count > 0 Then
                     Dim insertDataString As String = Nothing
                     For Each runningPayload In historicalData.Values
