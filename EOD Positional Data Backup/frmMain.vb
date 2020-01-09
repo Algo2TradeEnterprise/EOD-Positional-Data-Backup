@@ -580,7 +580,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -642,7 +642,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -706,7 +706,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -768,7 +768,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -832,7 +832,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -894,7 +894,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -913,7 +913,7 @@ Public Class frmMain
                 ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
-                Console.WriteLine(sw.Elapsed.Seconds / InstrumentCounter)
+
 #Region "Currency"
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Currency
@@ -958,7 +958,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -1020,7 +1020,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -1083,7 +1083,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
@@ -1145,7 +1145,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                                 InstrumentCounter += numberOfData
-                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.TotalSeconds / InstrumentCounter
                                 UpdateLabels()
                             Next
                             sw.Stop()
