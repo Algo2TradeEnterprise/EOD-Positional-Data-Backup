@@ -492,6 +492,7 @@ Namespace Network
                             End If
                         End If
                     Catch hex As HttpRequestException
+                        Console.WriteLine(ExceptionExtensions.GetExceptionMessages(hex))
                         logger.Error(hex)
                         lastException = hex
                         'Need to relogin, no point retrying
@@ -513,19 +514,14 @@ Namespace Network
                         End If
                         _canceller.Token.ThrowIfCancellationRequested()
                         If Not Waiter.WaitOnInternetFailure(Me.WaitDurationOnConnectionFailure) Then
-                            If hex.Message.Contains("429") Or hex.Message.Contains("503") Then
+                            If hex.Message.Contains("429") Or
+                                hex.Message.Contains("503") Or
+                                ExceptionExtensions.GetExceptionMessages(hex).Contains("transport stream") Or
+                                ExceptionExtensions.GetExceptionMessages(hex).Contains("closed") Then
                                 logger.Debug("HTTP->429/503 error without internet problem:{0}",
                                              hex.Message)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Waiter.SleepRequiredDuration(WaitDurationOnServiceUnavailbleFailure.TotalSeconds, "Service unavailable(429/503)")
-                                _canceller.Token.ThrowIfCancellationRequested()
-                                'Since site service is blocked, no need to consume retries
-                                retryCtr -= 1
-                            ElseIf ExceptionExtensions.GetExceptionMessages(hex).Contains("Authentication failed because the remote party has closed the transport stream") Then
-                                logger.Debug("HTTP->'Closed the transport stream' error without internet problem:{0}",
-                                             hex.Message)
-                                _canceller.Token.ThrowIfCancellationRequested()
-                                Waiter.SleepRequiredDuration(WaitDurationOnServiceUnavailbleFailure.TotalSeconds, "Closed the transport stream")
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 'Since site service is blocked, no need to consume retries
                                 retryCtr -= 1
@@ -560,6 +556,7 @@ Namespace Network
                             retryCtr -= 1
                         End If
                     Catch ex As Exception
+                        Console.WriteLine(ExceptionExtensions.GetExceptionMessages(ex))
                         logger.Error(ex)
                         lastException = ex
                         'Exit if it is a network failure check and stop retry to avoid stack overflow
