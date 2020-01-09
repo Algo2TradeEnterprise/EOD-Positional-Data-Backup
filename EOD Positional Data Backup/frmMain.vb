@@ -237,6 +237,8 @@ Public Class frmMain
     Private UpdateDataType As DataType
 
     Private CountPerSecond As Decimal = 0
+    Private TotalInstrumentCount As Decimal = 0
+    Private InstrumentCounter As Integer = 0
 
     Private total As Integer = 0
     Private queued As Integer = 0
@@ -358,133 +360,48 @@ Public Class frmMain
         SetLabelText_ThreadSafe(writingDataLabel, String.Format("Writing Data: {0}", writingData))
         SetLabelText_ThreadSafe(errorWritingDataLabel, String.Format("Error Writing Data: {0}", errorWritingData))
         SetLabelText_ThreadSafe(completedLabel, String.Format("Completed: {0}", completed))
-        SetLabelText_ThreadSafe(lblCountDisplay, Math.Round(CountPerSecond, 3))
+        SetLabelText_ThreadSafe(lblCountDisplay, Math.Round(CountPerSecond, 2))
+        If CountPerSecond > 0 Then
+            SetLabelText_ThreadSafe(lblExpctdFnsTm, Now.AddSeconds(CInt((TotalInstrumentCount - InstrumentCounter) / CountPerSecond)))
+        End If
     End Sub
 
     Private Sub ManageBulb(ByVal bulbColor As Color)
         Select Case UpdateIntrumentType
             Case InstrumentDetails.TypeOfInstrument.Positional
-                blbIntradayCash.Color = Color.Red
-                blbEODCash.Color = Color.Red
-                blbIntradayFuture.Color = Color.Red
-                blbEODFuture.Color = Color.Red
-                blbIntradayCommodity.Color = Color.Red
-                blbEODCommodity.Color = Color.Red
-                blbIntradayCurrency.Color = Color.Red
-                blbEODCurrency.Color = Color.Red
                 blbPositional.Color = bulbColor
-                blbOptionChain.Color = Color.Red
             Case InstrumentDetails.TypeOfInstrument.OptionChain
-                blbIntradayCash.Color = Color.Red
-                blbEODCash.Color = Color.Red
-                blbIntradayFuture.Color = Color.Red
-                blbEODFuture.Color = Color.Red
-                blbIntradayCommodity.Color = Color.Red
-                blbEODCommodity.Color = Color.Red
-                blbIntradayCurrency.Color = Color.Red
-                blbEODCurrency.Color = Color.Red
-                blbPositional.Color = Color.Red
                 blbOptionChain.Color = bulbColor
             Case InstrumentDetails.TypeOfInstrument.Cash
                 If UpdateDataType = DataType.Intraday Then
                     blbIntradayCash.Color = bulbColor
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 ElseIf UpdateDataType = DataType.EOD Then
-                    blbIntradayCash.Color = Color.Red
                     blbEODCash.Color = bulbColor
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 End If
             Case InstrumentDetails.TypeOfInstrument.Futures
                 If UpdateDataType = DataType.Intraday Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
                     blbIntradayFuture.Color = bulbColor
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 ElseIf UpdateDataType = DataType.EOD Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
                     blbEODFuture.Color = bulbColor
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 End If
             Case InstrumentDetails.TypeOfInstrument.Commodity
                 If UpdateDataType = DataType.Intraday Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
                     blbIntradayCommodity.Color = bulbColor
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 ElseIf UpdateDataType = DataType.EOD Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
                     blbEODCommodity.Color = bulbColor
-                    blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 End If
             Case InstrumentDetails.TypeOfInstrument.Currency
                 If UpdateDataType = DataType.Intraday Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
                     blbIntradayCurrency.Color = bulbColor
-                    blbEODCurrency.Color = Color.Red
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 ElseIf UpdateDataType = DataType.EOD Then
-                    blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Red
                     blbEODCurrency.Color = bulbColor
-                    blbPositional.Color = Color.Red
-                    blbOptionChain.Color = Color.Red
                 End If
         End Select
     End Sub
 
     Private Sub ClearAll()
+        TotalInstrumentCount = 0
+
         blbIntradayCash.Color = Color.Red
         blbEODCash.Color = Color.Red
         blbIntradayFuture.Color = Color.Red
@@ -586,11 +503,23 @@ Public Class frmMain
                 Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
                 Dim optionChainStockList As List(Of InstrumentDetails) = Await GetAllOptionChainStockListAsync().ConfigureAwait(False)
 
+                Me.TotalInstrumentCount = 0
+                If positionalStockList IsNot Nothing Then TotalInstrumentCount += positionalStockList.Count
+                If cashStockList IsNot Nothing Then TotalInstrumentCount += cashStockList.Count
+                If futureStockList IsNot Nothing Then TotalInstrumentCount += futureStockList.Count
+                If commodityStockList IsNot Nothing Then TotalInstrumentCount += commodityStockList.Count
+                If currencyStockList IsNot Nothing Then TotalInstrumentCount += currencyStockList.Count
+                If optionChainStockList IsNot Nothing Then TotalInstrumentCount += optionChainStockList.Count
+
+                InstrumentCounter = 0
+                CountPerSecond = 0
+                Dim sw As Stopwatch = New Stopwatch
+                sw.Start()
+
 #Region "Cash"
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
                 UpdateDataType = DataType.Intraday
-                CountPerSecond = 0
                 total = 0
                 queued = 0
                 gettingData = 0
@@ -611,13 +540,8 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            Dim sw As Stopwatch = New Stopwatch
-                            sw.Start()
                             For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim elapsedSecond As Decimal = sw.Elapsed.Seconds
-                                Console.WriteLine(elapsedSecond)
-                                If i > 0 Then CountPerSecond = elapsedSecond / i
                                 Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
@@ -634,8 +558,8 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
-                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -650,7 +574,7 @@ Public Class frmMain
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
-                Exit Function
+
 #Region "EOD"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
                 UpdateDataType = DataType.EOD
@@ -692,6 +616,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -751,6 +676,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -808,6 +734,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -867,6 +794,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -924,6 +852,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -983,6 +912,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -1040,6 +970,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -1098,6 +1029,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
@@ -1155,6 +1087,7 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
+                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
                             Next
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
