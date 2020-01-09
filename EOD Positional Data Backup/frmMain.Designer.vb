@@ -122,6 +122,11 @@ Partial Class frmMain
         Me.lblCountDisplay = New System.Windows.Forms.Label()
         Me.lblExpctdFnsTm = New System.Windows.Forms.Label()
         Me.Label2 = New System.Windows.Forms.Label()
+        Me.grpHistoricalHitMode = New System.Windows.Forms.GroupBox()
+        Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
+        Me.rdbWithoutAPI = New System.Windows.Forms.RadioButton()
+        Me.Label1 = New System.Windows.Forms.Label()
+        Me.nmrcParallelHit = New System.Windows.Forms.NumericUpDown()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -132,6 +137,8 @@ Partial Class frmMain
         Me.grpBoxEODFuture.SuspendLayout()
         Me.grpBoxEODCash.SuspendLayout()
         Me.grpBoxOptnChn.SuspendLayout()
+        Me.grpHistoricalHitMode.SuspendLayout()
+        CType(Me.nmrcParallelHit, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
         'btnStart
@@ -1116,11 +1123,63 @@ Partial Class frmMain
         Me.Label2.TabIndex = 25
         Me.Label2.Text = "Expected Finish Time:"
         '
+        'grpHistoricalHitMode
+        '
+        Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithoutAPI)
+        Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithAPI)
+        Me.grpHistoricalHitMode.Location = New System.Drawing.Point(544, -1)
+        Me.grpHistoricalHitMode.Name = "grpHistoricalHitMode"
+        Me.grpHistoricalHitMode.Size = New System.Drawing.Size(195, 68)
+        Me.grpHistoricalHitMode.TabIndex = 27
+        Me.grpHistoricalHitMode.TabStop = False
+        Me.grpHistoricalHitMode.Text = "Historical Hit Mode"
+        '
+        'rdbWithAPI
+        '
+        Me.rdbWithAPI.AutoSize = True
+        Me.rdbWithAPI.Location = New System.Drawing.Point(11, 21)
+        Me.rdbWithAPI.Name = "rdbWithAPI"
+        Me.rdbWithAPI.Size = New System.Drawing.Size(82, 21)
+        Me.rdbWithAPI.TabIndex = 0
+        Me.rdbWithAPI.Text = "With API"
+        Me.rdbWithAPI.UseVisualStyleBackColor = True
+        '
+        'rdbWithoutAPI
+        '
+        Me.rdbWithoutAPI.AutoSize = True
+        Me.rdbWithoutAPI.Checked = True
+        Me.rdbWithoutAPI.Location = New System.Drawing.Point(11, 44)
+        Me.rdbWithoutAPI.Name = "rdbWithoutAPI"
+        Me.rdbWithoutAPI.Size = New System.Drawing.Size(102, 21)
+        Me.rdbWithoutAPI.TabIndex = 1
+        Me.rdbWithoutAPI.TabStop = True
+        Me.rdbWithoutAPI.Text = "Without API"
+        Me.rdbWithoutAPI.UseVisualStyleBackColor = True
+        '
+        'Label1
+        '
+        Me.Label1.AutoSize = True
+        Me.Label1.Location = New System.Drawing.Point(321, 17)
+        Me.Label1.Name = "Label1"
+        Me.Label1.Size = New System.Drawing.Size(153, 17)
+        Me.Label1.TabIndex = 28
+        Me.Label1.Text = "Number Of Parallel Hit:"
+        '
+        'nmrcParallelHit
+        '
+        Me.nmrcParallelHit.Location = New System.Drawing.Point(475, 13)
+        Me.nmrcParallelHit.Name = "nmrcParallelHit"
+        Me.nmrcParallelHit.Size = New System.Drawing.Size(59, 22)
+        Me.nmrcParallelHit.TabIndex = 29
+        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1071, 578)
+        Me.Controls.Add(Me.nmrcParallelHit)
+        Me.Controls.Add(Me.Label1)
+        Me.Controls.Add(Me.grpHistoricalHitMode)
         Me.Controls.Add(Me.lblExpctdFnsTm)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.lblCountDisplay)
@@ -1164,6 +1223,9 @@ Partial Class frmMain
         Me.grpBoxEODCash.PerformLayout()
         Me.grpBoxOptnChn.ResumeLayout(False)
         Me.grpBoxOptnChn.PerformLayout()
+        Me.grpHistoricalHitMode.ResumeLayout(False)
+        Me.grpHistoricalHitMode.PerformLayout()
+        CType(Me.nmrcParallelHit, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -1267,4 +1329,9 @@ Partial Class frmMain
     Friend WithEvents lblCountDisplay As Label
     Friend WithEvents lblExpctdFnsTm As Label
     Friend WithEvents Label2 As Label
+    Friend WithEvents grpHistoricalHitMode As GroupBox
+    Friend WithEvents rdbWithoutAPI As RadioButton
+    Friend WithEvents rdbWithAPI As RadioButton
+    Friend WithEvents Label1 As Label
+    Friend WithEvents nmrcParallelHit As NumericUpDown
 End Class

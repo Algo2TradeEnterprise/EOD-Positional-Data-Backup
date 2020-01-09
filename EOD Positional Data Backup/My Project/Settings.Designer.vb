@@ -65,6 +65,42 @@ Namespace My
                 Me("ServerName") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("10")>  _
+        Public Property NumberOfParallelHit() As Integer
+            Get
+                Return CType(Me("NumberOfParallelHit"),Integer)
+            End Get
+            Set
+                Me("NumberOfParallelHit") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+        Public Property HistoricalHitWithAPI() As Boolean
+            Get
+                Return CType(Me("HistoricalHitWithAPI"),Boolean)
+            End Get
+            Set
+                Me("HistoricalHitWithAPI") = value
+            End Set
+        End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+        Public Property HistoricalHitWithoutAPI() As Boolean
+            Get
+                Return CType(Me("HistoricalHitWithoutAPI"),Boolean)
+            End Get
+            Set
+                Me("HistoricalHitWithoutAPI") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

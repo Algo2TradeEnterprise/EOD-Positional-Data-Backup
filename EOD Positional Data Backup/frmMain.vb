@@ -457,6 +457,11 @@ Public Class frmMain
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
+
+        nmrcParallelHit.Value = My.Settings.NumberOfParallelHit
+        rdbWithAPI.Checked = My.Settings.HistoricalHitWithAPI
+        rdbWithoutAPI.Checked = My.Settings.HistoricalHitWithoutAPI
+
         Dim arguments As String() = Environment.GetCommandLineArgs()
         If arguments.Length > 1 Then
             Timer1.Enabled = True
@@ -475,11 +480,19 @@ Public Class frmMain
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
+        My.Settings.NumberOfParallelHit = nmrcParallelHit.Value
+        My.Settings.HistoricalHitWithAPI = rdbWithAPI.Checked
+        My.Settings.HistoricalHitWithoutAPI = rdbWithoutAPI.Checked
+        My.Settings.Save()
+
         SetObjectEnableDisable_ThreadSafe(btnStop, True)
         SetObjectEnableDisable_ThreadSafe(btnStart, False)
+        SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, False)
+        SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, False)
 
         ClearAll()
 
+        Me.NumberOfParallelTask = nmrcParallelHit.Value
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
     End Sub
@@ -498,9 +511,12 @@ Public Class frmMain
             'AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
             'AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             'AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
-            Dim loginSuccesful As Boolean = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
+            Dim loginSuccesful As Boolean = False
+            If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
+                loginSuccesful = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
+            End If
 
-            If loginSuccesful Then
+            If loginSuccesful OrElse GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
                 Dim positionalStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Positional, lastDateToCheck).ConfigureAwait(False)
                 Dim cashStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Cash, lastDateToCheck).ConfigureAwait(False)
                 Dim futureStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
@@ -1158,6 +1174,8 @@ Public Class frmMain
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
             SetObjectEnableDisable_ThreadSafe(btnStart, True)
+            SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, True)
+            SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, True)
             SetLabelText_ThreadSafe(lblProgress, "Process Complete")
         End Try
     End Function
@@ -1167,7 +1185,7 @@ Public Class frmMain
     Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
         Try
             canceller.Token.ThrowIfCancellationRequested()
-            While _internetHitCount >= 10
+            While _internetHitCount >= Me.NumberOfParallelTask
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
                 canceller.Token.ThrowIfCancellationRequested()
             End While
@@ -1457,7 +1475,7 @@ Public Class frmMain
     Private Async Function ProcessOptionChainData(ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper) As Task
         Try
             canceller.Token.ThrowIfCancellationRequested()
-            While _optionChainHitCount >= 10
+            While _optionChainHitCount >= Me.NumberOfParallelTask
                 Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
                 canceller.Token.ThrowIfCancellationRequested()
             End While
@@ -1788,18 +1806,26 @@ Public Class frmMain
     End Function
     Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
-        'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
-        'Dim ZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
+        Dim AWSZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
+        Dim AWSZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
         Dim ZerodhaIntradayHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/minute?oi=1&from={1}&to={2}"
         Dim ZerodhaHistoricalURL As String = Nothing
         Select Case typeOfData
             Case DataType.EOD
-                ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
+                If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
+                    ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
+                ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
+                    ZerodhaHistoricalURL = AWSZerodhaEODHistoricalURL
+                End If
             Case DataType.Intraday
-                ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
+                If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
+                    ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
+                ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
+                    ZerodhaHistoricalURL = AWSZerodhaIntradayHistoricalURL
+                End If
         End Select
-        If instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
+        If ZerodhaHistoricalURL IsNot Nothing AndAlso instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
             Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
             OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
             Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
@@ -1810,43 +1836,68 @@ Public Class frmMain
                                                                           Return True
                                                                       End Function
 
-            Dim proxyToBeUsed As HttpProxy = Nothing
-            Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
-                AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                AddHandler browser.Heartbeat, AddressOf OnHeartbeat
-                AddHandler browser.WaitingFor, AddressOf OnWaitingFor
-                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                AddHandler browser.FirstError, AddressOf OnFirstErrorGettingData
+            If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
+                Dim proxyToBeUsed As HttpProxy = Nothing
+                Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
+                    AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                    AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+                    AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+                    AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                    AddHandler browser.FirstError, AddressOf OnFirstErrorGettingData
 
-                Dim headers As New Dictionary(Of String, String)
-                headers.Add("Host", "kite.zerodha.com")
-                headers.Add("Accept", "*/*")
-                headers.Add("Accept-Encoding", "gzip, deflate")
-                headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
-                headers.Add("Authorization", String.Format("enctoken {0}", zerodhaDetails.ENCToken))
-                headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
-                headers.Add("sec-fetch-mode", "cors")
-                headers.Add("sec-fetch-site", "same-origin")
-                headers.Add("Connection", "keep-alive")
+                    Dim headers As New Dictionary(Of String, String)
+                    headers.Add("Host", "kite.zerodha.com")
+                    headers.Add("Accept", "*/*")
+                    headers.Add("Accept-Encoding", "gzip, deflate")
+                    headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
+                    headers.Add("Authorization", String.Format("enctoken {0}", zerodhaDetails.ENCToken))
+                    headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
+                    headers.Add("sec-fetch-mode", "cors")
+                    headers.Add("sec-fetch-site", "same-origin")
+                    headers.Add("Connection", "keep-alive")
 
-                canceller.Token.ThrowIfCancellationRequested()
-                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
-                                                                                    HttpMethod.Get,
-                                                                                    Nothing,
-                                                                                    False,
-                                                                                    headers,
-                                                                                    True,
-                                                                                    "application/json").ConfigureAwait(False)
-                canceller.Token.ThrowIfCancellationRequested()
-                If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
-                    historicalCandlesJSONDict = l.Item2
-                End If
-                RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
-                RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
-                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                RemoveHandler browser.FirstError, AddressOf OnFirstErrorGettingData
-            End Using
+                    canceller.Token.ThrowIfCancellationRequested()
+                    Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+                                                                                        HttpMethod.Get,
+                                                                                        Nothing,
+                                                                                        False,
+                                                                                        headers,
+                                                                                        True,
+                                                                                        "application/json").ConfigureAwait(False)
+                    canceller.Token.ThrowIfCancellationRequested()
+                    If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                        historicalCandlesJSONDict = l.Item2
+                    End If
+                    RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                    RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
+                    RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
+                    RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                    RemoveHandler browser.FirstError, AddressOf OnFirstErrorGettingData
+                End Using
+            ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
+                Dim proxyToBeUsed As HttpProxy = Nothing
+                Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), canceller)
+                    AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                    AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+                    AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+                    AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                    'Get to the landing page first
+                    Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+                                                                                        HttpMethod.Get,
+                                                                                        Nothing,
+                                                                                        True,
+                                                                                        Nothing,
+                                                                                        True,
+                                                                                        "application/json").ConfigureAwait(False)
+                    If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                        historicalCandlesJSONDict = l.Item2
+                    End If
+                    RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                    RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
+                    RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
+                    RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                End Using
+            End If
 
             If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
                 historicalCandlesJSONDict.ContainsKey("data") Then
@@ -1855,7 +1906,7 @@ Public Class frmMain
                     Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
                     OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
                     Dim previousPayload As Payload = Nothing
-                    For Each historicalCandle In historicalCandles
+                    For Each historicalCandle As ArrayList In historicalCandles
                         canceller.Token.ThrowIfCancellationRequested()
                         Dim runningSnapshotTime As Date = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
 
@@ -1868,7 +1919,9 @@ Public Class frmMain
                             .Low = historicalCandle(3)
                             .Close = historicalCandle(4)
                             .Volume = historicalCandle(5)
-                            .OI = historicalCandle(6)
+                            If historicalCandle.Count > 6 Then
+                                .OI = historicalCandle(6)
+                            End If
                         End With
                         If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
                         ret.Add(runningSnapshotTime, runningPayload)

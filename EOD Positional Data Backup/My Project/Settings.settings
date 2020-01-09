@@ -5,5 +5,14 @@
     <Setting Name="ServerName" Type="System.String" Scope="User">
       <Value Profile="(Default)">DESKTOP-RIO</Value>
     </Setting>
+    <Setting Name="NumberOfParallelHit" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="HistoricalHitWithAPI" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="HistoricalHitWithoutAPI" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
