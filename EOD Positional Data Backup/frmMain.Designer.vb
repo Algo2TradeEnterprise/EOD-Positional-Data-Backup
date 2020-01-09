@@ -100,6 +100,24 @@ Partial Class frmMain
         Me.lblEODCashErrorGettingData = New System.Windows.Forms.Label()
         Me.lblEODCashGettingData = New System.Windows.Forms.Label()
         Me.lblEODCashTotal = New System.Windows.Forms.Label()
+        Me.grpBoxOptnChn = New System.Windows.Forms.GroupBox()
+        Me.lblOptnChnErrorWritingData = New System.Windows.Forms.Label()
+        Me.lblOptnChnWritingData = New System.Windows.Forms.Label()
+        Me.lblOptnChnQueue = New System.Windows.Forms.Label()
+        Me.lblOptnChnCompleted = New System.Windows.Forms.Label()
+        Me.lblOptnChnErrorGettingData = New System.Windows.Forms.Label()
+        Me.lblOptnChnGettingData = New System.Windows.Forms.Label()
+        Me.lblOptnChnTotal = New System.Windows.Forms.Label()
+        Me.blbIntradayCash = New Bulb.LedBulb()
+        Me.blbEODCash = New Bulb.LedBulb()
+        Me.blbIntradayFuture = New Bulb.LedBulb()
+        Me.blbIntradayCommodity = New Bulb.LedBulb()
+        Me.blbIntradayCurrency = New Bulb.LedBulb()
+        Me.blbPositional = New Bulb.LedBulb()
+        Me.blbEODFuture = New Bulb.LedBulb()
+        Me.blbEODCommodity = New Bulb.LedBulb()
+        Me.blbEODCurrency = New Bulb.LedBulb()
+        Me.blbOptionChain = New Bulb.LedBulb()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -109,6 +127,7 @@ Partial Class frmMain
         Me.grpBoxEODCommodity.SuspendLayout()
         Me.grpBoxEODFuture.SuspendLayout()
         Me.grpBoxEODCash.SuspendLayout()
+        Me.grpBoxOptnChn.SuspendLayout()
         Me.SuspendLayout()
         '
         'btnStart
@@ -123,7 +142,7 @@ Partial Class frmMain
         '
         'lblProgress
         '
-        Me.lblProgress.Location = New System.Drawing.Point(14, 473)
+        Me.lblProgress.Location = New System.Drawing.Point(14, 524)
         Me.lblProgress.Name = "lblProgress"
         Me.lblProgress.Size = New System.Drawing.Size(1043, 44)
         Me.lblProgress.TabIndex = 2
@@ -145,6 +164,8 @@ Partial Class frmMain
         '
         'grpBoxPositional
         '
+        Me.grpBoxPositional.BackColor = System.Drawing.Color.MediumTurquoise
+        Me.grpBoxPositional.Controls.Add(Me.blbPositional)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlErrorWritingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlWritingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlQueue)
@@ -152,7 +173,7 @@ Partial Class frmMain
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlErrorGettingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlGettingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlTotal)
-        Me.grpBoxPositional.Location = New System.Drawing.Point(14, 85)
+        Me.grpBoxPositional.Location = New System.Drawing.Point(15, 442)
         Me.grpBoxPositional.Name = "grpBoxPositional"
         Me.grpBoxPositional.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxPositional.TabIndex = 6
@@ -173,9 +194,9 @@ Partial Class frmMain
         Me.lblPstnlWritingData.AutoSize = True
         Me.lblPstnlWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblPstnlWritingData.Name = "lblPstnlWritingData"
-        Me.lblPstnlWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblPstnlWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblPstnlWritingData.TabIndex = 6
-        Me.lblPstnlWritingData.Text = "Writitng Data : 0"
+        Me.lblPstnlWritingData.Text = "Writing Data : 0"
         '
         'lblPstnlQueue
         '
@@ -224,6 +245,8 @@ Partial Class frmMain
         '
         'grpBoxIntradayCash
         '
+        Me.grpBoxIntradayCash.BackColor = System.Drawing.Color.Khaki
+        Me.grpBoxIntradayCash.Controls.Add(Me.blbIntradayCash)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashErrorWritingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashWritingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashQueue)
@@ -231,9 +254,9 @@ Partial Class frmMain
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashErrorGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashTotal)
-        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(14, 160)
+        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(14, 79)
         Me.grpBoxIntradayCash.Name = "grpBoxIntradayCash"
-        Me.grpBoxIntradayCash.Size = New System.Drawing.Size(513, 74)
+        Me.grpBoxIntradayCash.Size = New System.Drawing.Size(514, 74)
         Me.grpBoxIntradayCash.TabIndex = 8
         Me.grpBoxIntradayCash.TabStop = False
         Me.grpBoxIntradayCash.Text = "Intraday Cash"
@@ -252,9 +275,9 @@ Partial Class frmMain
         Me.lblIntradayCashWritingData.AutoSize = True
         Me.lblIntradayCashWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblIntradayCashWritingData.Name = "lblIntradayCashWritingData"
-        Me.lblIntradayCashWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblIntradayCashWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblIntradayCashWritingData.TabIndex = 6
-        Me.lblIntradayCashWritingData.Text = "Writitng Data : 0"
+        Me.lblIntradayCashWritingData.Text = "Writing Data : 0"
         '
         'lblIntradayCashQueue
         '
@@ -303,6 +326,8 @@ Partial Class frmMain
         '
         'grpBoxIntradayFuture
         '
+        Me.grpBoxIntradayFuture.BackColor = System.Drawing.Color.DarkSalmon
+        Me.grpBoxIntradayFuture.Controls.Add(Me.blbIntradayFuture)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureErrorWritingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureWritingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureQueue)
@@ -310,7 +335,7 @@ Partial Class frmMain
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureErrorGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureTotal)
-        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(544, 160)
+        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(14, 168)
         Me.grpBoxIntradayFuture.Name = "grpBoxIntradayFuture"
         Me.grpBoxIntradayFuture.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayFuture.TabIndex = 9
@@ -331,9 +356,9 @@ Partial Class frmMain
         Me.lblIntradayFutureWritingData.AutoSize = True
         Me.lblIntradayFutureWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblIntradayFutureWritingData.Name = "lblIntradayFutureWritingData"
-        Me.lblIntradayFutureWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblIntradayFutureWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblIntradayFutureWritingData.TabIndex = 6
-        Me.lblIntradayFutureWritingData.Text = "Writitng Data : 0"
+        Me.lblIntradayFutureWritingData.Text = "Writing Data : 0"
         '
         'lblIntradayFutureQueue
         '
@@ -382,6 +407,8 @@ Partial Class frmMain
         '
         'grpBoxIntradayCurrency
         '
+        Me.grpBoxIntradayCurrency.BackColor = System.Drawing.Color.Tan
+        Me.grpBoxIntradayCurrency.Controls.Add(Me.blbIntradayCurrency)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyErrorWritingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyWritingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyQueue)
@@ -389,7 +416,7 @@ Partial Class frmMain
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyErrorGettingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyGettingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyTotal)
-        Me.grpBoxIntradayCurrency.Location = New System.Drawing.Point(545, 235)
+        Me.grpBoxIntradayCurrency.Location = New System.Drawing.Point(15, 352)
         Me.grpBoxIntradayCurrency.Name = "grpBoxIntradayCurrency"
         Me.grpBoxIntradayCurrency.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayCurrency.TabIndex = 13
@@ -410,9 +437,9 @@ Partial Class frmMain
         Me.lblIntradayCurrencyWritingData.AutoSize = True
         Me.lblIntradayCurrencyWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblIntradayCurrencyWritingData.Name = "lblIntradayCurrencyWritingData"
-        Me.lblIntradayCurrencyWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblIntradayCurrencyWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblIntradayCurrencyWritingData.TabIndex = 6
-        Me.lblIntradayCurrencyWritingData.Text = "Writitng Data : 0"
+        Me.lblIntradayCurrencyWritingData.Text = "Writing Data : 0"
         '
         'lblIntradayCurrencyQueue
         '
@@ -461,6 +488,8 @@ Partial Class frmMain
         '
         'grpBoxIntradayCommodity
         '
+        Me.grpBoxIntradayCommodity.BackColor = System.Drawing.Color.Peru
+        Me.grpBoxIntradayCommodity.Controls.Add(Me.blbIntradayCommodity)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityErrorWritingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityWritingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityQueue)
@@ -468,7 +497,7 @@ Partial Class frmMain
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityErrorGettingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityGettingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityTotal)
-        Me.grpBoxIntradayCommodity.Location = New System.Drawing.Point(15, 235)
+        Me.grpBoxIntradayCommodity.Location = New System.Drawing.Point(15, 260)
         Me.grpBoxIntradayCommodity.Name = "grpBoxIntradayCommodity"
         Me.grpBoxIntradayCommodity.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayCommodity.TabIndex = 12
@@ -489,9 +518,9 @@ Partial Class frmMain
         Me.lblIntradayCommodityWritingData.AutoSize = True
         Me.lblIntradayCommodityWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblIntradayCommodityWritingData.Name = "lblIntradayCommodityWritingData"
-        Me.lblIntradayCommodityWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblIntradayCommodityWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblIntradayCommodityWritingData.TabIndex = 6
-        Me.lblIntradayCommodityWritingData.Text = "Writitng Data : 0"
+        Me.lblIntradayCommodityWritingData.Text = "Writing Data : 0"
         '
         'lblIntradayCommodityQueue
         '
@@ -540,6 +569,8 @@ Partial Class frmMain
         '
         'grpBoxEODCurrency
         '
+        Me.grpBoxEODCurrency.BackColor = System.Drawing.Color.Tan
+        Me.grpBoxEODCurrency.Controls.Add(Me.blbEODCurrency)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyErrorWritingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyWritingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyQueue)
@@ -547,7 +578,7 @@ Partial Class frmMain
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyErrorGettingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyGettingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyTotal)
-        Me.grpBoxEODCurrency.Location = New System.Drawing.Point(545, 385)
+        Me.grpBoxEODCurrency.Location = New System.Drawing.Point(545, 352)
         Me.grpBoxEODCurrency.Name = "grpBoxEODCurrency"
         Me.grpBoxEODCurrency.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCurrency.TabIndex = 21
@@ -568,9 +599,9 @@ Partial Class frmMain
         Me.lblEODCurrencyWritingData.AutoSize = True
         Me.lblEODCurrencyWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblEODCurrencyWritingData.Name = "lblEODCurrencyWritingData"
-        Me.lblEODCurrencyWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblEODCurrencyWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblEODCurrencyWritingData.TabIndex = 6
-        Me.lblEODCurrencyWritingData.Text = "Writitng Data : 0"
+        Me.lblEODCurrencyWritingData.Text = "Writing Data : 0"
         '
         'lblEODCurrencyQueue
         '
@@ -619,6 +650,8 @@ Partial Class frmMain
         '
         'grpBoxEODCommodity
         '
+        Me.grpBoxEODCommodity.BackColor = System.Drawing.Color.Peru
+        Me.grpBoxEODCommodity.Controls.Add(Me.blbEODCommodity)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityErrorWritingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityWritingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityQueue)
@@ -626,7 +659,7 @@ Partial Class frmMain
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityErrorGettingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityGettingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityTotal)
-        Me.grpBoxEODCommodity.Location = New System.Drawing.Point(15, 385)
+        Me.grpBoxEODCommodity.Location = New System.Drawing.Point(545, 260)
         Me.grpBoxEODCommodity.Name = "grpBoxEODCommodity"
         Me.grpBoxEODCommodity.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCommodity.TabIndex = 20
@@ -647,9 +680,9 @@ Partial Class frmMain
         Me.lblEODCommodityWritingData.AutoSize = True
         Me.lblEODCommodityWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblEODCommodityWritingData.Name = "lblEODCommodityWritingData"
-        Me.lblEODCommodityWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblEODCommodityWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblEODCommodityWritingData.TabIndex = 6
-        Me.lblEODCommodityWritingData.Text = "Writitng Data : 0"
+        Me.lblEODCommodityWritingData.Text = "Writing Data : 0"
         '
         'lblEODCommodityQueue
         '
@@ -698,6 +731,8 @@ Partial Class frmMain
         '
         'grpBoxEODFuture
         '
+        Me.grpBoxEODFuture.BackColor = System.Drawing.Color.DarkSalmon
+        Me.grpBoxEODFuture.Controls.Add(Me.blbEODFuture)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureErrorWritingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureWritingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureQueue)
@@ -705,7 +740,7 @@ Partial Class frmMain
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureErrorGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureTotal)
-        Me.grpBoxEODFuture.Location = New System.Drawing.Point(544, 310)
+        Me.grpBoxEODFuture.Location = New System.Drawing.Point(544, 168)
         Me.grpBoxEODFuture.Name = "grpBoxEODFuture"
         Me.grpBoxEODFuture.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODFuture.TabIndex = 19
@@ -726,9 +761,9 @@ Partial Class frmMain
         Me.lblEODFutureWritingData.AutoSize = True
         Me.lblEODFutureWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblEODFutureWritingData.Name = "lblEODFutureWritingData"
-        Me.lblEODFutureWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblEODFutureWritingData.Size = New System.Drawing.Size(130, 17)
         Me.lblEODFutureWritingData.TabIndex = 6
-        Me.lblEODFutureWritingData.Text = "Writitng Data : 0"
+        Me.lblEODFutureWritingData.Text = "Writing Data : 0000"
         '
         'lblEODFutureQueue
         '
@@ -777,6 +812,8 @@ Partial Class frmMain
         '
         'grpBoxEODCash
         '
+        Me.grpBoxEODCash.BackColor = System.Drawing.Color.Khaki
+        Me.grpBoxEODCash.Controls.Add(Me.blbEODCash)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashErrorWritingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashWritingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashQueue)
@@ -784,7 +821,7 @@ Partial Class frmMain
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashErrorGettingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashGettingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashTotal)
-        Me.grpBoxEODCash.Location = New System.Drawing.Point(14, 310)
+        Me.grpBoxEODCash.Location = New System.Drawing.Point(545, 79)
         Me.grpBoxEODCash.Name = "grpBoxEODCash"
         Me.grpBoxEODCash.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCash.TabIndex = 18
@@ -805,9 +842,9 @@ Partial Class frmMain
         Me.lblEODCashWritingData.AutoSize = True
         Me.lblEODCashWritingData.Location = New System.Drawing.Point(7, 48)
         Me.lblEODCashWritingData.Name = "lblEODCashWritingData"
-        Me.lblEODCashWritingData.Size = New System.Drawing.Size(110, 17)
+        Me.lblEODCashWritingData.Size = New System.Drawing.Size(106, 17)
         Me.lblEODCashWritingData.TabIndex = 6
-        Me.lblEODCashWritingData.Text = "Writitng Data : 0"
+        Me.lblEODCashWritingData.Text = "Writing Data : 0"
         '
         'lblEODCashQueue
         '
@@ -854,11 +891,193 @@ Partial Class frmMain
         Me.lblEODCashTotal.TabIndex = 0
         Me.lblEODCashTotal.Text = "Total : 0"
         '
+        'grpBoxOptnChn
+        '
+        Me.grpBoxOptnChn.BackColor = System.Drawing.Color.MediumTurquoise
+        Me.grpBoxOptnChn.Controls.Add(Me.blbOptionChain)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnErrorWritingData)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnWritingData)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnQueue)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnCompleted)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnErrorGettingData)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnGettingData)
+        Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnTotal)
+        Me.grpBoxOptnChn.Location = New System.Drawing.Point(544, 442)
+        Me.grpBoxOptnChn.Name = "grpBoxOptnChn"
+        Me.grpBoxOptnChn.Size = New System.Drawing.Size(513, 74)
+        Me.grpBoxOptnChn.TabIndex = 22
+        Me.grpBoxOptnChn.TabStop = False
+        Me.grpBoxOptnChn.Text = "Option Chain"
+        '
+        'lblOptnChnErrorWritingData
+        '
+        Me.lblOptnChnErrorWritingData.AutoSize = True
+        Me.lblOptnChnErrorWritingData.Location = New System.Drawing.Point(139, 48)
+        Me.lblOptnChnErrorWritingData.Name = "lblOptnChnErrorWritingData"
+        Me.lblOptnChnErrorWritingData.Size = New System.Drawing.Size(142, 17)
+        Me.lblOptnChnErrorWritingData.TabIndex = 7
+        Me.lblOptnChnErrorWritingData.Text = "Error Writing Data : 0"
+        '
+        'lblOptnChnWritingData
+        '
+        Me.lblOptnChnWritingData.AutoSize = True
+        Me.lblOptnChnWritingData.Location = New System.Drawing.Point(7, 48)
+        Me.lblOptnChnWritingData.Name = "lblOptnChnWritingData"
+        Me.lblOptnChnWritingData.Size = New System.Drawing.Size(106, 17)
+        Me.lblOptnChnWritingData.TabIndex = 6
+        Me.lblOptnChnWritingData.Text = "Writing Data : 0"
+        '
+        'lblOptnChnQueue
+        '
+        Me.lblOptnChnQueue.AutoSize = True
+        Me.lblOptnChnQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblOptnChnQueue.Name = "lblOptnChnQueue"
+        Me.lblOptnChnQueue.Size = New System.Drawing.Size(79, 17)
+        Me.lblOptnChnQueue.TabIndex = 5
+        Me.lblOptnChnQueue.Text = "Queued : 0"
+        '
+        'lblOptnChnCompleted
+        '
+        Me.lblOptnChnCompleted.AutoSize = True
+        Me.lblOptnChnCompleted.Location = New System.Drawing.Point(335, 48)
+        Me.lblOptnChnCompleted.Name = "lblOptnChnCompleted"
+        Me.lblOptnChnCompleted.Size = New System.Drawing.Size(95, 17)
+        Me.lblOptnChnCompleted.TabIndex = 3
+        Me.lblOptnChnCompleted.Text = "Completed : 0"
+        '
+        'lblOptnChnErrorGettingData
+        '
+        Me.lblOptnChnErrorGettingData.AutoSize = True
+        Me.lblOptnChnErrorGettingData.Location = New System.Drawing.Point(335, 25)
+        Me.lblOptnChnErrorGettingData.Name = "lblOptnChnErrorGettingData"
+        Me.lblOptnChnErrorGettingData.Size = New System.Drawing.Size(144, 17)
+        Me.lblOptnChnErrorGettingData.TabIndex = 2
+        Me.lblOptnChnErrorGettingData.Text = "Error Getting Data : 0"
+        '
+        'lblOptnChnGettingData
+        '
+        Me.lblOptnChnGettingData.AutoSize = True
+        Me.lblOptnChnGettingData.Location = New System.Drawing.Point(203, 25)
+        Me.lblOptnChnGettingData.Name = "lblOptnChnGettingData"
+        Me.lblOptnChnGettingData.Size = New System.Drawing.Size(108, 17)
+        Me.lblOptnChnGettingData.TabIndex = 1
+        Me.lblOptnChnGettingData.Text = "Getting Data : 0"
+        '
+        'lblOptnChnTotal
+        '
+        Me.lblOptnChnTotal.AutoSize = True
+        Me.lblOptnChnTotal.Location = New System.Drawing.Point(7, 25)
+        Me.lblOptnChnTotal.Name = "lblOptnChnTotal"
+        Me.lblOptnChnTotal.Size = New System.Drawing.Size(60, 17)
+        Me.lblOptnChnTotal.TabIndex = 0
+        Me.lblOptnChnTotal.Text = "Total : 0"
+        '
+        'blbIntradayCash
+        '
+        Me.blbIntradayCash.Color = System.Drawing.Color.Red
+        Me.blbIntradayCash.Location = New System.Drawing.Point(484, 0)
+        Me.blbIntradayCash.Name = "blbIntradayCash"
+        Me.blbIntradayCash.On = True
+        Me.blbIntradayCash.Size = New System.Drawing.Size(29, 27)
+        Me.blbIntradayCash.TabIndex = 23
+        Me.blbIntradayCash.Text = "LedBulb1"
+        '
+        'blbEODCash
+        '
+        Me.blbEODCash.Color = System.Drawing.Color.Red
+        Me.blbEODCash.Location = New System.Drawing.Point(483, 0)
+        Me.blbEODCash.Name = "blbEODCash"
+        Me.blbEODCash.On = True
+        Me.blbEODCash.Size = New System.Drawing.Size(29, 27)
+        Me.blbEODCash.TabIndex = 24
+        Me.blbEODCash.Text = "LedBulb2"
+        '
+        'blbIntradayFuture
+        '
+        Me.blbIntradayFuture.Color = System.Drawing.Color.Red
+        Me.blbIntradayFuture.Location = New System.Drawing.Point(484, 0)
+        Me.blbIntradayFuture.Name = "blbIntradayFuture"
+        Me.blbIntradayFuture.On = True
+        Me.blbIntradayFuture.Size = New System.Drawing.Size(29, 27)
+        Me.blbIntradayFuture.TabIndex = 24
+        Me.blbIntradayFuture.Text = "LedBulb3"
+        '
+        'blbIntradayCommodity
+        '
+        Me.blbIntradayCommodity.Color = System.Drawing.Color.Red
+        Me.blbIntradayCommodity.Location = New System.Drawing.Point(485, 0)
+        Me.blbIntradayCommodity.Name = "blbIntradayCommodity"
+        Me.blbIntradayCommodity.On = True
+        Me.blbIntradayCommodity.Size = New System.Drawing.Size(29, 27)
+        Me.blbIntradayCommodity.TabIndex = 25
+        Me.blbIntradayCommodity.Text = "LedBulb4"
+        '
+        'blbIntradayCurrency
+        '
+        Me.blbIntradayCurrency.Color = System.Drawing.Color.Red
+        Me.blbIntradayCurrency.Location = New System.Drawing.Point(483, 0)
+        Me.blbIntradayCurrency.Name = "blbIntradayCurrency"
+        Me.blbIntradayCurrency.On = True
+        Me.blbIntradayCurrency.Size = New System.Drawing.Size(29, 27)
+        Me.blbIntradayCurrency.TabIndex = 25
+        Me.blbIntradayCurrency.Text = "LedBulb5"
+        '
+        'blbPositional
+        '
+        Me.blbPositional.Color = System.Drawing.Color.Red
+        Me.blbPositional.Location = New System.Drawing.Point(483, 0)
+        Me.blbPositional.Name = "blbPositional"
+        Me.blbPositional.On = True
+        Me.blbPositional.Size = New System.Drawing.Size(29, 27)
+        Me.blbPositional.TabIndex = 25
+        Me.blbPositional.Text = "LedBulb6"
+        '
+        'blbEODFuture
+        '
+        Me.blbEODFuture.Color = System.Drawing.Color.Red
+        Me.blbEODFuture.Location = New System.Drawing.Point(485, 0)
+        Me.blbEODFuture.Name = "blbEODFuture"
+        Me.blbEODFuture.On = True
+        Me.blbEODFuture.Size = New System.Drawing.Size(29, 27)
+        Me.blbEODFuture.TabIndex = 25
+        Me.blbEODFuture.Text = "LedBulb7"
+        '
+        'blbEODCommodity
+        '
+        Me.blbEODCommodity.Color = System.Drawing.Color.Red
+        Me.blbEODCommodity.Location = New System.Drawing.Point(483, 0)
+        Me.blbEODCommodity.Name = "blbEODCommodity"
+        Me.blbEODCommodity.On = True
+        Me.blbEODCommodity.Size = New System.Drawing.Size(29, 27)
+        Me.blbEODCommodity.TabIndex = 25
+        Me.blbEODCommodity.Text = "LedBulb8"
+        '
+        'blbEODCurrency
+        '
+        Me.blbEODCurrency.Color = System.Drawing.Color.Red
+        Me.blbEODCurrency.Location = New System.Drawing.Point(484, 0)
+        Me.blbEODCurrency.Name = "blbEODCurrency"
+        Me.blbEODCurrency.On = True
+        Me.blbEODCurrency.Size = New System.Drawing.Size(29, 27)
+        Me.blbEODCurrency.TabIndex = 25
+        Me.blbEODCurrency.Text = "LedBulb9"
+        '
+        'blbOptionChain
+        '
+        Me.blbOptionChain.Color = System.Drawing.Color.Red
+        Me.blbOptionChain.Location = New System.Drawing.Point(484, 0)
+        Me.blbOptionChain.Name = "blbOptionChain"
+        Me.blbOptionChain.On = True
+        Me.blbOptionChain.Size = New System.Drawing.Size(29, 27)
+        Me.blbOptionChain.TabIndex = 25
+        Me.blbOptionChain.Text = "LedBulb10"
+        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(1073, 532)
+        Me.ClientSize = New System.Drawing.Size(1071, 578)
+        Me.Controls.Add(Me.grpBoxOptnChn)
         Me.Controls.Add(Me.grpBoxEODCurrency)
         Me.Controls.Add(Me.grpBoxEODCommodity)
         Me.Controls.Add(Me.grpBoxEODFuture)
@@ -866,11 +1085,11 @@ Partial Class frmMain
         Me.Controls.Add(Me.grpBoxIntradayCurrency)
         Me.Controls.Add(Me.grpBoxIntradayCommodity)
         Me.Controls.Add(Me.grpBoxIntradayFuture)
-        Me.Controls.Add(Me.grpBoxIntradayCash)
         Me.Controls.Add(Me.grpBoxPositional)
         Me.Controls.Add(Me.btnStop)
         Me.Controls.Add(Me.lblProgress)
         Me.Controls.Add(Me.btnStart)
+        Me.Controls.Add(Me.grpBoxIntradayCash)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.Name = "frmMain"
@@ -894,6 +1113,8 @@ Partial Class frmMain
         Me.grpBoxEODFuture.PerformLayout()
         Me.grpBoxEODCash.ResumeLayout(False)
         Me.grpBoxEODCash.PerformLayout()
+        Me.grpBoxOptnChn.ResumeLayout(False)
+        Me.grpBoxOptnChn.PerformLayout()
         Me.ResumeLayout(False)
 
     End Sub
@@ -974,4 +1195,22 @@ Partial Class frmMain
     Friend WithEvents lblEODCashErrorGettingData As Label
     Friend WithEvents lblEODCashGettingData As Label
     Friend WithEvents lblEODCashTotal As Label
+    Friend WithEvents grpBoxOptnChn As GroupBox
+    Friend WithEvents lblOptnChnErrorWritingData As Label
+    Friend WithEvents lblOptnChnWritingData As Label
+    Friend WithEvents lblOptnChnQueue As Label
+    Friend WithEvents lblOptnChnCompleted As Label
+    Friend WithEvents lblOptnChnErrorGettingData As Label
+    Friend WithEvents lblOptnChnGettingData As Label
+    Friend WithEvents lblOptnChnTotal As Label
+    Friend WithEvents blbIntradayCash As Bulb.LedBulb
+    Friend WithEvents blbEODCash As Bulb.LedBulb
+    Friend WithEvents blbPositional As Bulb.LedBulb
+    Friend WithEvents blbIntradayFuture As Bulb.LedBulb
+    Friend WithEvents blbIntradayCurrency As Bulb.LedBulb
+    Friend WithEvents blbIntradayCommodity As Bulb.LedBulb
+    Friend WithEvents blbEODCurrency As Bulb.LedBulb
+    Friend WithEvents blbEODCommodity As Bulb.LedBulb
+    Friend WithEvents blbEODFuture As Bulb.LedBulb
+    Friend WithEvents blbOptionChain As Bulb.LedBulb
 End Class

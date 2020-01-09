@@ -5,6 +5,7 @@
         Currency
         Commodity
         Positional
+        OptionChain
     End Enum
     Public Property TradingSymbol As String
     Public Property InstrumentToken As String

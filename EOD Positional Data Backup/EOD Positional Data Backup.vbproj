@@ -51,6 +51,9 @@
     <ApplicationIcon>algo2tradericon_512x512.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Bulb">
+      <HintPath>..\..\Algo2Trade GoLive\LEDBulb\Bulb\bin\Debug\Bulb.exe</HintPath>
+    </Reference>
     <Reference Include="KiteConnect">
       <HintPath>..\packages\KiteConnect.dll</HintPath>
     </Reference>

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ServerName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">localhost</Value>
+      <Value Profile="(Default)">DESKTOP-RIO</Value>
     </Setting>
   </Settings>
 </SettingsFile>
