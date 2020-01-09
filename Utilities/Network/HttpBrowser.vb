@@ -65,14 +65,18 @@ Namespace Network
                 }
                 _proxyToBeUsed = proxyToBeUsed
             Else
-                _httpHandler = New HttpClientHandler With {
+                Try
+                    _httpHandler = New HttpClientHandler With {
                             .AllowAutoRedirect = True,
                             .AutomaticDecompression = automaticDecompression,
                             .CookieContainer = _AllCookies,
                             .UseCookies = True,
                             .UseProxy = False
                             }
-                _proxyToBeUsed = Nothing
+                    _proxyToBeUsed = Nothing
+                Catch ex As Exception
+                    Throw ex
+                End Try
             End If
             Me._ConnectTimeOut = connectTimeOut
             Me._httpInstance = New HttpClient(_httpHandler, False)
