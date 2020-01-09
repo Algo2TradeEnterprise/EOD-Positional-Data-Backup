@@ -118,6 +118,8 @@ Partial Class frmMain
         Me.blbEODCommodity = New Bulb.LedBulb()
         Me.blbEODCurrency = New Bulb.LedBulb()
         Me.blbOptionChain = New Bulb.LedBulb()
+        Me.lblCount = New System.Windows.Forms.Label()
+        Me.lblCountDisplay = New System.Windows.Forms.Label()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -132,7 +134,7 @@ Partial Class frmMain
         '
         'btnStart
         '
-        Me.btnStart.Location = New System.Drawing.Point(383, 11)
+        Me.btnStart.Location = New System.Drawing.Point(751, 11)
         Me.btnStart.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.btnStart.Name = "btnStart"
         Me.btnStart.Size = New System.Drawing.Size(145, 39)
@@ -150,7 +152,7 @@ Partial Class frmMain
         '
         'btnStop
         '
-        Me.btnStop.Location = New System.Drawing.Point(545, 11)
+        Me.btnStop.Location = New System.Drawing.Point(913, 11)
         Me.btnStop.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.btnStop.Name = "btnStop"
         Me.btnStop.Size = New System.Drawing.Size(139, 39)
@@ -326,7 +328,7 @@ Partial Class frmMain
         '
         'grpBoxIntradayFuture
         '
-        Me.grpBoxIntradayFuture.BackColor = System.Drawing.Color.DarkSalmon
+        Me.grpBoxIntradayFuture.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxIntradayFuture.Controls.Add(Me.blbIntradayFuture)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureErrorWritingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureWritingData)
@@ -407,7 +409,7 @@ Partial Class frmMain
         '
         'grpBoxIntradayCurrency
         '
-        Me.grpBoxIntradayCurrency.BackColor = System.Drawing.Color.Tan
+        Me.grpBoxIntradayCurrency.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxIntradayCurrency.Controls.Add(Me.blbIntradayCurrency)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyErrorWritingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyWritingData)
@@ -488,7 +490,7 @@ Partial Class frmMain
         '
         'grpBoxIntradayCommodity
         '
-        Me.grpBoxIntradayCommodity.BackColor = System.Drawing.Color.Peru
+        Me.grpBoxIntradayCommodity.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxIntradayCommodity.Controls.Add(Me.blbIntradayCommodity)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityErrorWritingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityWritingData)
@@ -569,7 +571,7 @@ Partial Class frmMain
         '
         'grpBoxEODCurrency
         '
-        Me.grpBoxEODCurrency.BackColor = System.Drawing.Color.Tan
+        Me.grpBoxEODCurrency.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxEODCurrency.Controls.Add(Me.blbEODCurrency)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyErrorWritingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyWritingData)
@@ -650,7 +652,7 @@ Partial Class frmMain
         '
         'grpBoxEODCommodity
         '
-        Me.grpBoxEODCommodity.BackColor = System.Drawing.Color.Peru
+        Me.grpBoxEODCommodity.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxEODCommodity.Controls.Add(Me.blbEODCommodity)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityErrorWritingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityWritingData)
@@ -731,7 +733,7 @@ Partial Class frmMain
         '
         'grpBoxEODFuture
         '
-        Me.grpBoxEODFuture.BackColor = System.Drawing.Color.DarkSalmon
+        Me.grpBoxEODFuture.BackColor = System.Drawing.Color.Khaki
         Me.grpBoxEODFuture.Controls.Add(Me.blbEODFuture)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureErrorWritingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureWritingData)
@@ -893,7 +895,7 @@ Partial Class frmMain
         '
         'grpBoxOptnChn
         '
-        Me.grpBoxOptnChn.BackColor = System.Drawing.Color.MediumTurquoise
+        Me.grpBoxOptnChn.BackColor = System.Drawing.Color.MediumSpringGreen
         Me.grpBoxOptnChn.Controls.Add(Me.blbOptionChain)
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnErrorWritingData)
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnWritingData)
@@ -1072,11 +1074,33 @@ Partial Class frmMain
         Me.blbOptionChain.TabIndex = 25
         Me.blbOptionChain.Text = "LedBulb10"
         '
+        'lblCount
+        '
+        Me.lblCount.AutoSize = True
+        Me.lblCount.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCount.Location = New System.Drawing.Point(22, 25)
+        Me.lblCount.Name = "lblCount"
+        Me.lblCount.Size = New System.Drawing.Size(149, 25)
+        Me.lblCount.TabIndex = 23
+        Me.lblCount.Text = "Count(per sec):"
+        '
+        'lblCountDisplay
+        '
+        Me.lblCountDisplay.AutoSize = True
+        Me.lblCountDisplay.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCountDisplay.Location = New System.Drawing.Point(170, 26)
+        Me.lblCountDisplay.Name = "lblCountDisplay"
+        Me.lblCountDisplay.Size = New System.Drawing.Size(23, 25)
+        Me.lblCountDisplay.TabIndex = 24
+        Me.lblCountDisplay.Text = "0"
+        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1071, 578)
+        Me.Controls.Add(Me.lblCountDisplay)
+        Me.Controls.Add(Me.lblCount)
         Me.Controls.Add(Me.grpBoxOptnChn)
         Me.Controls.Add(Me.grpBoxEODCurrency)
         Me.Controls.Add(Me.grpBoxEODCommodity)
@@ -1116,6 +1140,7 @@ Partial Class frmMain
         Me.grpBoxOptnChn.ResumeLayout(False)
         Me.grpBoxOptnChn.PerformLayout()
         Me.ResumeLayout(False)
+        Me.PerformLayout()
 
     End Sub
 
@@ -1213,4 +1238,6 @@ Partial Class frmMain
     Friend WithEvents blbEODCommodity As Bulb.LedBulb
     Friend WithEvents blbEODFuture As Bulb.LedBulb
     Friend WithEvents blbOptionChain As Bulb.LedBulb
+    Friend WithEvents lblCount As Label
+    Friend WithEvents lblCountDisplay As Label
 End Class

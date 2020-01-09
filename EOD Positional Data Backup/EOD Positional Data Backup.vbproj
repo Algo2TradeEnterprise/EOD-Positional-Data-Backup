@@ -54,6 +54,10 @@
     <Reference Include="Bulb">
       <HintPath>..\..\Algo2Trade GoLive\LEDBulb\Bulb\bin\Debug\Bulb.exe</HintPath>
     </Reference>
+    <Reference Include="HtmlAgilityPack, Version=1.8.9.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Utilities\bin\Debug\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="KiteConnect">
       <HintPath>..\packages\KiteConnect.dll</HintPath>
     </Reference>
@@ -106,6 +110,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="OptionChain.vb" />
     <Compile Include="Payload.vb" />
     <Compile Include="ZerodhaLogin.vb" />
   </ItemGroup>

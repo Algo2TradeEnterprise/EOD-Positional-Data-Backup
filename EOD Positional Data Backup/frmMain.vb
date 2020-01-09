@@ -4,6 +4,7 @@ Imports Utilities.Network
 Imports System.Net.Http
 Imports System.Net
 Imports System.Text
+Imports HtmlAgilityPack
 
 Public Class frmMain
 
@@ -231,8 +232,12 @@ Public Class frmMain
         Intraday
     End Enum
 
+    Private NumberOfParallelTask As Integer = 10
     Private UpdateIntrumentType As InstrumentDetails.TypeOfInstrument
     Private UpdateDataType As DataType
+
+    Private CountPerSecond As Decimal = 0
+
     Private total As Integer = 0
     Private queued As Integer = 0
     Private gettingData As Integer = 0
@@ -353,9 +358,10 @@ Public Class frmMain
         SetLabelText_ThreadSafe(writingDataLabel, String.Format("Writing Data: {0}", writingData))
         SetLabelText_ThreadSafe(errorWritingDataLabel, String.Format("Error Writing Data: {0}", errorWritingData))
         SetLabelText_ThreadSafe(completedLabel, String.Format("Completed: {0}", completed))
+        SetLabelText_ThreadSafe(lblCountDisplay, Math.Round(CountPerSecond, 3))
     End Sub
 
-    Private Sub ManageBulb()
+    Private Sub ManageBulb(ByVal bulbColor As Color)
         Select Case UpdateIntrumentType
             Case InstrumentDetails.TypeOfInstrument.Positional
                 blbIntradayCash.Color = Color.Red
@@ -366,7 +372,7 @@ Public Class frmMain
                 blbEODCommodity.Color = Color.Red
                 blbIntradayCurrency.Color = Color.Red
                 blbEODCurrency.Color = Color.Red
-                blbPositional.Color = Color.Green
+                blbPositional.Color = bulbColor
                 blbOptionChain.Color = Color.Red
             Case InstrumentDetails.TypeOfInstrument.OptionChain
                 blbIntradayCash.Color = Color.Red
@@ -378,10 +384,10 @@ Public Class frmMain
                 blbIntradayCurrency.Color = Color.Red
                 blbEODCurrency.Color = Color.Red
                 blbPositional.Color = Color.Red
-                blbOptionChain.Color = Color.Green
+                blbOptionChain.Color = bulbColor
             Case InstrumentDetails.TypeOfInstrument.Cash
                 If UpdateDataType = DataType.Intraday Then
-                    blbIntradayCash.Color = Color.Green
+                    blbIntradayCash.Color = bulbColor
                     blbEODCash.Color = Color.Red
                     blbIntradayFuture.Color = Color.Red
                     blbEODFuture.Color = Color.Red
@@ -393,7 +399,7 @@ Public Class frmMain
                     blbOptionChain.Color = Color.Red
                 ElseIf UpdateDataType = DataType.EOD Then
                     blbIntradayCash.Color = Color.Red
-                    blbEODCash.Color = Color.Green
+                    blbEODCash.Color = bulbColor
                     blbIntradayFuture.Color = Color.Red
                     blbEODFuture.Color = Color.Red
                     blbIntradayCommodity.Color = Color.Red
@@ -407,7 +413,7 @@ Public Class frmMain
                 If UpdateDataType = DataType.Intraday Then
                     blbIntradayCash.Color = Color.Red
                     blbEODCash.Color = Color.Red
-                    blbIntradayFuture.Color = Color.Green
+                    blbIntradayFuture.Color = bulbColor
                     blbEODFuture.Color = Color.Red
                     blbIntradayCommodity.Color = Color.Red
                     blbEODCommodity.Color = Color.Red
@@ -419,7 +425,7 @@ Public Class frmMain
                     blbIntradayCash.Color = Color.Red
                     blbEODCash.Color = Color.Red
                     blbIntradayFuture.Color = Color.Red
-                    blbEODFuture.Color = Color.Green
+                    blbEODFuture.Color = bulbColor
                     blbIntradayCommodity.Color = Color.Red
                     blbEODCommodity.Color = Color.Red
                     blbIntradayCurrency.Color = Color.Red
@@ -433,7 +439,7 @@ Public Class frmMain
                     blbEODCash.Color = Color.Red
                     blbIntradayFuture.Color = Color.Red
                     blbEODFuture.Color = Color.Red
-                    blbIntradayCommodity.Color = Color.Green
+                    blbIntradayCommodity.Color = bulbColor
                     blbEODCommodity.Color = Color.Red
                     blbIntradayCurrency.Color = Color.Red
                     blbEODCurrency.Color = Color.Red
@@ -445,7 +451,7 @@ Public Class frmMain
                     blbIntradayFuture.Color = Color.Red
                     blbEODFuture.Color = Color.Red
                     blbIntradayCommodity.Color = Color.Red
-                    blbEODCommodity.Color = Color.Green
+                    blbEODCommodity.Color = bulbColor
                     blbIntradayCurrency.Color = Color.Red
                     blbEODCurrency.Color = Color.Red
                     blbPositional.Color = Color.Red
@@ -459,7 +465,7 @@ Public Class frmMain
                     blbEODFuture.Color = Color.Red
                     blbIntradayCommodity.Color = Color.Red
                     blbEODCommodity.Color = Color.Red
-                    blbIntradayCurrency.Color = Color.Green
+                    blbIntradayCurrency.Color = bulbColor
                     blbEODCurrency.Color = Color.Red
                     blbPositional.Color = Color.Red
                     blbOptionChain.Color = Color.Red
@@ -471,7 +477,7 @@ Public Class frmMain
                     blbIntradayCommodity.Color = Color.Red
                     blbEODCommodity.Color = Color.Red
                     blbIntradayCurrency.Color = Color.Red
-                    blbEODCurrency.Color = Color.Green
+                    blbEODCurrency.Color = bulbColor
                     blbPositional.Color = Color.Red
                     blbOptionChain.Color = Color.Red
                 End If
@@ -490,6 +496,7 @@ Public Class frmMain
         blbPositional.Color = Color.Red
         blbOptionChain.Color = Color.Red
 
+        CountPerSecond = 0
         total = 0
         queued = 0
         gettingData = 0
@@ -577,11 +584,13 @@ Public Class frmMain
                 Dim futureStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
                 Dim commodityStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Commodity, lastDateToCheck).ConfigureAwait(False)
                 Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
+                Dim optionChainStockList As List(Of InstrumentDetails) = Await GetAllOptionChainStockListAsync().ConfigureAwait(False)
 
 #Region "Cash"
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
                 UpdateDataType = DataType.Intraday
+                CountPerSecond = 0
                 total = 0
                 queued = 0
                 gettingData = 0
@@ -590,7 +599,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
                     total = cashStockList.Count
                     UpdateLabels()
@@ -602,9 +611,14 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            Dim sw As Stopwatch = New Stopwatch
+                            sw.Start()
+                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim elapsedSecond As Decimal = sw.Elapsed.Seconds
+                                Console.WriteLine(elapsedSecond)
+                                If i > 0 Then CountPerSecond = elapsedSecond / i
+                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                            Try
@@ -621,6 +635,7 @@ Public Class frmMain
                                     Throw mainTask.Exception
                                 End If
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -633,8 +648,9 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
-
+                Exit Function
 #Region "EOD"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
                 UpdateDataType = DataType.EOD
@@ -646,7 +662,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
                     total = cashStockList.Count
                     UpdateLabels()
@@ -658,9 +674,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                            Try
@@ -689,6 +705,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
 
@@ -704,7 +721,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
                     total = futureStockList.Count
                     UpdateLabels()
@@ -716,9 +733,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To futureStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = futureStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                              Try
@@ -747,6 +764,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 
 #Region "EOD"
@@ -760,7 +778,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
                     total = futureStockList.Count
                     UpdateLabels()
@@ -772,9 +790,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To futureStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = futureStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                              Try
@@ -803,6 +821,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
 
@@ -818,7 +837,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
                     total = commodityStockList.Count
                     UpdateLabels()
@@ -830,9 +849,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To commodityStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = commodityStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                 Try
@@ -861,6 +880,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 
 #Region "EOD"
@@ -874,7 +894,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
                     total = commodityStockList.Count
                     UpdateLabels()
@@ -886,9 +906,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To commodityStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = commodityStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                 Try
@@ -917,6 +937,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
 
@@ -932,7 +953,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
                     total = currencyStockList.Count
                     UpdateLabels()
@@ -944,9 +965,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To currencyStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = currencyStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                Try
@@ -975,6 +996,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 
 #Region "EOD"
@@ -988,7 +1010,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
                     total = currencyStockList.Count
                     UpdateLabels()
@@ -1000,9 +1022,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To currencyStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = currencyStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                Try
@@ -1031,6 +1053,7 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
 
@@ -1045,7 +1068,7 @@ Public Class frmMain
                 errorWritingData = 0
                 completed = 0
                 errorCompleted = 0
-                ManageBulb()
+                ManageBulb(Color.Yellow)
                 If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
                     total = positionalStockList.Count
                     UpdateLabels()
@@ -1057,9 +1080,9 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step 10
+                            For i As Integer = 0 To positionalStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > 10, 10, cashStockList.Count - i)
+                                Dim numberOfData As Integer = If(positionalStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, positionalStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
                                 tasks = positionalStockList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                  Try
@@ -1088,8 +1111,65 @@ Public Class frmMain
                         End Try
                     End Using
                 End If
+                ManageBulb(Color.LawnGreen)
 #End Region
 
+#Region "Option Chain"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.OptionChain
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                errorCompleted = 0
+                ManageBulb(Color.Yellow)
+                If optionChainStockList IsNot Nothing AndAlso optionChainStockList.Count > 0 Then
+                    total = optionChainStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Try
+                            For i As Integer = 0 To optionChainStockList.Count - 1 Step Me.NumberOfParallelTask
+                                canceller.Token.ThrowIfCancellationRequested()
+                                Dim numberOfData As Integer = If(optionChainStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, optionChainStockList.Count - i)
+                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                                tasks = optionChainStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                  Try
+                                                                                                      Await ProcessOptionChainData(x, sqlHlpr).ConfigureAwait(False)
+                                                                                                  Catch ex As Exception
+                                                                                                      Throw ex
+                                                                                                  End Try
+                                                                                                  Return True
+                                                                                              End Function)
+
+                                Dim mainTask As Task = Task.WhenAll(tasks)
+                                Await mainTask.ConfigureAwait(False)
+                                If mainTask.Exception IsNot Nothing Then
+                                    Throw mainTask.Exception
+                                End If
+                            Next
+                        Catch cex As TaskCanceledException
+                            'logger.Error(cex)
+                            Throw cex
+                        Catch aex As AggregateException
+                            'logger.Error(aex)
+                            Throw aex
+                        Catch ex As Exception
+                            'logger.Error(ex)
+                            Throw ex
+                        End Try
+                    End Using
+                End If
+                ManageBulb(Color.LawnGreen)
+#End Region
 
             Else
                 Throw New ApplicationException("Zerodha login fail")
@@ -1395,6 +1475,257 @@ Public Class frmMain
     End Function
 #End Region
 
+#Region "Option Chain Task"
+    Private _optionChainHitCount As Integer = 0
+    Private Async Function ProcessOptionChainData(ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper) As Task
+        Try
+            canceller.Token.ThrowIfCancellationRequested()
+            While _optionChainHitCount >= 10
+                Await Task.Delay(10, canceller.Token).ConfigureAwait(False)
+                canceller.Token.ThrowIfCancellationRequested()
+            End While
+            Interlocked.Increment(gettingData)
+            UpdateLabels()
+
+            canceller.Token.ThrowIfCancellationRequested()
+            Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
+            Interlocked.Increment(_optionChainHitCount)
+
+            Dim NSEIDXOptionChainURL As String = "https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-0&symbol={0}&symbol={0}&instrument=OPTIDX&date=-&segmentLink=17&segmentLink=17"
+            Dim NSESTKOptionChainURL As String = "https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-0&symbol={0}&symbol={0}&instrument=OPTSTK&date=-&segmentLink=17&segmentLink=17"
+            Dim openPositionDataURL As String = Nothing
+            If instrument.TradingSymbol = "NIFTY" OrElse instrument.TradingSymbol = "BANKNIFTY" OrElse instrument.TradingSymbol = "NIFTYIT" Then
+                openPositionDataURL = String.Format(NSEIDXOptionChainURL, instrument.TradingSymbol)
+            Else
+                openPositionDataURL = String.Format(NSESTKOptionChainURL, instrument.TradingSymbol)
+            End If
+            Dim outputResponse As HtmlDocument = Nothing
+            Dim proxyToBeUsed As HttpProxy = Nothing
+            Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), canceller)
+                AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                AddHandler browser.Heartbeat, AddressOf OnHeartbeat
+                AddHandler browser.WaitingFor, AddressOf OnWaitingFor
+                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+
+                browser.KeepAlive = True
+                Dim headersToBeSent As New Dictionary(Of String, String)
+                headersToBeSent.Add("Host", "www.nseindia.com")
+                headersToBeSent.Add("Upgrade-Insecure-Requests", "1")
+                headersToBeSent.Add("Sec-Fetch-Mode", "navigate")
+                headersToBeSent.Add("Sec-Fetch-Site", "none")
+
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(openPositionDataURL,
+                                                                                            HttpMethod.Get,
+                                                                                            Nothing,
+                                                                                            False,
+                                                                                            headersToBeSent,
+                                                                                            True,
+                                                                                            "text/html").ConfigureAwait(False)
+                If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                    outputResponse = l.Item2
+                End If
+                RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
+                RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
+                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            End Using
+
+            Interlocked.Decrement(gettingData)
+            UpdateLabels()
+
+            If outputResponse IsNot Nothing AndAlso outputResponse.DocumentNode IsNot Nothing Then
+                OnHeartbeat("Extracting Option Chain from HTML")
+                Dim calls As List(Of OptionChain) = Nothing
+                Dim puts As List(Of OptionChain) = Nothing
+                If outputResponse.DocumentNode.SelectNodes("//table[@id='octable']") IsNot Nothing Then
+                    For Each table As HtmlNode In outputResponse.DocumentNode.SelectNodes("//table[@id='octable']")
+                        canceller.Token.ThrowIfCancellationRequested()
+                        If table IsNot Nothing AndAlso table.SelectNodes("tr") IsNot Nothing Then
+                            For Each row As HtmlNode In table.SelectNodes("tr")
+                                canceller.Token.ThrowIfCancellationRequested()
+                                If row IsNot Nothing AndAlso row.SelectNodes("td") IsNot Nothing Then
+                                    Dim callData As OptionChain = Nothing
+                                    Dim putData As OptionChain = Nothing
+                                    Dim counter As Integer = 0
+                                    For Each cell As HtmlNode In row.SelectNodes("td")
+                                        canceller.Token.ThrowIfCancellationRequested()
+                                        If cell IsNot Nothing AndAlso cell.InnerText IsNot Nothing AndAlso cell.InnerText <> "" Then
+                                            If cell.InnerText.Trim = "Total" Then
+                                                Exit For
+                                            End If
+                                            If callData Is Nothing Then callData = New OptionChain
+                                            If putData Is Nothing Then putData = New OptionChain
+                                            counter += 1
+                                            If counter = 1 Then
+                                                callData.OI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 2 Then
+                                                callData.ChangeInOI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 3 Then
+                                                callData.Volume = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 4 Then
+                                                callData.IV = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 5 Then
+                                                callData.LTP = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 6 Then
+                                                callData.NetChange = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 7 Then
+                                                callData.BidQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 8 Then
+                                                callData.BidPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 9 Then
+                                                callData.AskPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 10 Then
+                                                callData.AskQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 11 Then
+                                                callData.StrikePrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                                putData.StrikePrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 12 Then
+                                                putData.BidQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 13 Then
+                                                putData.BidPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 14 Then
+                                                putData.AskPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 15 Then
+                                                putData.AskQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 16 Then
+                                                putData.NetChange = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 17 Then
+                                                putData.LTP = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 18 Then
+                                                putData.IV = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 19 Then
+                                                putData.Volume = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 20 Then
+                                                putData.ChangeInOI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            ElseIf counter = 21 Then
+                                                putData.OI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
+                                            End If
+                                        End If
+                                    Next
+                                    If callData IsNot Nothing Then
+                                        If calls Is Nothing Then calls = New List(Of OptionChain)
+                                        calls.Add(callData)
+                                    End If
+                                    If putData IsNot Nothing Then
+                                        If puts Is Nothing Then puts = New List(Of OptionChain)
+                                        puts.Add(putData)
+                                    End If
+                                End If
+                            Next
+                        End If
+                    Next
+                End If
+                canceller.Token.ThrowIfCancellationRequested()
+
+                OnHeartbeat("Creating table of option chain data")
+                canceller.Token.ThrowIfCancellationRequested()
+                If calls IsNot Nothing AndAlso calls.Count > 0 AndAlso puts IsNot Nothing AndAlso puts.Count > 0 AndAlso calls.Count = puts.Count Then
+                    canceller.Token.ThrowIfCancellationRequested()
+                    Interlocked.Increment(writingData)
+                    UpdateLabels()
+
+                    Dim insertDataString As String = Nothing
+                    For Each runningCall In calls
+                        canceller.Token.ThrowIfCancellationRequested()
+                        insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
+                                                                        insertDataString,
+                                                                        Now.ToString("yyyy-MM-dd"),
+                                                                        instrument.TradingSymbol.ToUpper,
+                                                                        runningCall.StrikePrice,
+                                                                        "CE",
+                                                                        If(runningCall.OI <> Decimal.MinValue, runningCall.OI, Nothing),
+                                                                        If(runningCall.ChangeInOI <> Decimal.MinValue, runningCall.ChangeInOI, Nothing),
+                                                                        If(runningCall.Volume <> Decimal.MinValue, runningCall.Volume, Nothing),
+                                                                        If(runningCall.IV <> Decimal.MinValue, runningCall.IV, Nothing),
+                                                                        If(runningCall.LTP <> Decimal.MinValue, runningCall.LTP, Nothing),
+                                                                        If(runningCall.NetChange <> Decimal.MinValue, runningCall.NetChange, Nothing),
+                                                                        If(runningCall.BidQuantity <> Decimal.MinValue, runningCall.BidQuantity, Nothing),
+                                                                        If(runningCall.BidPrice <> Decimal.MinValue, runningCall.BidPrice, Nothing),
+                                                                        If(runningCall.AskPrice <> Decimal.MinValue, runningCall.AskPrice, Nothing),
+                                                                        If(runningCall.AskQuantity <> Decimal.MinValue, runningCall.AskQuantity, Nothing))
+                    Next
+                    For Each runningPut In puts
+                        canceller.Token.ThrowIfCancellationRequested()
+                        insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
+                                                                        insertDataString,
+                                                                        Now.ToString("yyyy-MM-dd"),
+                                                                        instrument.TradingSymbol.ToUpper,
+                                                                        runningPut.StrikePrice,
+                                                                        "PE",
+                                                                        If(runningPut.OI <> Decimal.MinValue, runningPut.OI, Nothing),
+                                                                        If(runningPut.ChangeInOI <> Decimal.MinValue, runningPut.ChangeInOI, Nothing),
+                                                                        If(runningPut.Volume <> Decimal.MinValue, runningPut.Volume, Nothing),
+                                                                        If(runningPut.IV <> Decimal.MinValue, runningPut.IV, Nothing),
+                                                                        If(runningPut.LTP <> Decimal.MinValue, runningPut.LTP, Nothing),
+                                                                        If(runningPut.NetChange <> Decimal.MinValue, runningPut.NetChange, Nothing),
+                                                                        If(runningPut.BidQuantity <> Decimal.MinValue, runningPut.BidQuantity, Nothing),
+                                                                        If(runningPut.BidPrice <> Decimal.MinValue, runningPut.BidPrice, Nothing),
+                                                                        If(runningPut.AskPrice <> Decimal.MinValue, runningPut.AskPrice, Nothing),
+                                                                        If(runningPut.AskQuantity <> Decimal.MinValue, runningPut.AskQuantity, Nothing))
+                    Next
+
+                    If insertDataString IsNot Nothing Then
+                        Dim insertString As String = String.Format("INSERT INTO `nse_option_chain` 
+                                                                                (`SnapshotDate`,
+                                                                                `InstrumentName`,
+                                                                                `StrikePrice`,
+                                                                                `CallPut`,
+                                                                                `OI`,
+                                                                                `ChangeInOI`,
+                                                                                `Volume`,
+                                                                                `IV`,
+                                                                                `LTP`,
+                                                                                `NetChange`,
+                                                                                `BidQuantity`,
+                                                                                `BidPrice`,
+                                                                                `AskPrice`,
+                                                                                `AskQuantity`,
+                                                                                `UpdateToDBTime`) 
+                                                                                VALUES {0} 
+                                                                                ON DUPLICATE KEY UPDATE 
+                                                                                `SnapshotDate`=VALUES(`SnapshotDate`),
+                                                                                `InstrumentName`=VALUES(`InstrumentName`),
+                                                                                `StrikePrice`=VALUES(`StrikePrice`),
+                                                                                `CallPut`=VALUES(`CallPut`),
+                                                                                `OI`=VALUES(`OI`),
+                                                                                `ChangeInOI`=VALUES(`ChangeInOI`),
+                                                                                `Volume`=VALUES(`Volume`),
+                                                                                `IV`=VALUES(`IV`),
+                                                                                `LTP`=VALUES(`LTP`),
+                                                                                `NetChange`=VALUES(`NetChange`),
+                                                                                `BidQuantity`=VALUES(`BidQuantity`),
+                                                                                `BidPrice`=VALUES(`BidPrice`),
+                                                                                `AskPrice`=VALUES(`AskPrice`),
+                                                                                `AskQuantity`=VALUES(`AskQuantity`),
+                                                                                `UpdateToDBTime`=VALUES(`UpdateToDBTime`);", insertDataString.Substring(1))
+
+                        canceller.Token.ThrowIfCancellationRequested()
+                        Dim numberOfdata As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
+                        Interlocked.Decrement(writingData)
+                        Interlocked.Increment(completed)
+                        UpdateLabels()
+                    End If
+                    canceller.Token.ThrowIfCancellationRequested()
+                Else
+                    Interlocked.Increment(errorGettingData)
+                    Interlocked.Increment(errorCompleted)
+                    UpdateLabels()
+                End If
+                canceller.Token.ThrowIfCancellationRequested()
+            Else
+                Interlocked.Increment(errorGettingData)
+                Interlocked.Increment(errorCompleted)
+                UpdateLabels()
+            End If
+        Catch ex As Exception
+            Throw ex
+        Finally
+            Interlocked.Decrement(_optionChainHitCount)
+            UpdateLabels()
+        End Try
+    End Function
+#End Region
+
 #Region "Required Functions"
     Private Async Function GetStockListAsync(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal currentDate As Date) As Task(Of List(Of InstrumentDetails))
         Dim ret As List(Of InstrumentDetails) = Nothing
@@ -1437,14 +1768,47 @@ Public Class frmMain
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                         ret.Add(runningInstrument)
 
-                        'If i >= 500 Then Exit For
+                        If i >= 50 Then Exit For
                     End If
                 Next
             End If
         End Using
         Return ret
     End Function
+    Private Async Function GetAllOptionChainStockListAsync() As Task(Of List(Of InstrumentDetails))
+        Dim ret As List(Of InstrumentDetails) = Nothing
+        Dim selectString As String = "SELECT `TRADING_SYMBOL` FROM `active_instruments_futures` WHERE `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `active_instruments_futures`)"
+        Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+            AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+            AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+            AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+            AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
+            Dim dt As DataTable = Await sqlHlpr.RunSelectAsync(selectString).ConfigureAwait(False)
+            If dt IsNot Nothing AndAlso dt.Rows.Count > 0 Then
+                Dim stockList As List(Of String) = Nothing
+                For i = 0 To dt.Rows.Count - 1
+                    Dim tradingSymbol As String = dt.Rows(i).Item(0).ToString.ToUpper
+                    Dim instrumentName As String = Nothing
+                    If tradingSymbol.Contains("FUT") Then
+                        instrumentName = tradingSymbol.Remove(tradingSymbol.Count - 8)
+                    Else
+                        instrumentName = tradingSymbol
+                    End If
+                    If stockList Is Nothing Then stockList = New List(Of String)
+                    If Not stockList.Contains(instrumentName) Then stockList.Add(instrumentName)
+                Next
+
+                If stockList IsNot Nothing AndAlso stockList.Count > 0 Then
+                    For Each runningStock In stockList
+                        If ret Is Nothing Then ret = New List(Of InstrumentDetails)
+                        ret.Add(New InstrumentDetails With {.TradingSymbol = runningStock, .InstrumentType = InstrumentDetails.TypeOfInstrument.OptionChain})
+                    Next
+                End If
+            End If
+        End Using
+        Return ret
+    End Function
     Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
         'Dim ZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
@@ -1469,7 +1833,6 @@ Public Class frmMain
                                                                           Return True
                                                                       End Function
 
-            HttpBrowser.KillCookies()
             Dim proxyToBeUsed As HttpProxy = Nothing
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
                 AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
