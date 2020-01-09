@@ -44,9 +44,9 @@ Namespace DAL
 #End Region
 
 #Region "Public Attributes"
-        Public Property WaitDurationOnConnectionFailure As TimeSpan = TimeSpan.FromSeconds(5)
-        Public Property WaitDurationOnAnyFailure As TimeSpan = TimeSpan.FromSeconds(10)
-        Public Property MaxReTries As Integer = 20
+        Public Property WaitDurationOnConnectionFailure As TimeSpan = TimeSpan.FromSeconds(1)
+        Public Property WaitDurationOnAnyFailure As TimeSpan = TimeSpan.FromSeconds(1)
+        Public Property MaxReTries As Integer = 200
 #End Region
 
 #Region "Private Methods"

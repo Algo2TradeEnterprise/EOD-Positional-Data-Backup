@@ -30,7 +30,7 @@ Namespace DAL
             _userID = userID
             _password = password
             Me._canceller = canceller
-            _connectionString = String.Format("Server={0};Database={1};Port={2};Uid={3};Pwd={4};default command timeout=180;Pooling=True;Min Pool Size=1;Max Pool Size=1;UseAffectedRows=false;Allow User Variables=True", _serverName, _dbName, _port, _userID, _password)
+            _connectionString = String.Format("Server={0};Database={1};Port={2};Uid={3};Pwd={4};default command timeout=180;Pooling=True;Min Pool Size=1;Max Pool Size=20;UseAffectedRows=false;Allow User Variables=True", _serverName, _dbName, _port, _userID, _password)
         End Sub
 #End Region
 
