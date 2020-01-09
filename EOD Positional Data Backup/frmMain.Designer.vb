@@ -121,12 +121,13 @@ Partial Class frmMain
         Me.lblCount = New System.Windows.Forms.Label()
         Me.lblCountDisplay = New System.Windows.Forms.Label()
         Me.lblExpctdFnsTm = New System.Windows.Forms.Label()
-        Me.Label2 = New System.Windows.Forms.Label()
+        Me.lblExpFnsTmLbl = New System.Windows.Forms.Label()
         Me.grpHistoricalHitMode = New System.Windows.Forms.GroupBox()
-        Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
         Me.rdbWithoutAPI = New System.Windows.Forms.RadioButton()
-        Me.Label1 = New System.Windows.Forms.Label()
+        Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
+        Me.lblNumberOfHit = New System.Windows.Forms.Label()
         Me.nmrcParallelHit = New System.Windows.Forms.NumericUpDown()
+        Me.Label3 = New System.Windows.Forms.Label()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -153,7 +154,7 @@ Partial Class frmMain
         '
         'lblProgress
         '
-        Me.lblProgress.Location = New System.Drawing.Point(14, 524)
+        Me.lblProgress.Location = New System.Drawing.Point(13, 524)
         Me.lblProgress.Name = "lblProgress"
         Me.lblProgress.Size = New System.Drawing.Size(1043, 44)
         Me.lblProgress.TabIndex = 2
@@ -185,7 +186,9 @@ Partial Class frmMain
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlGettingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlTotal)
         Me.grpBoxPositional.Location = New System.Drawing.Point(15, 442)
+        Me.grpBoxPositional.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxPositional.Name = "grpBoxPositional"
+        Me.grpBoxPositional.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxPositional.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxPositional.TabIndex = 6
         Me.grpBoxPositional.TabStop = False
@@ -195,6 +198,7 @@ Partial Class frmMain
         '
         Me.blbPositional.Color = System.Drawing.Color.Red
         Me.blbPositional.Location = New System.Drawing.Point(483, 0)
+        Me.blbPositional.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbPositional.Name = "blbPositional"
         Me.blbPositional.On = True
         Me.blbPositional.Size = New System.Drawing.Size(29, 27)
@@ -222,7 +226,7 @@ Partial Class frmMain
         'lblPstnlQueue
         '
         Me.lblPstnlQueue.AutoSize = True
-        Me.lblPstnlQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblPstnlQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblPstnlQueue.Name = "lblPstnlQueue"
         Me.lblPstnlQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblPstnlQueue.TabIndex = 5
@@ -275,9 +279,11 @@ Partial Class frmMain
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashErrorGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashTotal)
-        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(14, 79)
+        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(13, 79)
+        Me.grpBoxIntradayCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCash.Name = "grpBoxIntradayCash"
-        Me.grpBoxIntradayCash.Size = New System.Drawing.Size(514, 74)
+        Me.grpBoxIntradayCash.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
+        Me.grpBoxIntradayCash.Size = New System.Drawing.Size(515, 74)
         Me.grpBoxIntradayCash.TabIndex = 8
         Me.grpBoxIntradayCash.TabStop = False
         Me.grpBoxIntradayCash.Text = "Intraday Cash"
@@ -286,6 +292,7 @@ Partial Class frmMain
         '
         Me.blbIntradayCash.Color = System.Drawing.Color.Red
         Me.blbIntradayCash.Location = New System.Drawing.Point(484, 0)
+        Me.blbIntradayCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbIntradayCash.Name = "blbIntradayCash"
         Me.blbIntradayCash.On = True
         Me.blbIntradayCash.Size = New System.Drawing.Size(29, 27)
@@ -313,7 +320,7 @@ Partial Class frmMain
         'lblIntradayCashQueue
         '
         Me.lblIntradayCashQueue.AutoSize = True
-        Me.lblIntradayCashQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblIntradayCashQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblIntradayCashQueue.Name = "lblIntradayCashQueue"
         Me.lblIntradayCashQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblIntradayCashQueue.TabIndex = 5
@@ -366,8 +373,10 @@ Partial Class frmMain
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureErrorGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureTotal)
-        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(14, 168)
+        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(13, 167)
+        Me.grpBoxIntradayFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayFuture.Name = "grpBoxIntradayFuture"
+        Me.grpBoxIntradayFuture.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayFuture.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayFuture.TabIndex = 9
         Me.grpBoxIntradayFuture.TabStop = False
@@ -377,6 +386,7 @@ Partial Class frmMain
         '
         Me.blbIntradayFuture.Color = System.Drawing.Color.Red
         Me.blbIntradayFuture.Location = New System.Drawing.Point(484, 0)
+        Me.blbIntradayFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbIntradayFuture.Name = "blbIntradayFuture"
         Me.blbIntradayFuture.On = True
         Me.blbIntradayFuture.Size = New System.Drawing.Size(29, 27)
@@ -404,7 +414,7 @@ Partial Class frmMain
         'lblIntradayFutureQueue
         '
         Me.lblIntradayFutureQueue.AutoSize = True
-        Me.lblIntradayFutureQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblIntradayFutureQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblIntradayFutureQueue.Name = "lblIntradayFutureQueue"
         Me.lblIntradayFutureQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblIntradayFutureQueue.TabIndex = 5
@@ -458,7 +468,9 @@ Partial Class frmMain
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyGettingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyTotal)
         Me.grpBoxIntradayCurrency.Location = New System.Drawing.Point(15, 352)
+        Me.grpBoxIntradayCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCurrency.Name = "grpBoxIntradayCurrency"
+        Me.grpBoxIntradayCurrency.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCurrency.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayCurrency.TabIndex = 13
         Me.grpBoxIntradayCurrency.TabStop = False
@@ -468,6 +480,7 @@ Partial Class frmMain
         '
         Me.blbIntradayCurrency.Color = System.Drawing.Color.Red
         Me.blbIntradayCurrency.Location = New System.Drawing.Point(483, 0)
+        Me.blbIntradayCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbIntradayCurrency.Name = "blbIntradayCurrency"
         Me.blbIntradayCurrency.On = True
         Me.blbIntradayCurrency.Size = New System.Drawing.Size(29, 27)
@@ -495,7 +508,7 @@ Partial Class frmMain
         'lblIntradayCurrencyQueue
         '
         Me.lblIntradayCurrencyQueue.AutoSize = True
-        Me.lblIntradayCurrencyQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblIntradayCurrencyQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblIntradayCurrencyQueue.Name = "lblIntradayCurrencyQueue"
         Me.lblIntradayCurrencyQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblIntradayCurrencyQueue.TabIndex = 5
@@ -549,7 +562,9 @@ Partial Class frmMain
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityGettingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityTotal)
         Me.grpBoxIntradayCommodity.Location = New System.Drawing.Point(15, 260)
+        Me.grpBoxIntradayCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCommodity.Name = "grpBoxIntradayCommodity"
+        Me.grpBoxIntradayCommodity.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCommodity.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxIntradayCommodity.TabIndex = 12
         Me.grpBoxIntradayCommodity.TabStop = False
@@ -559,6 +574,7 @@ Partial Class frmMain
         '
         Me.blbIntradayCommodity.Color = System.Drawing.Color.Red
         Me.blbIntradayCommodity.Location = New System.Drawing.Point(485, 0)
+        Me.blbIntradayCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbIntradayCommodity.Name = "blbIntradayCommodity"
         Me.blbIntradayCommodity.On = True
         Me.blbIntradayCommodity.Size = New System.Drawing.Size(29, 27)
@@ -586,7 +602,7 @@ Partial Class frmMain
         'lblIntradayCommodityQueue
         '
         Me.lblIntradayCommodityQueue.AutoSize = True
-        Me.lblIntradayCommodityQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblIntradayCommodityQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblIntradayCommodityQueue.Name = "lblIntradayCommodityQueue"
         Me.lblIntradayCommodityQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblIntradayCommodityQueue.TabIndex = 5
@@ -640,7 +656,9 @@ Partial Class frmMain
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyGettingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyTotal)
         Me.grpBoxEODCurrency.Location = New System.Drawing.Point(545, 352)
+        Me.grpBoxEODCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCurrency.Name = "grpBoxEODCurrency"
+        Me.grpBoxEODCurrency.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCurrency.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCurrency.TabIndex = 21
         Me.grpBoxEODCurrency.TabStop = False
@@ -650,6 +668,7 @@ Partial Class frmMain
         '
         Me.blbEODCurrency.Color = System.Drawing.Color.Red
         Me.blbEODCurrency.Location = New System.Drawing.Point(484, 0)
+        Me.blbEODCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbEODCurrency.Name = "blbEODCurrency"
         Me.blbEODCurrency.On = True
         Me.blbEODCurrency.Size = New System.Drawing.Size(29, 27)
@@ -677,7 +696,7 @@ Partial Class frmMain
         'lblEODCurrencyQueue
         '
         Me.lblEODCurrencyQueue.AutoSize = True
-        Me.lblEODCurrencyQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblEODCurrencyQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblEODCurrencyQueue.Name = "lblEODCurrencyQueue"
         Me.lblEODCurrencyQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblEODCurrencyQueue.TabIndex = 5
@@ -731,7 +750,9 @@ Partial Class frmMain
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityGettingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityTotal)
         Me.grpBoxEODCommodity.Location = New System.Drawing.Point(545, 260)
+        Me.grpBoxEODCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCommodity.Name = "grpBoxEODCommodity"
+        Me.grpBoxEODCommodity.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCommodity.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCommodity.TabIndex = 20
         Me.grpBoxEODCommodity.TabStop = False
@@ -741,6 +762,7 @@ Partial Class frmMain
         '
         Me.blbEODCommodity.Color = System.Drawing.Color.Red
         Me.blbEODCommodity.Location = New System.Drawing.Point(483, 0)
+        Me.blbEODCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbEODCommodity.Name = "blbEODCommodity"
         Me.blbEODCommodity.On = True
         Me.blbEODCommodity.Size = New System.Drawing.Size(29, 27)
@@ -768,7 +790,7 @@ Partial Class frmMain
         'lblEODCommodityQueue
         '
         Me.lblEODCommodityQueue.AutoSize = True
-        Me.lblEODCommodityQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblEODCommodityQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblEODCommodityQueue.Name = "lblEODCommodityQueue"
         Me.lblEODCommodityQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblEODCommodityQueue.TabIndex = 5
@@ -821,8 +843,10 @@ Partial Class frmMain
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureErrorGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureTotal)
-        Me.grpBoxEODFuture.Location = New System.Drawing.Point(544, 168)
+        Me.grpBoxEODFuture.Location = New System.Drawing.Point(544, 167)
+        Me.grpBoxEODFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODFuture.Name = "grpBoxEODFuture"
+        Me.grpBoxEODFuture.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODFuture.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODFuture.TabIndex = 19
         Me.grpBoxEODFuture.TabStop = False
@@ -832,6 +856,7 @@ Partial Class frmMain
         '
         Me.blbEODFuture.Color = System.Drawing.Color.Red
         Me.blbEODFuture.Location = New System.Drawing.Point(485, 0)
+        Me.blbEODFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbEODFuture.Name = "blbEODFuture"
         Me.blbEODFuture.On = True
         Me.blbEODFuture.Size = New System.Drawing.Size(29, 27)
@@ -859,7 +884,7 @@ Partial Class frmMain
         'lblEODFutureQueue
         '
         Me.lblEODFutureQueue.AutoSize = True
-        Me.lblEODFutureQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblEODFutureQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblEODFutureQueue.Name = "lblEODFutureQueue"
         Me.lblEODFutureQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblEODFutureQueue.TabIndex = 5
@@ -913,7 +938,9 @@ Partial Class frmMain
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashGettingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashTotal)
         Me.grpBoxEODCash.Location = New System.Drawing.Point(545, 79)
+        Me.grpBoxEODCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCash.Name = "grpBoxEODCash"
+        Me.grpBoxEODCash.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCash.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxEODCash.TabIndex = 18
         Me.grpBoxEODCash.TabStop = False
@@ -923,6 +950,7 @@ Partial Class frmMain
         '
         Me.blbEODCash.Color = System.Drawing.Color.Red
         Me.blbEODCash.Location = New System.Drawing.Point(483, 0)
+        Me.blbEODCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbEODCash.Name = "blbEODCash"
         Me.blbEODCash.On = True
         Me.blbEODCash.Size = New System.Drawing.Size(29, 27)
@@ -950,7 +978,7 @@ Partial Class frmMain
         'lblEODCashQueue
         '
         Me.lblEODCashQueue.AutoSize = True
-        Me.lblEODCashQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblEODCashQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblEODCashQueue.Name = "lblEODCashQueue"
         Me.lblEODCashQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblEODCashQueue.TabIndex = 5
@@ -1004,7 +1032,9 @@ Partial Class frmMain
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnGettingData)
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnTotal)
         Me.grpBoxOptnChn.Location = New System.Drawing.Point(544, 442)
+        Me.grpBoxOptnChn.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxOptnChn.Name = "grpBoxOptnChn"
+        Me.grpBoxOptnChn.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxOptnChn.Size = New System.Drawing.Size(513, 74)
         Me.grpBoxOptnChn.TabIndex = 22
         Me.grpBoxOptnChn.TabStop = False
@@ -1014,6 +1044,7 @@ Partial Class frmMain
         '
         Me.blbOptionChain.Color = System.Drawing.Color.Red
         Me.blbOptionChain.Location = New System.Drawing.Point(484, 0)
+        Me.blbOptionChain.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.blbOptionChain.Name = "blbOptionChain"
         Me.blbOptionChain.On = True
         Me.blbOptionChain.Size = New System.Drawing.Size(29, 27)
@@ -1041,7 +1072,7 @@ Partial Class frmMain
         'lblOptnChnQueue
         '
         Me.lblOptnChnQueue.AutoSize = True
-        Me.lblOptnChnQueue.Location = New System.Drawing.Point(98, 25)
+        Me.lblOptnChnQueue.Location = New System.Drawing.Point(99, 25)
         Me.lblOptnChnQueue.Name = "lblOptnChnQueue"
         Me.lblOptnChnQueue.Size = New System.Drawing.Size(79, 17)
         Me.lblOptnChnQueue.TabIndex = 5
@@ -1086,69 +1117,62 @@ Partial Class frmMain
         'lblCount
         '
         Me.lblCount.AutoSize = True
-        Me.lblCount.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblCount.Location = New System.Drawing.Point(22, 12)
+        Me.lblCount.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCount.Location = New System.Drawing.Point(21, 12)
         Me.lblCount.Name = "lblCount"
-        Me.lblCount.Size = New System.Drawing.Size(149, 25)
+        Me.lblCount.Size = New System.Drawing.Size(126, 20)
         Me.lblCount.TabIndex = 23
         Me.lblCount.Text = "Count(per sec):"
         '
         'lblCountDisplay
         '
         Me.lblCountDisplay.AutoSize = True
-        Me.lblCountDisplay.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblCountDisplay.Location = New System.Drawing.Point(170, 13)
+        Me.lblCountDisplay.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblCountDisplay.Location = New System.Drawing.Point(155, 14)
         Me.lblCountDisplay.Name = "lblCountDisplay"
-        Me.lblCountDisplay.Size = New System.Drawing.Size(23, 25)
+        Me.lblCountDisplay.Size = New System.Drawing.Size(18, 20)
         Me.lblCountDisplay.TabIndex = 24
         Me.lblCountDisplay.Text = "0"
         '
         'lblExpctdFnsTm
         '
         Me.lblExpctdFnsTm.AutoSize = True
-        Me.lblExpctdFnsTm.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblExpctdFnsTm.Location = New System.Drawing.Point(233, 43)
+        Me.lblExpctdFnsTm.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblExpctdFnsTm.Location = New System.Drawing.Point(208, 41)
         Me.lblExpctdFnsTm.Name = "lblExpctdFnsTm"
-        Me.lblExpctdFnsTm.Size = New System.Drawing.Size(90, 25)
+        Me.lblExpctdFnsTm.Size = New System.Drawing.Size(73, 20)
         Me.lblExpctdFnsTm.TabIndex = 26
         Me.lblExpctdFnsTm.Text = "00:00:00"
         '
-        'Label2
+        'lblExpFnsTmLbl
         '
-        Me.Label2.AutoSize = True
-        Me.Label2.Font = New System.Drawing.Font("Microsoft Sans Serif", 12.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label2.Location = New System.Drawing.Point(22, 42)
-        Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(206, 25)
-        Me.Label2.TabIndex = 25
-        Me.Label2.Text = "Expected Finish Time:"
+        Me.lblExpFnsTmLbl.AutoSize = True
+        Me.lblExpFnsTmLbl.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblExpFnsTmLbl.Location = New System.Drawing.Point(21, 39)
+        Me.lblExpFnsTmLbl.Name = "lblExpFnsTmLbl"
+        Me.lblExpFnsTmLbl.Size = New System.Drawing.Size(175, 20)
+        Me.lblExpFnsTmLbl.TabIndex = 25
+        Me.lblExpFnsTmLbl.Text = "Expected Finish Time:"
         '
         'grpHistoricalHitMode
         '
         Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithoutAPI)
         Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithAPI)
         Me.grpHistoricalHitMode.Location = New System.Drawing.Point(544, -1)
+        Me.grpHistoricalHitMode.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpHistoricalHitMode.Name = "grpHistoricalHitMode"
+        Me.grpHistoricalHitMode.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpHistoricalHitMode.Size = New System.Drawing.Size(195, 68)
         Me.grpHistoricalHitMode.TabIndex = 27
         Me.grpHistoricalHitMode.TabStop = False
         Me.grpHistoricalHitMode.Text = "Historical Hit Mode"
-        '
-        'rdbWithAPI
-        '
-        Me.rdbWithAPI.AutoSize = True
-        Me.rdbWithAPI.Location = New System.Drawing.Point(11, 21)
-        Me.rdbWithAPI.Name = "rdbWithAPI"
-        Me.rdbWithAPI.Size = New System.Drawing.Size(82, 21)
-        Me.rdbWithAPI.TabIndex = 0
-        Me.rdbWithAPI.Text = "With API"
-        Me.rdbWithAPI.UseVisualStyleBackColor = True
         '
         'rdbWithoutAPI
         '
         Me.rdbWithoutAPI.AutoSize = True
         Me.rdbWithoutAPI.Checked = True
         Me.rdbWithoutAPI.Location = New System.Drawing.Point(11, 44)
+        Me.rdbWithoutAPI.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.rdbWithoutAPI.Name = "rdbWithoutAPI"
         Me.rdbWithoutAPI.Size = New System.Drawing.Size(102, 21)
         Me.rdbWithoutAPI.TabIndex = 1
@@ -1156,32 +1180,55 @@ Partial Class frmMain
         Me.rdbWithoutAPI.Text = "Without API"
         Me.rdbWithoutAPI.UseVisualStyleBackColor = True
         '
-        'Label1
+        'rdbWithAPI
         '
-        Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(321, 17)
-        Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(153, 17)
-        Me.Label1.TabIndex = 28
-        Me.Label1.Text = "Number Of Parallel Hit:"
+        Me.rdbWithAPI.AutoSize = True
+        Me.rdbWithAPI.Location = New System.Drawing.Point(11, 21)
+        Me.rdbWithAPI.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
+        Me.rdbWithAPI.Name = "rdbWithAPI"
+        Me.rdbWithAPI.Size = New System.Drawing.Size(82, 21)
+        Me.rdbWithAPI.TabIndex = 0
+        Me.rdbWithAPI.Text = "With API"
+        Me.rdbWithAPI.UseVisualStyleBackColor = True
+        '
+        'lblNumberOfHit
+        '
+        Me.lblNumberOfHit.AutoSize = True
+        Me.lblNumberOfHit.Location = New System.Drawing.Point(321, 17)
+        Me.lblNumberOfHit.Name = "lblNumberOfHit"
+        Me.lblNumberOfHit.Size = New System.Drawing.Size(153, 17)
+        Me.lblNumberOfHit.TabIndex = 28
+        Me.lblNumberOfHit.Text = "Number Of Parallel Hit:"
         '
         'nmrcParallelHit
         '
-        Me.nmrcParallelHit.Location = New System.Drawing.Point(475, 13)
+        Me.nmrcParallelHit.Location = New System.Drawing.Point(475, 14)
+        Me.nmrcParallelHit.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.nmrcParallelHit.Name = "nmrcParallelHit"
         Me.nmrcParallelHit.Size = New System.Drawing.Size(59, 22)
         Me.nmrcParallelHit.TabIndex = 29
+        '
+        'Label3
+        '
+        Me.Label3.AutoSize = True
+        Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.Label3.Location = New System.Drawing.Point(255, 14)
+        Me.Label3.Name = "Label3"
+        Me.Label3.Size = New System.Drawing.Size(18, 20)
+        Me.Label3.TabIndex = 30
+        Me.Label3.Text = "0"
         '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1071, 578)
-        Me.Controls.Add(Me.nmrcParallelHit)
-        Me.Controls.Add(Me.Label1)
-        Me.Controls.Add(Me.grpHistoricalHitMode)
+        Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.lblExpctdFnsTm)
-        Me.Controls.Add(Me.Label2)
+        Me.Controls.Add(Me.nmrcParallelHit)
+        Me.Controls.Add(Me.lblNumberOfHit)
+        Me.Controls.Add(Me.grpHistoricalHitMode)
+        Me.Controls.Add(Me.lblExpFnsTmLbl)
         Me.Controls.Add(Me.lblCountDisplay)
         Me.Controls.Add(Me.lblCount)
         Me.Controls.Add(Me.grpBoxOptnChn)
@@ -1202,7 +1249,7 @@ Partial Class frmMain
         Me.MaximizeBox = False
         Me.Name = "frmMain"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
-        Me.Text = "EOD Positional Data Backup"
+        Me.Text = "Data Backup"
         Me.grpBoxPositional.ResumeLayout(False)
         Me.grpBoxPositional.PerformLayout()
         Me.grpBoxIntradayCash.ResumeLayout(False)
@@ -1328,10 +1375,11 @@ Partial Class frmMain
     Friend WithEvents lblCount As Label
     Friend WithEvents lblCountDisplay As Label
     Friend WithEvents lblExpctdFnsTm As Label
-    Friend WithEvents Label2 As Label
+    Friend WithEvents lblExpFnsTmLbl As Label
     Friend WithEvents grpHistoricalHitMode As GroupBox
     Friend WithEvents rdbWithoutAPI As RadioButton
     Friend WithEvents rdbWithAPI As RadioButton
-    Friend WithEvents Label1 As Label
+    Friend WithEvents lblNumberOfHit As Label
     Friend WithEvents nmrcParallelHit As NumericUpDown
+    Friend WithEvents Label3 As Label
 End Class

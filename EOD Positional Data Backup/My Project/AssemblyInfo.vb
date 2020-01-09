@@ -8,12 +8,12 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("EOD Positional Data Backup")>
+<Assembly: AssemblyTitle("Data Backup")>
 <Assembly: AssemblyDescription("")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("EOD Positional Data Backup")>
+<Assembly: AssemblyProduct("Data Backup")>
 <Assembly: AssemblyCopyright("Copyright ©  2019")>
-<Assembly: AssemblyTrademark("")>
+<Assembly: AssemblyTrademark("Algo2Trade")>
 
 <Assembly: ComVisible(False)>
 
