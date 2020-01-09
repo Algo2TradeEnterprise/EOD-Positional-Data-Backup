@@ -3,6 +3,7 @@ Imports System.Threading
 Imports Utilities.Network
 Imports System.Net.Http
 Imports System.Net
+Imports System.Text
 
 Public Class frmMain
 
@@ -395,6 +396,45 @@ Public Class frmMain
                 Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
 
 #Region "Future"
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                    total = futureStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = futureStockList.Select(Async Function(x)
+                                                           Try
+                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                           Catch ex As Exception
+                                                               Throw ex
+                                                           End Try
+                                                           Return True
+                                                       End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
                 UpdateDataType = DataType.Intraday
@@ -434,47 +474,9 @@ Public Class frmMain
                 End If
 #End Region
 
-#Region "EOD"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Futures
-                UpdateDataType = DataType.EOD
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
-                    total = futureStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
-
-                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = futureStockList.Select(Async Function(x)
-                                                           Try
-                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                           Catch ex As Exception
-                                                               Throw ex
-                                                           End Try
-                                                           Return True
-                                                       End Function)
-
-                        Dim mainTask As Task = Task.WhenAll(tasks)
-                        Await mainTask.ConfigureAwait(False)
-                        If mainTask.Exception IsNot Nothing Then
-                            Throw mainTask.Exception
-                        End If
-                    End Using
-                End If
-#End Region
 #End Region
 
-                Exit Function
+                'Exit Function
 
 #Region "Cash"
 #Region "Intraday"
@@ -554,45 +556,6 @@ Public Class frmMain
                     End Using
                 End If
 #End Region
-#End Region
-
-#Region "Positional"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
-                UpdateDataType = DataType.EOD
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
-                    total = positionalStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
-
-                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                        tasks = positionalStockList.Select(Async Function(x)
-                                                               Try
-                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                               Catch ex As Exception
-                                                                   Throw ex
-                                                               End Try
-                                                               Return True
-                                                           End Function)
-
-                        Dim mainTask As Task = Task.WhenAll(tasks)
-                        Await mainTask.ConfigureAwait(False)
-                        If mainTask.Exception IsNot Nothing Then
-                            Throw mainTask.Exception
-                        End If
-                    End Using
-                End If
 #End Region
 
 #Region "Commodity"
@@ -755,6 +718,45 @@ Public Class frmMain
 #End Region
 #End Region
 
+#Region "Positional"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                    total = positionalStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                        tasks = positionalStockList.Select(Async Function(x)
+                                                               Try
+                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                               Catch ex As Exception
+                                                                   Throw ex
+                                                               End Try
+                                                               Return True
+                                                           End Function)
+
+                        Dim mainTask As Task = Task.WhenAll(tasks)
+                        Await mainTask.ConfigureAwait(False)
+                        If mainTask.Exception IsNot Nothing Then
+                            Throw mainTask.Exception
+                        End If
+                    End Using
+                End If
+#End Region
+
 
             Else
                 Throw New ApplicationException("Zerodha login fail")
@@ -881,83 +883,162 @@ Public Class frmMain
                     Interlocked.Increment(writingData)
                     UpdateLabels()
                     Dim insertDataString As String = Nothing
+                    Dim insertDataStringBuilder As New StringBuilder()
+
+                    If typeOfData = DataType.EOD Then
+                        insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
+                                                            .Append("(`TradingSymbol`,") _
+                                                            .Append("`Open`,") _
+                                                            .Append("`Low`,") _
+                                                            .Append("`High`,") _
+                                                            .Append("`Close`,") _
+                                                            .Append("`Volume`,") _
+                                                            .Append("`OI`,") _
+                                                            .Append("`SnapshotDate`,") _
+                                                            .Append("`UpdateToDBTime`) ") _
+                                                            .Append("VALUES ")
+                    ElseIf typeOfData = DataType.Intraday Then
+                        insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
+                                                            .Append("(`TradingSymbol`,") _
+                                                            .Append("`SnapshotDateTime`,") _
+                                                            .Append("`Open`,") _
+                                                            .Append("`Low`,") _
+                                                            .Append("`High`,") _
+                                                            .Append("`Close`,") _
+                                                            .Append("`Volume`,") _
+                                                            .Append("`SnapshotDate`,") _
+                                                            .Append("`SnapshotTime`,") _
+                                                            .Append("`UpdateToDBTime`) ") _
+                                                            .Append("VALUES ")
+                    End If
+
+
                     For Each runningPayload In historicalData.Values
                         canceller.Token.ThrowIfCancellationRequested()
                         If typeOfData = DataType.EOD Then
-                            insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
-                                                             insertDataString,
-                                                             runningPayload.TradingSymbol,
-                                                             runningPayload.Open,
-                                                             runningPayload.Low,
-                                                             runningPayload.High,
-                                                             runningPayload.Close,
-                                                             runningPayload.Volume,
-                                                             runningPayload.OI,
-                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                            insertDataStringBuilder.Append("(") _
+                                                    .Append("'").Append(runningPayload.TradingSymbol).Append("',") _
+                                                    .Append(runningPayload.Open).Append(",") _
+                                                    .Append(runningPayload.Low).Append(",") _
+                                                    .Append(runningPayload.High).Append(",") _
+                                                    .Append(runningPayload.Close).Append(",") _
+                                                    .Append(runningPayload.Volume).Append(",") _
+                                                    .Append(runningPayload.OI).Append(",") _
+                                                    .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd")).Append("',") _
+                                                    .Append("TIMESTAMP(CURRENT_TIME)),")
+
+                            'insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
+                            '                                 insertDataString,
+                            '                                 runningPayload.TradingSymbol,
+                            '                                 runningPayload.Open,
+                            '                                 runningPayload.Low,
+                            '                                 runningPayload.High,
+                            '                                 runningPayload.Close,
+                            '                                 runningPayload.Volume,
+                            '                                 runningPayload.OI,
+                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
                         ElseIf typeOfData = DataType.Intraday Then
-                            insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
-                                                             insertDataString,
-                                                             runningPayload.TradingSymbol,
-                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                                                             runningPayload.Open,
-                                                             runningPayload.Low,
-                                                             runningPayload.High,
-                                                             runningPayload.Close,
-                                                             runningPayload.Volume,
-                                                             runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
-                                                             runningPayload.PayloadDate.ToString("HH:mm:ss"))
+                            insertDataStringBuilder.Append("(") _
+                                                    .Append("'").Append(runningPayload.TradingSymbol).Append("',") _
+                                                    .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss")).Append("',") _
+                                                    .Append(runningPayload.Open).Append(",") _
+                                                    .Append(runningPayload.Low).Append(",") _
+                                                    .Append(runningPayload.High).Append(",") _
+                                                    .Append(runningPayload.Close).Append(",") _
+                                                    .Append(runningPayload.Volume).Append(",") _
+                                                    .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd")).Append("',") _
+                                                    .Append("'").Append(runningPayload.PayloadDate.ToString("HH:mm:ss")).Append("',") _
+                                                    .Append("TIMESTAMP(CURRENT_TIME)),")
+
+                            'insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
+                            '                                 insertDataString,
+                            '                                 runningPayload.TradingSymbol,
+                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                            '                                 runningPayload.Open,
+                            '                                 runningPayload.Low,
+                            '                                 runningPayload.High,
+                            '                                 runningPayload.Close,
+                            '                                 runningPayload.Volume,
+                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
+                            '                                 runningPayload.PayloadDate.ToString("HH:mm:ss"))
                         End If
                     Next
-                    If insertDataString IsNot Nothing Then
+                    If insertDataStringBuilder IsNot Nothing Then
+                        insertDataStringBuilder.Remove(insertDataStringBuilder.Length - 1, 1)
                         Dim insertString As String = Nothing
                         If typeOfData = DataType.EOD Then
-                            insertString = String.Format("INSERT INTO `{0}` 
-                                                            (`TradingSymbol`,
-                                                            `Open`,
-                                                            `Low`,
-                                                            `High`,
-                                                            `Close`,
-                                                            `Volume`,
-                                                            `OI`,
-                                                            `SnapshotDate`,
-                                                            `UpdateToDBTime`) 
-                                                            VALUES {1} 
-                                                            ON DUPLICATE KEY UPDATE 
-                                                            `TradingSymbol`=VALUES(`TradingSymbol`), 
-                                                            `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), 
-                                                            `High`=VALUES(`High`), 
-                                                            `Close`=VALUES(`Close`), 
-                                                            `Volume`=VALUES(`Volume`), 
-                                                            `OI`=VALUES(`OI`), 
-                                                            `SnapshotDate`=VALUES(`SnapshotDate`), 
-                                                            `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                                                         tableName, insertDataString.Substring(1))
+                            insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
+                                                            .Append("`TradingSymbol`=VALUES(`TradingSymbol`),") _
+                                                            .Append("`Open`=VALUES(`Open`),") _
+                                                            .Append("`Low`=VALUES(`Low`),") _
+                                                            .Append("`High`=VALUES(`High`),") _
+                                                            .Append("`Close`=VALUES(`Close`),") _
+                                                            .Append("`Volume`=VALUES(`Volume`),") _
+                                                            .Append("`OI`=VALUES(`OI`),") _
+                                                            .Append("`SnapshotDate`=VALUES(`SnapshotDate`),") _
+                                                            .Append("`UpdateToDBTime`=VALUES(`UpdateToDBTime`);")
+
+                            'insertString = String.Format("INSERT INTO `{0}` 
+                            '                                (`TradingSymbol`,
+                            '                                `Open`,
+                            '                                `Low`,
+                            '                                `High`,
+                            '                                `Close`,
+                            '                                `Volume`,
+                            '                                `OI`,
+                            '                                `SnapshotDate`,
+                            '                                `UpdateToDBTime`) 
+                            '                                VALUES {1} 
+                            '                                ON DUPLICATE KEY UPDATE 
+                            '                                `TradingSymbol`=VALUES(`TradingSymbol`), 
+                            '                                `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), 
+                            '                                `High`=VALUES(`High`), 
+                            '                                `Close`=VALUES(`Close`), 
+                            '                                `Volume`=VALUES(`Volume`), 
+                            '                                `OI`=VALUES(`OI`), 
+                            '                                `SnapshotDate`=VALUES(`SnapshotDate`), 
+                            '                                `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
+                            '                             tableName, insertDataString.Substring(1))
                         ElseIf typeOfData = DataType.Intraday Then
-                            insertString = String.Format("INSERT INTO `{0}` 
-                                                            (`TradingSymbol`,
-                                                            `SnapshotDateTime`,
-                                                            `Open`,
-                                                            `Low`,
-                                                            `High`,
-                                                            `Close`,
-                                                            `Volume`,
-                                                            `SnapshotDate`,
-                                                            `SnapshotTime`,
-                                                            `UpdateToDBTime`)
-                                                            VALUES {1}
-                                                            ON DUPLICATE KEY UPDATE
-                                                            `TradingSymbol`=VALUES(`TradingSymbol`),
-                                                            `SnapshotDateTime`=VALUES(`SnapshotDateTime`),
-                                                            `Open`=VALUES(`Open`),
-                                                            `Low`=VALUES(`Low`),
-                                                            `High`=VALUES(`High`),
-                                                            `Close`=VALUES(`Close`),
-                                                            `Volume`=VALUES(`Volume`),
-                                                            `SnapshotDate`=VALUES(`SnapshotDate`),
-                                                            `SnapshotTime`=VALUES(`SnapshotTime`),
-                                                            `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                                                         tableName, insertDataString.Substring(1))
+                            insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
+                                                            .Append("`TradingSymbol`=VALUES(`TradingSymbol`),") _
+                                                            .Append("`SnapshotDateTime`=VALUES(`SnapshotDateTime`),") _
+                                                            .Append("`Open`=VALUES(`Open`),") _
+                                                            .Append("`Low`=VALUES(`Low`),") _
+                                                            .Append("`High`=VALUES(`High`),") _
+                                                            .Append("`Close`=VALUES(`Close`),") _
+                                                            .Append("`Volume`=VALUES(`Volume`),") _
+                                                            .Append("`SnapshotDate`=VALUES(`SnapshotDate`),") _
+                                                            .Append("`SnapshotTime`=VALUES(`SnapshotTime`),") _
+                                                            .Append("`UpdateToDBTime`=VALUES(`UpdateToDBTime`);")
+
+
+                            'insertString = String.Format("INSERT INTO `{0}` 
+                            '                                (`TradingSymbol`,
+                            '                                `SnapshotDateTime`,
+                            '                                `Open`,
+                            '                                `Low`,
+                            '                                `High`,
+                            '                                `Close`,
+                            '                                `Volume`,
+                            '                                `SnapshotDate`,
+                            '                                `SnapshotTime`,
+                            '                                `UpdateToDBTime`)
+                            '                                VALUES {1}
+                            '                                ON DUPLICATE KEY UPDATE
+                            '                                `TradingSymbol`=VALUES(`TradingSymbol`),
+                            '                                `SnapshotDateTime`=VALUES(`SnapshotDateTime`),
+                            '                                `Open`=VALUES(`Open`),
+                            '                                `Low`=VALUES(`Low`),
+                            '                                `High`=VALUES(`High`),
+                            '                                `Close`=VALUES(`Close`),
+                            '                                `Volume`=VALUES(`Volume`),
+                            '                                `SnapshotDate`=VALUES(`SnapshotDate`),
+                            '                                `SnapshotTime`=VALUES(`SnapshotTime`),
+                            '                                `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
+                            '                             tableName, insertDataString.Substring(1))
                         End If
+                        insertString = insertDataStringBuilder.ToString
                         canceller.Token.ThrowIfCancellationRequested()
                         Dim numberOfData As Integer = Await dbHlpr.RunUpdateAsync(insertString).ConfigureAwait(False)
                         Interlocked.Decrement(writingData)
@@ -1000,8 +1081,10 @@ Public Class frmMain
             'AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             'AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE` FROM `{0}` WHERE `AS_ON_DATE`='{1}'"
-            queryString = String.Format(queryString, tableName, currentDate.ToString("yyyy-MM-dd"))
+            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE` 
+                                        FROM `{0}`
+                                        WHERE `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `{0}`)"
+            queryString = String.Format(queryString, tableName)
 
             Dim dt As DataTable = Await sqlHlpr.RunSelectAsync(queryString).ConfigureAwait(False)
             canceller.Token.ThrowIfCancellationRequested()
@@ -1019,7 +1102,7 @@ Public Class frmMain
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                         ret.Add(runningInstrument)
 
-                        If i >= 100 Then Exit For
+                        'If i >= 500 Then Exit For
                     End If
                 Next
             End If
