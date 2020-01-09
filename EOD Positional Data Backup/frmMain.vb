@@ -413,6 +413,9 @@ Public Class frmMain
         blbPositional.Color = Color.Red
         blbOptionChain.Color = Color.Red
 
+        lblCountDisplay.Text = "0"
+        lblExpctdFnsTm.Text = "00:00:00"
+
         CountPerSecond = 0
         total = 0
         queued = 0
@@ -421,6 +424,8 @@ Public Class frmMain
         writingData = 0
         errorWritingData = 0
         completed = 0
+        errorCompleted = 0
+
         UpdateDataType = DataType.EOD
         UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.OptionChain
         UpdateLabels()
@@ -558,8 +563,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -598,6 +606,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
@@ -616,8 +625,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -658,6 +670,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To futureStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
@@ -676,8 +689,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -716,6 +732,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To futureStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
@@ -734,8 +751,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -776,6 +796,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To commodityStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
@@ -794,8 +815,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -834,6 +858,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To commodityStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
@@ -852,8 +877,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -869,7 +897,7 @@ Public Class frmMain
                 ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
-
+                Console.WriteLine(sw.Elapsed.Seconds / InstrumentCounter)
 #Region "Currency"
 #Region "Intraday"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Currency
@@ -894,6 +922,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To currencyStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
@@ -912,8 +941,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -952,6 +984,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To currencyStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
@@ -970,8 +1003,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -1011,6 +1047,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To positionalStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(positionalStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, positionalStockList.Count - i)
@@ -1029,8 +1066,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex
@@ -1069,6 +1109,7 @@ Public Class frmMain
                         AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
                         Try
+                            sw.Start()
                             For i As Integer = 0 To optionChainStockList.Count - 1 Step Me.NumberOfParallelTask
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(optionChainStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, optionChainStockList.Count - i)
@@ -1087,8 +1128,11 @@ Public Class frmMain
                                 If mainTask.Exception IsNot Nothing Then
                                     Throw mainTask.Exception
                                 End If
-                                If (InstrumentCounter + numberOfData) > 0 Then CountPerSecond = sw.Elapsed.Seconds / (InstrumentCounter + numberOfData)
+                                InstrumentCounter += numberOfData
+                                If InstrumentCounter > 0 Then CountPerSecond = sw.Elapsed.Seconds / InstrumentCounter
+                                UpdateLabels()
                             Next
+                            sw.Stop()
                         Catch cex As TaskCanceledException
                             'logger.Error(cex)
                             Throw cex

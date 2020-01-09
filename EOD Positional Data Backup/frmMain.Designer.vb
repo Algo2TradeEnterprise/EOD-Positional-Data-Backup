@@ -1140,7 +1140,7 @@ Partial Class frmMain
         Me.Controls.Add(Me.grpBoxIntradayCash)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
-        Me.MinimizeBox = False
+        Me.MaximizeBox = False
         Me.Name = "frmMain"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "EOD Positional Data Backup"
