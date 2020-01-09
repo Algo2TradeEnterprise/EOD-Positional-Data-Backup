@@ -1701,7 +1701,7 @@ Public Class frmMain
                         If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                         ret.Add(runningInstrument)
 
-                        If i >= 50 Then Exit For
+                        'If i >= 50 Then Exit For
                     End If
                 Next
             End If
