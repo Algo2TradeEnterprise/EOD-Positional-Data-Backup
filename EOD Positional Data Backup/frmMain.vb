@@ -5,6 +5,7 @@ Imports System.Net.Http
 Imports System.Net
 Imports System.Text
 Imports HtmlAgilityPack
+Imports System.Text.RegularExpressions
 
 Public Class frmMain
 
@@ -1761,9 +1762,17 @@ Public Class frmMain
                         runningInstrument.Exchange = dt.Rows(i).Item(3)
                         runningInstrument.InstrumentType = instrumentType
 
-                        If ret Is Nothing Then ret = New List(Of InstrumentDetails)
-                        ret.Add(runningInstrument)
-
+                        Dim pattern As String = " |(:?JAN)|(:?FEB)|(:?MAR)|(:?APR)|(?:MAY)|(?:JUN)|(?:JUL)|(?:AUG)|(?:SEP)|(?:OCT)|(?:NOV)|(?:DEC)"
+                        Dim monthCounter As Integer = 0
+                        For Each m As Match In Regex.Matches(runningInstrument.TradingSymbol, pattern)
+                            monthCounter += 1
+                        Next
+                        If monthCounter <= 1 Then
+                            If ret Is Nothing Then ret = New List(Of InstrumentDetails)
+                            ret.Add(runningInstrument)
+                        Else
+                            Console.WriteLine(String.Format("Instrument Neglected for {0}: {1}", instrumentType.ToString, runningInstrument.TradingSymbol))
+                        End If
                         'If i >= 50 Then Exit For
                     End If
                 Next
@@ -1791,8 +1800,18 @@ Public Class frmMain
                     Else
                         instrumentName = tradingSymbol
                     End If
-                    If stockList Is Nothing Then stockList = New List(Of String)
-                    If Not stockList.Contains(instrumentName) Then stockList.Add(instrumentName)
+
+                    Dim pattern As String = " |(:?JAN)|(:?FEB)|(:?MAR)|(:?APR)|(?:MAY)|(?:JUN)|(?:JUL)|(?:AUG)|(?:SEP)|(?:OCT)|(?:NOV)|(?:DEC)"
+                    Dim monthCounter As Integer = 0
+                    For Each m As Match In Regex.Matches(tradingSymbol, pattern)
+                        monthCounter += 1
+                    Next
+                    If monthCounter <= 1 Then
+                        If stockList Is Nothing Then stockList = New List(Of String)
+                        If Not stockList.Contains(instrumentName) Then stockList.Add(instrumentName)
+                    Else
+                        Console.WriteLine(String.Format("Instrument Neglected for option chain: {0}", tradingSymbol))
+                    End If
                 Next
 
                 If stockList IsNot Nothing AndAlso stockList.Count > 0 Then
