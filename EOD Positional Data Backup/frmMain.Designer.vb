@@ -1,9 +1,9 @@
-﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()> _
+﻿<Global.Microsoft.VisualBasic.CompilerServices.DesignerGenerated()>
 Partial Class frmMain
     Inherits System.Windows.Forms.Form
 
     'Form overrides dispose to clean up the component list.
-    <System.Diagnostics.DebuggerNonUserCode()> _
+    <System.Diagnostics.DebuggerNonUserCode()>
     Protected Overrides Sub Dispose(ByVal disposing As Boolean)
         Try
             If disposing AndAlso components IsNot Nothing Then
@@ -20,7 +20,7 @@ Partial Class frmMain
     'NOTE: The following procedure is required by the Windows Form Designer
     'It can be modified using the Windows Form Designer.  
     'Do not modify it using the code editor.
-    <System.Diagnostics.DebuggerStepThrough()> _
+    <System.Diagnostics.DebuggerStepThrough()>
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container()
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(frmMain))
@@ -127,7 +127,6 @@ Partial Class frmMain
         Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
         Me.lblNumberOfHit = New System.Windows.Forms.Label()
         Me.nmrcParallelHit = New System.Windows.Forms.NumericUpDown()
-        Me.Label3 = New System.Windows.Forms.Label()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -1208,22 +1207,11 @@ Partial Class frmMain
         Me.nmrcParallelHit.Size = New System.Drawing.Size(59, 22)
         Me.nmrcParallelHit.TabIndex = 29
         '
-        'Label3
-        '
-        Me.Label3.AutoSize = True
-        Me.Label3.Font = New System.Drawing.Font("Microsoft Sans Serif", 10.2!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.Label3.Location = New System.Drawing.Point(255, 14)
-        Me.Label3.Name = "Label3"
-        Me.Label3.Size = New System.Drawing.Size(18, 20)
-        Me.Label3.TabIndex = 30
-        Me.Label3.Text = "0"
-        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1071, 578)
-        Me.Controls.Add(Me.Label3)
         Me.Controls.Add(Me.lblExpctdFnsTm)
         Me.Controls.Add(Me.nmrcParallelHit)
         Me.Controls.Add(Me.lblNumberOfHit)
@@ -1381,5 +1369,4 @@ Partial Class frmMain
     Friend WithEvents rdbWithAPI As RadioButton
     Friend WithEvents lblNumberOfHit As Label
     Friend WithEvents nmrcParallelHit As NumericUpDown
-    Friend WithEvents Label3 As Label
 End Class

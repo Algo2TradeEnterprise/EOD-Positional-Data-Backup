@@ -363,7 +363,6 @@ Public Class frmMain
         SetLabelText_ThreadSafe(completedLabel, String.Format("Completed: {0}", completed))
         SetLabelText_ThreadSafe(lblCountDisplay, Math.Round(CountPerSecond, 2))
         If CountPerSecond > 0 Then
-            SetLabelText_ThreadSafe(Label3, TotalInstrumentCount - InstrumentCounter)
             SetLabelText_ThreadSafe(lblExpctdFnsTm, Now.AddSeconds((TotalInstrumentCount - InstrumentCounter) / CountPerSecond))
         End If
     End Sub
@@ -528,10 +527,10 @@ Public Class frmMain
 
                 Me.TotalInstrumentCount = 0
                 If positionalStockList IsNot Nothing Then TotalInstrumentCount += positionalStockList.Count
-                If cashStockList IsNot Nothing Then TotalInstrumentCount += cashStockList.Count
-                If futureStockList IsNot Nothing Then TotalInstrumentCount += futureStockList.Count
-                If commodityStockList IsNot Nothing Then TotalInstrumentCount += commodityStockList.Count
-                If currencyStockList IsNot Nothing Then TotalInstrumentCount += currencyStockList.Count
+                If cashStockList IsNot Nothing Then TotalInstrumentCount += cashStockList.Count * 2
+                If futureStockList IsNot Nothing Then TotalInstrumentCount += futureStockList.Count * 2
+                If commodityStockList IsNot Nothing Then TotalInstrumentCount += commodityStockList.Count * 2
+                If currencyStockList IsNot Nothing Then TotalInstrumentCount += currencyStockList.Count * 2
                 If optionChainStockList IsNot Nothing Then TotalInstrumentCount += optionChainStockList.Count
 
                 InstrumentCounter = 0
