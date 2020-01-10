@@ -1762,12 +1762,8 @@ Public Class frmMain
                         runningInstrument.Exchange = dt.Rows(i).Item(3)
                         runningInstrument.InstrumentType = instrumentType
 
-                        Dim pattern As String = " |(:?JAN)|(:?FEB)|(:?MAR)|(:?APR)|(?:MAY)|(?:JUN)|(?:JUL)|(?:AUG)|(?:SEP)|(?:OCT)|(?:NOV)|(?:DEC)"
-                        Dim monthCounter As Integer = 0
-                        For Each m As Match In Regex.Matches(runningInstrument.TradingSymbol, pattern)
-                            monthCounter += 1
-                        Next
-                        If monthCounter <= 1 Then
+                        Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
+                        If Regex.Matches(runningInstrument.TradingSymbol, pattern).Count <= 1 Then
                             If ret Is Nothing Then ret = New List(Of InstrumentDetails)
                             ret.Add(runningInstrument)
                         Else
@@ -1801,12 +1797,8 @@ Public Class frmMain
                         instrumentName = tradingSymbol
                     End If
 
-                    Dim pattern As String = " |(:?JAN)|(:?FEB)|(:?MAR)|(:?APR)|(?:MAY)|(?:JUN)|(?:JUL)|(?:AUG)|(?:SEP)|(?:OCT)|(?:NOV)|(?:DEC)"
-                    Dim monthCounter As Integer = 0
-                    For Each m As Match In Regex.Matches(tradingSymbol, pattern)
-                        monthCounter += 1
-                    Next
-                    If monthCounter <= 1 Then
+                    Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
+                    If Regex.Matches(tradingSymbol, pattern).Count <= 1 Then
                         If stockList Is Nothing Then stockList = New List(Of String)
                         If Not stockList.Contains(instrumentName) Then stockList.Add(instrumentName)
                     Else
