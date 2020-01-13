@@ -1283,7 +1283,7 @@ Public Class frmMain
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
-                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, startDate, endDate, typeOfData, zerodha)
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, instrument.Expiry, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
                 Interlocked.Decrement(gettingData)
                 UpdateLabels()
@@ -1743,7 +1743,7 @@ Public Class frmMain
             'AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
             'AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
 
-            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE` 
+            Dim queryString As String = "SELECT DISTINCT(`INSTRUMENT_TOKEN`),`TRADING_SYMBOL`,`SEGMENT`,`EXCHANGE`,`EXPIRY` 
                                         FROM `{0}`
                                         WHERE `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `{0}`)"
             queryString = String.Format(queryString, tableName)
@@ -1759,6 +1759,11 @@ Public Class frmMain
                         runningInstrument.TradingSymbol = dt.Rows(i).Item(1)
                         runningInstrument.Segment = dt.Rows(i).Item(2)
                         runningInstrument.Exchange = dt.Rows(i).Item(3)
+                        If Not IsDBNull(dt.Rows(i).Item(4)) Then
+                            runningInstrument.Expiry = dt.Rows(i).Item(4)
+                        Else
+                            runningInstrument.Expiry = Date.MaxValue
+                        End If
                         runningInstrument.InstrumentType = instrumentType
 
                         Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
@@ -1815,7 +1820,7 @@ Public Class frmMain
         End Using
         Return ret
     End Function
-    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
+    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal expiry As Date, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
         Dim AWSZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim AWSZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
@@ -1867,18 +1872,29 @@ Public Class frmMain
                     headers.Add("sec-fetch-site", "same-origin")
                     headers.Add("Connection", "keep-alive")
 
-                    canceller.Token.ThrowIfCancellationRequested()
-                    Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
-                                                                                        HttpMethod.Get,
-                                                                                        Nothing,
-                                                                                        False,
-                                                                                        headers,
-                                                                                        True,
-                                                                                        "application/json").ConfigureAwait(False)
-                    canceller.Token.ThrowIfCancellationRequested()
-                    If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
-                        historicalCandlesJSONDict = l.Item2
-                    End If
+                    Try
+                        canceller.Token.ThrowIfCancellationRequested()
+                        Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+                                                                                            HttpMethod.Get,
+                                                                                            Nothing,
+                                                                                            False,
+                                                                                            headers,
+                                                                                            True,
+                                                                                            "application/json").ConfigureAwait(False)
+                        canceller.Token.ThrowIfCancellationRequested()
+                        If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                            historicalCandlesJSONDict = l.Item2
+                        End If
+                    Catch ex As Exception
+                        If ex.Message.Contains("400 (Bad Request)") Then
+                            If expiry.Date >= Now.Date Then
+                                Throw ex
+                            End If
+                        Else
+                            Throw ex
+                        End If
+                    End Try
+
                     RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                     RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
                     RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
@@ -1894,7 +1910,7 @@ Public Class frmMain
                     AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
 
                     Try
-                        historicalDataURL = "https://kitecharts-aws.zerodha.com/api/chart/785667/minute?api_key=kitefront&access_token=K&from=2019-12-13&to=2020-01-12"
+                        canceller.Token.ThrowIfCancellationRequested()
                         Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
                                                                                         HttpMethod.Get,
                                                                                         Nothing,
@@ -1902,11 +1918,18 @@ Public Class frmMain
                                                                                         Nothing,
                                                                                         True,
                                                                                         "application/json").ConfigureAwait(False)
+                        canceller.Token.ThrowIfCancellationRequested()
                         If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                             historicalCandlesJSONDict = l.Item2
                         End If
                     Catch ex As Exception
-                        Throw ex
+                        If ex.Message.Contains("400 (Bad Request)") Then
+                            If expiry.Date >= Now.Date Then
+                                Throw ex
+                            End If
+                        Else
+                            Throw ex
+                        End If
                     End Try
 
                     RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
