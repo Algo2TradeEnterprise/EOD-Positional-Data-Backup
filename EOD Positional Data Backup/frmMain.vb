@@ -1892,17 +1892,23 @@ Public Class frmMain
                     AddHandler browser.Heartbeat, AddressOf OnHeartbeat
                     AddHandler browser.WaitingFor, AddressOf OnWaitingFor
                     AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                    'Get to the landing page first
-                    Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
+
+                    Try
+                        historicalDataURL = "https://kitecharts-aws.zerodha.com/api/chart/785667/minute?api_key=kitefront&access_token=K&from=2019-12-13&to=2020-01-12"
+                        Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
                                                                                         HttpMethod.Get,
                                                                                         Nothing,
                                                                                         True,
                                                                                         Nothing,
                                                                                         True,
                                                                                         "application/json").ConfigureAwait(False)
-                    If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
-                        historicalCandlesJSONDict = l.Item2
-                    End If
+                        If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
+                            historicalCandlesJSONDict = l.Item2
+                        End If
+                    Catch ex As Exception
+                        Throw ex
+                    End Try
+
                     RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
                     RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
                     RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
