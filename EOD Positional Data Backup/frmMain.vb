@@ -1533,6 +1533,33 @@ Public Class frmMain
                 OnHeartbeat("Extracting Option Chain from HTML")
                 Dim calls As List(Of OptionChain) = Nothing
                 Dim puts As List(Of OptionChain) = Nothing
+
+                Dim optionDate As Date = Now
+                If outputResponse.DocumentNode.SelectNodes("//div[@id='wrapper_btm']") IsNot Nothing Then
+                    For Each div As HtmlNode In outputResponse.DocumentNode.SelectNodes("//div[@id='wrapper_btm']")
+                        If div IsNot Nothing AndAlso div.SelectNodes("table") IsNot Nothing AndAlso div.SelectNodes("table").Count > 0 Then
+                            Dim table As HtmlNode = div.SelectNodes("table")(0)
+                            If table IsNot Nothing And table.SelectNodes("tr") IsNot Nothing AndAlso table.SelectNodes("tr").Count > 0 Then
+                                Dim tr As HtmlNode = table.SelectNodes("tr")(0)
+                                If tr IsNot Nothing And tr.SelectNodes("td") IsNot Nothing AndAlso tr.SelectNodes("td").Count > 1 Then
+                                    Dim td As HtmlNode = tr.SelectNodes("td")(1)
+                                    If td IsNot Nothing And td.SelectNodes("div") IsNot Nothing AndAlso td.SelectNodes("div").Count > 0 Then
+                                        Dim div2 As HtmlNode = td.SelectNodes("div")(0)
+                                        If div2 IsNot Nothing And div2.SelectNodes("span") IsNot Nothing AndAlso div2.SelectNodes("span").Count > 1 Then
+                                            Dim span As HtmlNode = div2.SelectNodes("span")(1)
+                                            If span IsNot Nothing AndAlso span.InnerText IsNot Nothing AndAlso span.InnerText <> "" Then
+                                                Console.WriteLine(span.InnerText)
+                                                Dim dateText As String = Utilities.Strings.GetTextBetween("As on", "IST", span.InnerText).Trim
+                                                optionDate = Convert.ToDateTime(dateText)
+                                            End If
+                                        End If
+                                    End If
+                                End If
+                            End If
+                        End If
+                    Next
+                End If
+
                 If outputResponse.DocumentNode.SelectNodes("//table[@id='octable']") IsNot Nothing Then
                     For Each table As HtmlNode In outputResponse.DocumentNode.SelectNodes("//table[@id='octable']")
                         canceller.Token.ThrowIfCancellationRequested()
@@ -1625,7 +1652,7 @@ Public Class frmMain
                         canceller.Token.ThrowIfCancellationRequested()
                         insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
                                                                         insertDataString,
-                                                                        Now.ToString("yyyy-MM-dd"),
+                                                                        optionDate.ToString("yyyy-MM-dd"),
                                                                         instrument.TradingSymbol.ToUpper,
                                                                         runningCall.StrikePrice,
                                                                         "CE",
@@ -1644,7 +1671,7 @@ Public Class frmMain
                         canceller.Token.ThrowIfCancellationRequested()
                         insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
                                                                         insertDataString,
-                                                                        Now.ToString("yyyy-MM-dd"),
+                                                                        optionDate.ToString("yyyy-MM-dd"),
                                                                         instrument.TradingSymbol.ToUpper,
                                                                         runningPut.StrikePrice,
                                                                         "PE",
