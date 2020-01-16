@@ -33,15 +33,16 @@ Partial Class frmErrorList
         Me.dgvMain.Dock = System.Windows.Forms.DockStyle.Fill
         Me.dgvMain.Location = New System.Drawing.Point(0, 0)
         Me.dgvMain.Name = "dgvMain"
+        Me.dgvMain.RowHeadersVisible = False
         Me.dgvMain.RowTemplate.Height = 24
-        Me.dgvMain.Size = New System.Drawing.Size(723, 306)
+        Me.dgvMain.Size = New System.Drawing.Size(801, 306)
         Me.dgvMain.TabIndex = 0
         '
         'frmErrorList
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(723, 306)
+        Me.ClientSize = New System.Drawing.Size(801, 306)
         Me.Controls.Add(Me.dgvMain)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
