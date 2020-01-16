@@ -565,6 +565,17 @@ Public Class frmMain
         SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, False)
         SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, False)
 
+        SetObjectEnableDisable_ThreadSafe(chkbIntradayCash, False)
+        SetObjectEnableDisable_ThreadSafe(chkbEODCash, False)
+        SetObjectEnableDisable_ThreadSafe(chkbIntradayFuture, False)
+        SetObjectEnableDisable_ThreadSafe(chkbEODFuture, False)
+        SetObjectEnableDisable_ThreadSafe(chkbIntradayCommodity, False)
+        SetObjectEnableDisable_ThreadSafe(chkbEODCommodity, False)
+        SetObjectEnableDisable_ThreadSafe(chkbIntradayCurrency, False)
+        SetObjectEnableDisable_ThreadSafe(chkbEODCurrency, False)
+        SetObjectEnableDisable_ThreadSafe(chkbPositional, False)
+        SetObjectEnableDisable_ThreadSafe(chkbOptionChain, False)
+
         ClearAll()
 
         Me.NumberOfParallelTask = nmrcParallelHit.Value
@@ -600,12 +611,28 @@ Public Class frmMain
                 Dim optionChainStockList As List(Of InstrumentDetails) = Await GetAllOptionChainStockListAsync().ConfigureAwait(False)
 
                 Me.TotalInstrumentCount = 0
-                If positionalStockList IsNot Nothing Then TotalInstrumentCount += positionalStockList.Count
-                If cashStockList IsNot Nothing Then TotalInstrumentCount += cashStockList.Count * 2
-                If futureStockList IsNot Nothing Then TotalInstrumentCount += futureStockList.Count * 2
-                If commodityStockList IsNot Nothing Then TotalInstrumentCount += commodityStockList.Count * 2
-                If currencyStockList IsNot Nothing Then TotalInstrumentCount += currencyStockList.Count * 2
-                If optionChainStockList IsNot Nothing Then TotalInstrumentCount += optionChainStockList.Count
+                If cashStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbIntradayCash) Then TotalInstrumentCount += cashStockList.Count
+                    If GetCheckBoxChecked_ThreadSafe(chkbEODCash) Then TotalInstrumentCount += cashStockList.Count
+                End If
+                If futureStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbIntradayFuture) Then TotalInstrumentCount += futureStockList.Count
+                    If GetCheckBoxChecked_ThreadSafe(chkbEODFuture) Then TotalInstrumentCount += futureStockList.Count
+                End If
+                If commodityStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbIntradayCommodity) Then TotalInstrumentCount += commodityStockList.Count
+                    If GetCheckBoxChecked_ThreadSafe(chkbEODCommodity) Then TotalInstrumentCount += commodityStockList.Count
+                End If
+                If currencyStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbIntradayCurrency) Then TotalInstrumentCount += currencyStockList.Count
+                    If GetCheckBoxChecked_ThreadSafe(chkbEODCurrency) Then TotalInstrumentCount += currencyStockList.Count
+                End If
+                If positionalStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbPositional) Then TotalInstrumentCount += positionalStockList.Count
+                End If
+                If optionChainStockList IsNot Nothing Then
+                    If GetCheckBoxChecked_ThreadSafe(chkbOptionChain) Then TotalInstrumentCount += optionChainStockList.Count
+                End If
 
                 InstrumentCounter = 0
                 CountPerSecond = 0
@@ -1251,6 +1278,18 @@ Public Class frmMain
             SetObjectEnableDisable_ThreadSafe(btnStart, True)
             SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, True)
             SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, True)
+
+            SetObjectEnableDisable_ThreadSafe(chkbIntradayCash, True)
+            SetObjectEnableDisable_ThreadSafe(chkbEODCash, True)
+            SetObjectEnableDisable_ThreadSafe(chkbIntradayFuture, True)
+            SetObjectEnableDisable_ThreadSafe(chkbEODFuture, True)
+            SetObjectEnableDisable_ThreadSafe(chkbIntradayCommodity, True)
+            SetObjectEnableDisable_ThreadSafe(chkbEODCommodity, True)
+            SetObjectEnableDisable_ThreadSafe(chkbIntradayCurrency, True)
+            SetObjectEnableDisable_ThreadSafe(chkbEODCurrency, True)
+            SetObjectEnableDisable_ThreadSafe(chkbPositional, True)
+            SetObjectEnableDisable_ThreadSafe(chkbOptionChain, True)
+
             SetLabelText_ThreadSafe(lblProgress, "Process Complete")
         End Try
     End Function
@@ -1878,7 +1917,7 @@ Public Class frmMain
                         Else
                             Console.WriteLine(String.Format("Instrument Neglected for {0}: {1}", instrumentType.ToString, runningInstrument.TradingSymbol))
                         End If
-                        If i >= 99 Then Exit For
+                        'If i >= 99 Then Exit For
                     End If
                 Next
             End If

@@ -254,6 +254,7 @@ Partial Class frmMain
         'lblPstnlErrorGettingData
         '
         Me.lblPstnlErrorGettingData.AutoSize = True
+        Me.lblPstnlErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblPstnlErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblPstnlErrorGettingData.Name = "lblPstnlErrorGettingData"
         Me.lblPstnlErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -349,6 +350,7 @@ Partial Class frmMain
         'lblIntradayCashErrorGettingData
         '
         Me.lblIntradayCashErrorGettingData.AutoSize = True
+        Me.lblIntradayCashErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblIntradayCashErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblIntradayCashErrorGettingData.Name = "lblIntradayCashErrorGettingData"
         Me.lblIntradayCashErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -444,6 +446,7 @@ Partial Class frmMain
         'lblIntradayFutureErrorGettingData
         '
         Me.lblIntradayFutureErrorGettingData.AutoSize = True
+        Me.lblIntradayFutureErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblIntradayFutureErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblIntradayFutureErrorGettingData.Name = "lblIntradayFutureErrorGettingData"
         Me.lblIntradayFutureErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -539,6 +542,7 @@ Partial Class frmMain
         'lblIntradayCurrencyErrorGettingData
         '
         Me.lblIntradayCurrencyErrorGettingData.AutoSize = True
+        Me.lblIntradayCurrencyErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblIntradayCurrencyErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblIntradayCurrencyErrorGettingData.Name = "lblIntradayCurrencyErrorGettingData"
         Me.lblIntradayCurrencyErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -634,6 +638,7 @@ Partial Class frmMain
         'lblIntradayCommodityErrorGettingData
         '
         Me.lblIntradayCommodityErrorGettingData.AutoSize = True
+        Me.lblIntradayCommodityErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblIntradayCommodityErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblIntradayCommodityErrorGettingData.Name = "lblIntradayCommodityErrorGettingData"
         Me.lblIntradayCommodityErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -729,6 +734,7 @@ Partial Class frmMain
         'lblEODCurrencyErrorGettingData
         '
         Me.lblEODCurrencyErrorGettingData.AutoSize = True
+        Me.lblEODCurrencyErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblEODCurrencyErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblEODCurrencyErrorGettingData.Name = "lblEODCurrencyErrorGettingData"
         Me.lblEODCurrencyErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -824,6 +830,7 @@ Partial Class frmMain
         'lblEODCommodityErrorGettingData
         '
         Me.lblEODCommodityErrorGettingData.AutoSize = True
+        Me.lblEODCommodityErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblEODCommodityErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblEODCommodityErrorGettingData.Name = "lblEODCommodityErrorGettingData"
         Me.lblEODCommodityErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -919,6 +926,7 @@ Partial Class frmMain
         'lblEODFutureErrorGettingData
         '
         Me.lblEODFutureErrorGettingData.AutoSize = True
+        Me.lblEODFutureErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblEODFutureErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblEODFutureErrorGettingData.Name = "lblEODFutureErrorGettingData"
         Me.lblEODFutureErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -1014,6 +1022,7 @@ Partial Class frmMain
         'lblEODCashErrorGettingData
         '
         Me.lblEODCashErrorGettingData.AutoSize = True
+        Me.lblEODCashErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblEODCashErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblEODCashErrorGettingData.Name = "lblEODCashErrorGettingData"
         Me.lblEODCashErrorGettingData.Size = New System.Drawing.Size(144, 17)
@@ -1109,6 +1118,7 @@ Partial Class frmMain
         'lblOptnChnErrorGettingData
         '
         Me.lblOptnChnErrorGettingData.AutoSize = True
+        Me.lblOptnChnErrorGettingData.Cursor = System.Windows.Forms.Cursors.Hand
         Me.lblOptnChnErrorGettingData.Location = New System.Drawing.Point(335, 25)
         Me.lblOptnChnErrorGettingData.Name = "lblOptnChnErrorGettingData"
         Me.lblOptnChnErrorGettingData.Size = New System.Drawing.Size(144, 17)
