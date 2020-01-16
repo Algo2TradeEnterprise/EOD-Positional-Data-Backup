@@ -625,7 +625,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbIntradayCash) AndAlso cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
                     total = cashStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -686,7 +686,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbEODCash) AndAlso cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
                     total = cashStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -750,7 +750,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbIntradayFuture) AndAlso futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
                     total = futureStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -812,7 +812,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbEODFuture) AndAlso futureStockList IsNot Nothing AndAlso futureStockList.Count > 0 Then
                     total = futureStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -876,7 +876,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbIntradayCommodity) AndAlso commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
                     total = commodityStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -938,7 +938,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbEODCommodity) AndAlso commodityStockList IsNot Nothing AndAlso commodityStockList.Count > 0 Then
                     total = commodityStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -1002,7 +1002,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbIntradayCurrency) AndAlso currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
                     total = currencyStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -1064,7 +1064,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbEODCurrency) AndAlso currencyStockList IsNot Nothing AndAlso currencyStockList.Count > 0 Then
                     total = currencyStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -1127,7 +1127,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbPositional) AndAlso positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
                     total = positionalStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
@@ -1189,7 +1189,7 @@ Public Class frmMain
                 completed = 0
                 errorCompleted = 0
                 ManageBulb(Color.Yellow)
-                If optionChainStockList IsNot Nothing AndAlso optionChainStockList.Count > 0 Then
+                If GetCheckBoxChecked_ThreadSafe(chkbOptionChain) AndAlso optionChainStockList IsNot Nothing AndAlso optionChainStockList.Count > 0 Then
                     total = optionChainStockList.Count
                     UpdateLabels()
                     Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
