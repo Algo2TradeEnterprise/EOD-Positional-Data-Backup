@@ -29,10 +29,13 @@ Partial Class frmErrorList
         '
         'dgvMain
         '
+        Me.dgvMain.AllowUserToAddRows = False
+        Me.dgvMain.AllowUserToDeleteRows = False
         Me.dgvMain.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
         Me.dgvMain.Dock = System.Windows.Forms.DockStyle.Fill
         Me.dgvMain.Location = New System.Drawing.Point(0, 0)
         Me.dgvMain.Name = "dgvMain"
+        Me.dgvMain.ReadOnly = True
         Me.dgvMain.RowHeadersVisible = False
         Me.dgvMain.RowTemplate.Height = 24
         Me.dgvMain.Size = New System.Drawing.Size(801, 306)

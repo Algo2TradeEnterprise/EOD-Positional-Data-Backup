@@ -250,18 +250,81 @@ Public Class frmMain
     Private completed As Integer = 0
     Private errorCompleted As Integer = 0
 
-    Private intradayCashErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private eodCashErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private intradayFutureErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private eodFutureErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private intradayCommodityErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private eodCommodityErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private intradayCurrencyErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private eodCurrencyErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private positionalErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Private optionChainErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private intradayCashErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private eodCashErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private intradayFutureErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private eodFutureErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private intradayCommodityErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private eodCommodityErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private intradayCurrencyErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private eodCurrencyErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private positionalErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Private optionChainErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
 
     Private canceller As CancellationTokenSource
+
+    Private Sub UpdateErrorList(ByVal instrument As InstrumentDetails, ByVal typeOfData As DataType, ByVal errorMessage As String)
+        Select Case instrument.InstrumentType
+            Case InstrumentDetails.TypeOfInstrument.Cash
+                If typeOfData = DataType.Intraday Then
+                    If intradayCashErrorList Is Nothing Then intradayCashErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not intradayCashErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then intradayCashErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                ElseIf typeOfData = DataType.EOD Then
+                    If eodCashErrorList Is Nothing Then eodCashErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not eodCashErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then eodCashErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Futures
+                If typeOfData = DataType.Intraday Then
+                    If intradayFutureErrorList Is Nothing Then intradayFutureErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not intradayFutureErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then intradayFutureErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                ElseIf typeOfData = DataType.EOD Then
+                    If eodFutureErrorList Is Nothing Then eodFutureErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not eodFutureErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then eodFutureErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Commodity
+                If typeOfData = DataType.Intraday Then
+                    If intradayCommodityErrorList Is Nothing Then intradayCommodityErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not intradayCommodityErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then intradayCommodityErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                ElseIf typeOfData = DataType.EOD Then
+                    If eodCommodityErrorList Is Nothing Then eodCommodityErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not eodCommodityErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then eodCommodityErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Currency
+                If typeOfData = DataType.Intraday Then
+                    If intradayCurrencyErrorList Is Nothing Then intradayCurrencyErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not intradayCurrencyErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then intradayCurrencyErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                ElseIf typeOfData = DataType.EOD Then
+                    If eodCurrencyErrorList Is Nothing Then eodCurrencyErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = errorMessage
+                    If Not eodCurrencyErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then eodCurrencyErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+                End If
+            Case InstrumentDetails.TypeOfInstrument.Positional
+                If positionalErrorList Is Nothing Then positionalErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                instrumentToAdd.ErrorMessage = errorMessage
+                If Not positionalErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then positionalErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+            Case InstrumentDetails.TypeOfInstrument.OptionChain
+                If optionChainErrorList Is Nothing Then optionChainErrorList = New Concurrent.ConcurrentDictionary(Of String, InstrumentDetails)
+                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                instrumentToAdd.ErrorMessage = errorMessage
+                If Not optionChainErrorList.ContainsKey(instrumentToAdd.TradingSymbol) Then optionChainErrorList.TryAdd(instrumentToAdd.TradingSymbol, instrumentToAdd)
+        End Select
+    End Sub
 
     Private Sub UpdateLabels()
         Dim totalLabel As Label = Nothing
@@ -1294,7 +1357,7 @@ Public Class frmMain
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
-                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument.InstrumentToken, instrument.TradingSymbol, instrument.Expiry, startDate, endDate, typeOfData, zerodha)
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument, startDate, endDate, typeOfData, zerodha)
                 canceller.Token.ThrowIfCancellationRequested()
                 Interlocked.Decrement(gettingData)
                 UpdateLabels()
@@ -1466,62 +1529,7 @@ Public Class frmMain
                         UpdateLabels()
                     End If
                 Else
-                    Select Case instrument.InstrumentType
-                        Case InstrumentDetails.TypeOfInstrument.Cash
-                            If typeOfData = DataType.Intraday Then
-                                If intradayCashErrorList Is Nothing Then intradayCashErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                intradayCashErrorList.Add(instrumentToAdd)
-                            ElseIf typeOfData = DataType.EOD Then
-                                If eodCashErrorList Is Nothing Then eodCashErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                eodCashErrorList.Add(instrumentToAdd)
-                            End If
-                        Case InstrumentDetails.TypeOfInstrument.Futures
-                            If typeOfData = DataType.Intraday Then
-                                If intradayFutureErrorList Is Nothing Then intradayFutureErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                intradayFutureErrorList.Add(instrumentToAdd)
-                            ElseIf typeOfData = DataType.EOD Then
-                                If eodFutureErrorList Is Nothing Then eodFutureErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                eodFutureErrorList.Add(instrumentToAdd)
-                            End If
-                        Case InstrumentDetails.TypeOfInstrument.Commodity
-                            If typeOfData = DataType.Intraday Then
-                                If intradayCommodityErrorList Is Nothing Then intradayCommodityErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                intradayCommodityErrorList.Add(instrumentToAdd)
-                            ElseIf typeOfData = DataType.EOD Then
-                                If eodCommodityErrorList Is Nothing Then eodCommodityErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                eodCommodityErrorList.Add(instrumentToAdd)
-                            End If
-                        Case InstrumentDetails.TypeOfInstrument.Currency
-                            If typeOfData = DataType.Intraday Then
-                                If intradayCurrencyErrorList Is Nothing Then intradayCurrencyErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                intradayCurrencyErrorList.Add(instrumentToAdd)
-                            ElseIf typeOfData = DataType.EOD Then
-                                If eodCurrencyErrorList Is Nothing Then eodCurrencyErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                                instrumentToAdd.ErrorMessage = "No data found"
-                                eodCurrencyErrorList.Add(instrumentToAdd)
-                            End If
-                        Case InstrumentDetails.TypeOfInstrument.Positional
-                            If positionalErrorList Is Nothing Then positionalErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                            Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                            instrumentToAdd.ErrorMessage = "No data found"
-                            positionalErrorList.Add(instrumentToAdd)
-                    End Select
-
+                    UpdateErrorList(instrument, typeOfData, "No Data Found")
                     Interlocked.Increment(errorGettingData)
                     Interlocked.Increment(errorCompleted)
                     UpdateLabels()
@@ -1796,22 +1804,14 @@ Public Class frmMain
                     End If
                     canceller.Token.ThrowIfCancellationRequested()
                 Else
-                    If optionChainErrorList Is Nothing Then optionChainErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                    instrumentToAdd.ErrorMessage = "No data found"
-                    optionChainErrorList.Add(instrumentToAdd)
-
+                    UpdateErrorList(instrument, DataType.EOD, "No Data Found")
                     Interlocked.Increment(errorGettingData)
                     Interlocked.Increment(errorCompleted)
                     UpdateLabels()
                 End If
                 canceller.Token.ThrowIfCancellationRequested()
             Else
-                If optionChainErrorList Is Nothing Then optionChainErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
-                instrumentToAdd.ErrorMessage = "No data found"
-                optionChainErrorList.Add(instrumentToAdd)
-
+                UpdateErrorList(instrument, DataType.EOD, "No Data Found")
                 Interlocked.Increment(errorGettingData)
                 Interlocked.Increment(errorCompleted)
                 UpdateLabels()
@@ -1923,7 +1923,7 @@ Public Class frmMain
         End Using
         Return ret
     End Function
-    Private Async Function GetHistoricalDataAsync(ByVal instrumentToken As String, ByVal tradingSymbol As String, ByVal expiry As Date, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
+    Private Async Function GetHistoricalDataAsync(ByVal instrument As InstrumentDetails, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
         Dim AWSZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?api_key=kitefront&access_token=K&from={1}&to={2}"
         Dim AWSZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?api_key=kitefront&access_token=K&from={1}&to={2}"
@@ -1944,8 +1944,8 @@ Public Class frmMain
                     ZerodhaHistoricalURL = AWSZerodhaIntradayHistoricalURL
                 End If
         End Select
-        If ZerodhaHistoricalURL IsNot Nothing AndAlso instrumentToken IsNot Nothing AndAlso instrumentToken <> "" Then
-            Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+        If ZerodhaHistoricalURL IsNot Nothing AndAlso instrument.InstrumentToken IsNot Nothing AndAlso instrument.InstrumentToken <> "" Then
+            Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrument.InstrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
             OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
             Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
 
@@ -1990,8 +1990,10 @@ Public Class frmMain
                         End If
                     Catch ex As Exception
                         If ex.Message.Contains("400 (Bad Request)") Then
-                            If expiry.Date >= Now.Date Then
+                            If instrument.Expiry.Date >= Now.Date Then
                                 Throw ex
+                            Else
+                                UpdateErrorList(instrument, typeOfData, "Instrument expired")
                             End If
                         Else
                             Throw ex
@@ -2027,8 +2029,10 @@ Public Class frmMain
                         End If
                     Catch ex As Exception
                         If ex.Message.Contains("400 (Bad Request)") Then
-                            If expiry.Date >= Now.Date Then
+                            If instrument.Expiry.Date >= Now.Date Then
                                 Throw ex
+                            Else
+                                UpdateErrorList(instrument, typeOfData, "Instrument expired")
                             End If
                         Else
                             Throw ex
@@ -2047,7 +2051,7 @@ Public Class frmMain
                 Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
                 If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
                     Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
-                    OnHeartbeat(String.Format("Generating Payload for {0}", tradingSymbol))
+                    OnHeartbeat(String.Format("Generating Payload for {0}", instrument.TradingSymbol))
                     Dim previousPayload As Payload = Nothing
                     For Each historicalCandle As ArrayList In historicalCandles
                         canceller.Token.ThrowIfCancellationRequested()
@@ -2056,7 +2060,7 @@ Public Class frmMain
                         Dim runningPayload As Payload = New Payload
                         With runningPayload
                             .PayloadDate = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
-                            .TradingSymbol = tradingSymbol
+                            .TradingSymbol = instrument.TradingSymbol
                             .Open = historicalCandle(1)
                             .High = historicalCandle(2)
                             .Low = historicalCandle(3)

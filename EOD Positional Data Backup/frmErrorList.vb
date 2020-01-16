@@ -1,7 +1,7 @@
 ﻿Public Class frmErrorList
 
-    Private ReadOnly _errorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-    Public Sub New(ByVal listOfInstrument As Concurrent.ConcurrentBag(Of InstrumentDetails))
+    Private ReadOnly _errorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
+    Public Sub New(ByVal listOfInstrument As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails))
         InitializeComponent()
         _errorList = listOfInstrument
     End Sub
@@ -19,12 +19,12 @@
             dt.Columns.Add("ErrorMessage")
             For Each instrument In _errorList
                 Dim row As DataRow = dt.NewRow
-                row("Trading Symbol") = instrument.TradingSymbol
-                row("Instrument Token") = instrument.InstrumentToken
-                row("Segment") = instrument.Segment
-                row("Exchange") = instrument.Segment
-                row("Expiry") = instrument.Expiry.ToString("dd-MM-yyyy")
-                row("ErrorMessage") = instrument.ErrorMessage
+                row("Trading Symbol") = instrument.Value.TradingSymbol
+                row("Instrument Token") = instrument.Value.InstrumentToken
+                row("Segment") = instrument.Value.Segment
+                row("Exchange") = instrument.Value.Exchange
+                row("Expiry") = instrument.Value.Expiry.ToString("dd-MM-yyyy")
+                row("ErrorMessage") = instrument.Value.ErrorMessage
                 dt.Rows.Add(row)
             Next
             dgvMain.DataSource = dt
