@@ -1282,7 +1282,7 @@ Public Class frmMain
         Catch cex As OperationCanceledException
             MsgBox(cex.Message)
         Catch ex As Exception
-            SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.StackTrace.ToString)
+            SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
             MsgBox(ex.ToString)
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
