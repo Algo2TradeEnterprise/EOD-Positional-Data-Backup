@@ -12,5 +12,6 @@
     Public Property Segment As String
     Public Property Exchange As String
     Public Property Expiry As Date
+    Public Property ErrorMessage As String
     Public Property InstrumentType As TypeOfInstrument
 End Class

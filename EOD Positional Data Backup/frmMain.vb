@@ -250,6 +250,8 @@ Public Class frmMain
     Private completed As Integer = 0
     Private errorCompleted As Integer = 0
 
+    Private intradayCashErrorList As List(Of InstrumentDetails) = Nothing
+
     Private canceller As CancellationTokenSource
 
     Private Sub UpdateLabels()
@@ -538,130 +540,130 @@ Public Class frmMain
                 Dim sw As Stopwatch = New Stopwatch
                 sw.Start()
 
-#Region "Cash"
-#Region "Intraday"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
-                UpdateDataType = DataType.Intraday
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                errorCompleted = 0
-                ManageBulb(Color.Yellow)
-                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
-                    total = cashStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+                '#Region "Cash"
+                '#Region "Intraday"
+                '                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                '                UpdateDataType = DataType.Intraday
+                '                total = 0
+                '                queued = 0
+                '                gettingData = 0
+                '                errorGettingData = 0
+                '                writingData = 0
+                '                errorWritingData = 0
+                '                completed = 0
+                '                errorCompleted = 0
+                '                ManageBulb(Color.Yellow)
+                '                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                '                    total = cashStockList.Count
+                '                    UpdateLabels()
+                '                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                '                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                '                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                '                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                '                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                '                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
-                        Try
-                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
-                                canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
-                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                           Try
-                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                                                           Catch ex As Exception
-                                                                                               Throw ex
-                                                                                           End Try
-                                                                                           Return True
-                                                                                       End Function)
+                '                        Try
+                '                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
+                '                                canceller.Token.ThrowIfCancellationRequested()
+                '                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
+                '                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                '                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                '                                                                                           Try
+                '                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                '                                                                                           Catch ex As Exception
+                '                                                                                               Throw ex
+                '                                                                                           End Try
+                '                                                                                           Return True
+                '                                                                                       End Function)
 
-                                Dim mainTask As Task = Task.WhenAll(tasks)
-                                Await mainTask.ConfigureAwait(False)
-                                If mainTask.Exception IsNot Nothing Then
-                                    Throw mainTask.Exception
-                                End If
-                                InstrumentCounter += numberOfData
-                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                                UpdateLabels()
-                            Next
-                            sw.Stop()
-                        Catch cex As TaskCanceledException
-                            'logger.Error(cex)
-                            Throw cex
-                        Catch aex As AggregateException
-                            'logger.Error(aex)
-                            Throw aex
-                        Catch ex As Exception
-                            'logger.Error(ex)
-                            Throw ex
-                        End Try
-                    End Using
-                End If
-                ManageBulb(Color.LawnGreen)
-#End Region
+                '                                Dim mainTask As Task = Task.WhenAll(tasks)
+                '                                Await mainTask.ConfigureAwait(False)
+                '                                If mainTask.Exception IsNot Nothing Then
+                '                                    Throw mainTask.Exception
+                '                                End If
+                '                                InstrumentCounter += numberOfData
+                '                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                '                                UpdateLabels()
+                '                            Next
+                '                            sw.Stop()
+                '                        Catch cex As TaskCanceledException
+                '                            'logger.Error(cex)
+                '                            Throw cex
+                '                        Catch aex As AggregateException
+                '                            'logger.Error(aex)
+                '                            Throw aex
+                '                        Catch ex As Exception
+                '                            'logger.Error(ex)
+                '                            Throw ex
+                '                        End Try
+                '                    End Using
+                '                End If
+                '                ManageBulb(Color.LawnGreen)
+                '#End Region
 
-#Region "EOD"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
-                UpdateDataType = DataType.EOD
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                errorCompleted = 0
-                ManageBulb(Color.Yellow)
-                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
-                    total = cashStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+                '#Region "EOD"
+                '                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                '                UpdateDataType = DataType.EOD
+                '                total = 0
+                '                queued = 0
+                '                gettingData = 0
+                '                errorGettingData = 0
+                '                writingData = 0
+                '                errorWritingData = 0
+                '                completed = 0
+                '                errorCompleted = 0
+                '                ManageBulb(Color.Yellow)
+                '                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                '                    total = cashStockList.Count
+                '                    UpdateLabels()
+                '                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                '                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                '                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                '                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                '                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                '                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
-                        Try
-                            sw.Start()
-                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
-                                canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
-                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                           Try
-                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                           Catch ex As Exception
-                                                                                               Throw ex
-                                                                                           End Try
-                                                                                           Return True
-                                                                                       End Function)
+                '                        Try
+                '                            sw.Start()
+                '                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
+                '                                canceller.Token.ThrowIfCancellationRequested()
+                '                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
+                '                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                '                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                '                                                                                           Try
+                '                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                '                                                                                           Catch ex As Exception
+                '                                                                                               Throw ex
+                '                                                                                           End Try
+                '                                                                                           Return True
+                '                                                                                       End Function)
 
-                                Dim mainTask As Task = Task.WhenAll(tasks)
-                                Await mainTask.ConfigureAwait(False)
-                                If mainTask.Exception IsNot Nothing Then
-                                    Throw mainTask.Exception
-                                End If
-                                InstrumentCounter += numberOfData
-                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                                UpdateLabels()
-                            Next
-                            sw.Stop()
-                        Catch cex As TaskCanceledException
-                            'logger.Error(cex)
-                            Throw cex
-                        Catch aex As AggregateException
-                            'logger.Error(aex)
-                            Throw aex
-                        Catch ex As Exception
-                            'logger.Error(ex)
-                            Throw ex
-                        End Try
-                    End Using
-                End If
-                ManageBulb(Color.LawnGreen)
-#End Region
-#End Region
+                '                                Dim mainTask As Task = Task.WhenAll(tasks)
+                '                                Await mainTask.ConfigureAwait(False)
+                '                                If mainTask.Exception IsNot Nothing Then
+                '                                    Throw mainTask.Exception
+                '                                End If
+                '                                InstrumentCounter += numberOfData
+                '                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                '                                UpdateLabels()
+                '                            Next
+                '                            sw.Stop()
+                '                        Catch cex As TaskCanceledException
+                '                            'logger.Error(cex)
+                '                            Throw cex
+                '                        Catch aex As AggregateException
+                '                            'logger.Error(aex)
+                '                            Throw aex
+                '                        Catch ex As Exception
+                '                            'logger.Error(ex)
+                '                            Throw ex
+                '                        End Try
+                '                    End Using
+                '                End If
+                '                ManageBulb(Color.LawnGreen)
+                '#End Region
+                '#End Region
 
 #Region "Future"
 #Region "Intraday"
@@ -1455,6 +1457,16 @@ Public Class frmMain
                         UpdateLabels()
                     End If
                 Else
+                    Select Case instrument.InstrumentType
+                        Case InstrumentDetails.TypeOfInstrument.Cash
+                            If typeOfData = DataType.Intraday Then
+                                If intradayCashErrorList Is Nothing Then intradayCashErrorList = New List(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                intradayCashErrorList.Add(instrumentToAdd)
+                            End If
+                    End Select
+
                     Interlocked.Increment(errorGettingData)
                     Interlocked.Increment(errorCompleted)
                     UpdateLabels()
@@ -1800,7 +1812,7 @@ Public Class frmMain
                         Else
                             Console.WriteLine(String.Format("Instrument Neglected for {0}: {1}", instrumentType.ToString, runningInstrument.TradingSymbol))
                         End If
-                        'If i >= 50 Then Exit For
+                        If i >= 99 Then Exit For
                     End If
                 Next
             End If
