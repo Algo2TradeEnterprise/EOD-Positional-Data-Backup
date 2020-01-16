@@ -250,7 +250,7 @@ Public Class frmMain
     Private completed As Integer = 0
     Private errorCompleted As Integer = 0
 
-    Private intradayCashErrorList As List(Of InstrumentDetails) = Nothing
+    Private intradayFutureErrorList As List(Of InstrumentDetails) = Nothing
 
     Private canceller As CancellationTokenSource
 
@@ -1458,12 +1458,12 @@ Public Class frmMain
                     End If
                 Else
                     Select Case instrument.InstrumentType
-                        Case InstrumentDetails.TypeOfInstrument.Cash
+                        Case InstrumentDetails.TypeOfInstrument.Futures
                             If typeOfData = DataType.Intraday Then
-                                If intradayCashErrorList Is Nothing Then intradayCashErrorList = New List(Of InstrumentDetails)
+                                If intradayFutureErrorList Is Nothing Then intradayFutureErrorList = New List(Of InstrumentDetails)
                                 Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
                                 instrumentToAdd.ErrorMessage = "No data found"
-                                intradayCashErrorList.Add(instrumentToAdd)
+                                intradayFutureErrorList.Add(instrumentToAdd)
                             End If
                     End Select
 
