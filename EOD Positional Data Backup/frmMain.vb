@@ -1585,13 +1585,13 @@ Public Class frmMain
                 headersToBeSent.Add("Sec-Fetch-Mode", "navigate")
                 headersToBeSent.Add("Sec-Fetch-Site", "none")
 
-                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(openPositionDataURL,
-                                                                                            HttpMethod.Get,
-                                                                                            Nothing,
-                                                                                            False,
-                                                                                            headersToBeSent,
-                                                                                            True,
-                                                                                            "text/html").ConfigureAwait(False)
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(Utilities.Strings.UrlEncodeString(openPositionDataURL),
+                                                                                    HttpMethod.Get,
+                                                                                    Nothing,
+                                                                                    False,
+                                                                                    headersToBeSent,
+                                                                                    True,
+                                                                                    "text/html").ConfigureAwait(False)
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     outputResponse = l.Item2
                 End If

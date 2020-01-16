@@ -186,13 +186,21 @@ Namespace Strings
             result = Replace(result, vbCr, vbCrLf)
             Return RemoveBeginningAndEndingBlanks(result)
         End Function
-        Public Function EncodeString(ByVal inputString As String)
+        Public Function HtmlEncodeString(ByVal inputString As String)
             logger.Debug("Encoding string")
             Return HtmlEncode(inputString)
         End Function
-        Public Function DecodeString(ByVal inputString As String)
+        Public Function HtmlDecodeString(ByVal inputString As String)
             logger.Debug("Decoding string")
             Return HtmlDecode(inputString)
+        End Function
+        Public Function UrlEncodeString(ByVal inputString As String)
+            logger.Debug("Encoding string")
+            Return UrlEncode(inputString)
+        End Function
+        Public Function UrlDecodeString(ByVal inputString As String)
+            logger.Debug("Decoding string")
+            Return UrlDecode(inputString)
         End Function
         Public Function ContainsText(ByVal inputString As String, ByVal searchString As String, ByVal options As StringMatchoptions) As Boolean
             logger.Debug("Checking contains text")
