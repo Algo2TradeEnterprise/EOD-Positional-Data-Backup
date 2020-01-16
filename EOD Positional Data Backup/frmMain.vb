@@ -1568,7 +1568,9 @@ Public Class frmMain
             If instrument.TradingSymbol = "NIFTY" OrElse instrument.TradingSymbol = "BANKNIFTY" OrElse instrument.TradingSymbol = "NIFTYIT" Then
                 openPositionDataURL = String.Format(NSEIDXOptionChainURL, instrument.TradingSymbol)
             Else
-                openPositionDataURL = String.Format(NSESTKOptionChainURL, instrument.TradingSymbol)
+                Dim instrumentName As String = instrument.TradingSymbol
+                If instrumentName.Contains("&") Then instrumentName = instrumentName.Replace("&", "%26")
+                openPositionDataURL = String.Format(NSESTKOptionChainURL, instrumentName)
             End If
             Dim outputResponse As HtmlDocument = Nothing
             Dim proxyToBeUsed As HttpProxy = Nothing
@@ -1585,7 +1587,7 @@ Public Class frmMain
                 headersToBeSent.Add("Sec-Fetch-Mode", "navigate")
                 headersToBeSent.Add("Sec-Fetch-Site", "none")
 
-                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(Utilities.Strings.UrlEncodeString(openPositionDataURL),
+                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(openPositionDataURL,
                                                                                     HttpMethod.Get,
                                                                                     Nothing,
                                                                                     False,
