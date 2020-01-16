@@ -1,4 +1,5 @@
 ﻿Public Class InstrumentDetails
+    <Serializable>
     Enum TypeOfInstrument
         Cash
         Futures

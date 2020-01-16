@@ -1560,7 +1560,6 @@ Public Class frmMain
                                         If div2 IsNot Nothing And div2.SelectNodes("span") IsNot Nothing AndAlso div2.SelectNodes("span").Count > 1 Then
                                             Dim span As HtmlNode = div2.SelectNodes("span")(1)
                                             If span IsNot Nothing AndAlso span.InnerText IsNot Nothing AndAlso span.InnerText <> "" Then
-                                                Console.WriteLine(span.InnerText)
                                                 Dim dateText As String = Utilities.Strings.GetTextBetween("As on", "IST", span.InnerText).Trim
                                                 optionDate = Convert.ToDateTime(dateText)
                                             End If
