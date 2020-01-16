@@ -1142,6 +1142,8 @@ Public Class frmMain
 #End Region
 #End Region
 
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
+
 #Region "Positional"
                 UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
                 UpdateDataType = DataType.EOD
@@ -1202,6 +1204,7 @@ Public Class frmMain
                     End Using
                 End If
                 ManageBulb(Color.LawnGreen)
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
 #End Region
 
 #Region "Option Chain"
@@ -1264,14 +1267,22 @@ Public Class frmMain
                     End Using
                 End If
                 ManageBulb(Color.LawnGreen)
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
+                'SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")),
+                '                 String.Format("{0}, {1}, {2}",
+                '                               GetLabelText_ThreadSafe(lblOptnChnTotal),
+                '                               GetLabelText_ThreadSafe(lblOptnChnCompleted),
+                '                               GetLabelText_ThreadSafe(lblOptnChnErrorGettingData)))
 #End Region
 
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
         Catch cex As OperationCanceledException
             MsgBox(cex.Message)
         Catch ex As Exception
+            SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.StackTrace.ToString)
             MsgBox(ex.ToString)
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
@@ -2120,6 +2131,17 @@ Public Class frmMain
         Return ret
     End Function
 #End Region
+
+    Private Sub SendNotification(ByVal title As String, ByVal message As String)
+        Using sndr As New Utilities.Notification.Gmail(canceller, "ganeshathelifechanger@gmail.com", "speech123", "shortwire@gmail.com", "kallol@algo2trade.com", "indibar@algo2trade.com")
+            AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
+            sndr.SendMailAsync(title, message)
+        End Using
+        Using sndr As New Utilities.Notification.Telegram("700121864:AAHjes45V0kEPBDLIfnZzsatH5NhRwIjciw", "-326362481", canceller)
+            AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
+            sndr.SendMessageAsync(message)
+        End Using
+    End Sub
 
     Private Sub lblIntradayCashErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayCashErrorGettingData.Click
         Dim newForm As New frmErrorList(intradayCashErrorList)

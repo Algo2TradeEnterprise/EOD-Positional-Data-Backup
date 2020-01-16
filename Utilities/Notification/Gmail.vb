@@ -1,10 +1,10 @@
-﻿Imports System.Net.Http
+﻿Imports System.Net.Mail
 Imports System.Threading
 Imports NLog
-Imports Utilities.Network
+Imports Utilities.ErrorHandlers
 
 Namespace Notification
-    Public Class Telegram
+    Public Class Gmail
         Implements IDisposable
 
 #Region "Logging and Status Progress"
@@ -32,49 +32,65 @@ Namespace Notification
         End Sub
 #End Region
 
-        Private ReadOnly _apikey As String
-        Private ReadOnly _chatId As String
-        Protected _canceller As CancellationTokenSource
-        Private Const _SMS_API_URL = "https://api.telegram.org/bot{0}/sendMessage?chat_id={1}&text={2}"
+        Private ReadOnly _mailFrom As String
+        Private ReadOnly _password As String
+        Private ReadOnly _mailTo As List(Of String)
 
-        Public Sub New(ByVal apiKey As String, ByVal chatId As String, ByVal canceller As CancellationTokenSource)
-            _apikey = apiKey
-            _chatId = chatId
+        Protected _canceller As CancellationTokenSource
+
+        Public Sub New(ByVal canceller As CancellationTokenSource, ByVal mailForm As String, ByVal password As String, ParamArray ByVal mailTo() As String)
             _canceller = canceller
+            _mailFrom = mailForm
+            _password = password
+            If mailTo.Count > 0 Then
+                For i As Integer = 0 To mailTo.Count - 1
+                    If _mailTo Is Nothing Then _mailTo = New List(Of String)
+                    _mailTo.Add(mailTo(i))
+                Next
+            End If
         End Sub
 
-        Public Async Function SendMessageAsync(ByVal message As String) As Task
-            Dim proxyToBeUsed As HttpProxy = Nothing
-            Dim ret As List(Of String) = Nothing
+        Public Async Function SendMailAsync(ByVal title As String, ByVal content As String) As Task
+            Dim errorOcurred As Boolean = False
+            While True
+                Try
+                    OnHeartbeat("Sending mail...")
+                    Dim SmtpServer As New SmtpClient("smtp.gmail.com", 587)
+                    Dim mail As New MailMessage
+                    mail.From = New MailAddress(_mailFrom)
+                    If _mailTo IsNot Nothing AndAlso _mailTo.Count > 0 Then
+                        For Each runningMailAddress In _mailTo
+                            mail.To.Add(runningMailAddress)
+                        Next
+                    End If
+                    mail.Subject = title
+                    mail.Body = content
 
-            Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), _canceller)
-                AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                AddHandler browser.Heartbeat, AddressOf OnHeartbeat
-                AddHandler browser.WaitingFor, AddressOf OnWaitingFor
-                AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                'Get to the landing page first
-                Dim url As String = String.Format(_SMS_API_URL, _apikey, _chatId, message)
-                Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(url,
-                                                                                 HttpMethod.Get,
-                                                                                 Nothing,
-                                                                                 True,
-                                                                                 Nothing,
-                                                                                 False,
-                                                                                 Nothing).ConfigureAwait(False)
-                If l Is Nothing OrElse l.Item2 Is Nothing Then
-                    Throw New ApplicationException(String.Format("No response while sending telegram message for: {0}", url))
+                    SmtpServer.Credentials = New System.Net.NetworkCredential(_mailFrom, _password)
+                    SmtpServer.EnableSsl = True
+
+                    SmtpServer.Send(mail)
+                    Exit While
+                Catch ex As Exception
+                    errorOcurred = True
+                    If ExceptionExtensions.IsExceptionConnectionRelated(ex) Or ExceptionExtensions.IsExceptionConnectionBusyRelated(ex) Then
+                        If Not _canceller.IsCancellationRequested Then
+                            OnHeartbeat("Waiting after connection/internet error")
+                        Else
+                            _canceller.Token.ThrowIfCancellationRequested()
+                        End If
+                    Else
+                        If Not _canceller.IsCancellationRequested Then
+                            OnHeartbeat("Waiting after other error")
+                        Else
+                            _canceller.Token.ThrowIfCancellationRequested()
+                        End If
+                    End If
+                End Try
+                If errorOcurred Then
+                    Await Task.Delay(5 * 1000)
                 End If
-                'RaiseEvent Heartbeat("Parsing additional site's...")
-                If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
-                    Dim jString As Dictionary(Of String, Object) = l.Item2
-                    'If jString IsNot Nothing AndAlso jString.Count > 0 Then
-                    'End If
-                End If
-                RemoveHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
-                RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
-                RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            End Using
+            End While
         End Function
 
 #Region "IDisposable Support"

@@ -152,6 +152,7 @@
     <Compile Include="Network\HttpBrowserHelper.vb" />
     <Compile Include="Network\HttpProxy.vb" />
     <Compile Include="Network\WebSocket.vb" />
+    <Compile Include="Notification\Gmail.vb" />
     <Compile Include="Notification\Telegram.vb" />
     <Compile Include="Numbers\NumberManipulation.vb" />
     <Compile Include="Strings\StringManipulation.vb" />
