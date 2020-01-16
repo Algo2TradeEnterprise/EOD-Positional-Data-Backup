@@ -87,6 +87,12 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="frmErrorList.Designer.vb">
+      <DependentUpon>frmErrorList.vb</DependentUpon>
+    </Compile>
+    <Compile Include="frmErrorList.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="frmMain.vb">
       <SubType>Form</SubType>
     </Compile>
@@ -115,6 +121,9 @@
     <Compile Include="ZerodhaLogin.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="frmErrorList.resx">
+      <DependentUpon>frmErrorList.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="frmMain.resx">
       <DependentUpon>frmMain.vb</DependentUpon>
     </EmbeddedResource>

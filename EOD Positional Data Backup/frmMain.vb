@@ -250,7 +250,16 @@ Public Class frmMain
     Private completed As Integer = 0
     Private errorCompleted As Integer = 0
 
-    Private intradayFutureErrorList As List(Of InstrumentDetails) = Nothing
+    Private intradayCashErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private eodCashErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private intradayFutureErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private eodFutureErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private intradayCommodityErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private eodCommodityErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private intradayCurrencyErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private eodCurrencyErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private positionalErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private optionChainErrorList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
 
     Private canceller As CancellationTokenSource
 
@@ -540,130 +549,130 @@ Public Class frmMain
                 Dim sw As Stopwatch = New Stopwatch
                 sw.Start()
 
-                '#Region "Cash"
-                '#Region "Intraday"
-                '                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
-                '                UpdateDataType = DataType.Intraday
-                '                total = 0
-                '                queued = 0
-                '                gettingData = 0
-                '                errorGettingData = 0
-                '                writingData = 0
-                '                errorWritingData = 0
-                '                completed = 0
-                '                errorCompleted = 0
-                '                ManageBulb(Color.Yellow)
-                '                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
-                '                    total = cashStockList.Count
-                '                    UpdateLabels()
-                '                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                '                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                '                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                '                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                '                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                '                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+#Region "Cash"
+#Region "Intraday"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                UpdateDataType = DataType.Intraday
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                errorCompleted = 0
+                ManageBulb(Color.Yellow)
+                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                    total = cashStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
-                '                        Try
-                '                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
-                '                                canceller.Token.ThrowIfCancellationRequested()
-                '                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
-                '                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                '                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                '                                                                                           Try
-                '                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                '                                                                                           Catch ex As Exception
-                '                                                                                               Throw ex
-                '                                                                                           End Try
-                '                                                                                           Return True
-                '                                                                                       End Function)
+                        Try
+                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
+                                canceller.Token.ThrowIfCancellationRequested()
+                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
+                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                           Try
+                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                           Catch ex As Exception
+                                                                                               Throw ex
+                                                                                           End Try
+                                                                                           Return True
+                                                                                       End Function)
 
-                '                                Dim mainTask As Task = Task.WhenAll(tasks)
-                '                                Await mainTask.ConfigureAwait(False)
-                '                                If mainTask.Exception IsNot Nothing Then
-                '                                    Throw mainTask.Exception
-                '                                End If
-                '                                InstrumentCounter += numberOfData
-                '                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                '                                UpdateLabels()
-                '                            Next
-                '                            sw.Stop()
-                '                        Catch cex As TaskCanceledException
-                '                            'logger.Error(cex)
-                '                            Throw cex
-                '                        Catch aex As AggregateException
-                '                            'logger.Error(aex)
-                '                            Throw aex
-                '                        Catch ex As Exception
-                '                            'logger.Error(ex)
-                '                            Throw ex
-                '                        End Try
-                '                    End Using
-                '                End If
-                '                ManageBulb(Color.LawnGreen)
-                '#End Region
+                                Dim mainTask As Task = Task.WhenAll(tasks)
+                                Await mainTask.ConfigureAwait(False)
+                                If mainTask.Exception IsNot Nothing Then
+                                    Throw mainTask.Exception
+                                End If
+                                InstrumentCounter += numberOfData
+                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                                UpdateLabels()
+                            Next
+                            sw.Stop()
+                        Catch cex As TaskCanceledException
+                            'logger.Error(cex)
+                            Throw cex
+                        Catch aex As AggregateException
+                            'logger.Error(aex)
+                            Throw aex
+                        Catch ex As Exception
+                            'logger.Error(ex)
+                            Throw ex
+                        End Try
+                    End Using
+                End If
+                ManageBulb(Color.LawnGreen)
+#End Region
 
-                '#Region "EOD"
-                '                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
-                '                UpdateDataType = DataType.EOD
-                '                total = 0
-                '                queued = 0
-                '                gettingData = 0
-                '                errorGettingData = 0
-                '                writingData = 0
-                '                errorWritingData = 0
-                '                completed = 0
-                '                errorCompleted = 0
-                '                ManageBulb(Color.Yellow)
-                '                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
-                '                    total = cashStockList.Count
-                '                    UpdateLabels()
-                '                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                '                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                '                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                '                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                '                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                '                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+#Region "EOD"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Cash
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                errorCompleted = 0
+                ManageBulb(Color.Yellow)
+                If cashStockList IsNot Nothing AndAlso cashStockList.Count > 0 Then
+                    total = cashStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
 
-                '                        Try
-                '                            sw.Start()
-                '                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
-                '                                canceller.Token.ThrowIfCancellationRequested()
-                '                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
-                '                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                '                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                '                                                                                           Try
-                '                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                '                                                                                           Catch ex As Exception
-                '                                                                                               Throw ex
-                '                                                                                           End Try
-                '                                                                                           Return True
-                '                                                                                       End Function)
+                        Try
+                            sw.Start()
+                            For i As Integer = 0 To cashStockList.Count - 1 Step Me.NumberOfParallelTask
+                                canceller.Token.ThrowIfCancellationRequested()
+                                Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
+                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                           Try
+                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                           Catch ex As Exception
+                                                                                               Throw ex
+                                                                                           End Try
+                                                                                           Return True
+                                                                                       End Function)
 
-                '                                Dim mainTask As Task = Task.WhenAll(tasks)
-                '                                Await mainTask.ConfigureAwait(False)
-                '                                If mainTask.Exception IsNot Nothing Then
-                '                                    Throw mainTask.Exception
-                '                                End If
-                '                                InstrumentCounter += numberOfData
-                '                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                '                                UpdateLabels()
-                '                            Next
-                '                            sw.Stop()
-                '                        Catch cex As TaskCanceledException
-                '                            'logger.Error(cex)
-                '                            Throw cex
-                '                        Catch aex As AggregateException
-                '                            'logger.Error(aex)
-                '                            Throw aex
-                '                        Catch ex As Exception
-                '                            'logger.Error(ex)
-                '                            Throw ex
-                '                        End Try
-                '                    End Using
-                '                End If
-                '                ManageBulb(Color.LawnGreen)
-                '#End Region
-                '#End Region
+                                Dim mainTask As Task = Task.WhenAll(tasks)
+                                Await mainTask.ConfigureAwait(False)
+                                If mainTask.Exception IsNot Nothing Then
+                                    Throw mainTask.Exception
+                                End If
+                                InstrumentCounter += numberOfData
+                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                                UpdateLabels()
+                            Next
+                            sw.Stop()
+                        Catch cex As TaskCanceledException
+                            'logger.Error(cex)
+                            Throw cex
+                        Catch aex As AggregateException
+                            'logger.Error(aex)
+                            Throw aex
+                        Catch ex As Exception
+                            'logger.Error(ex)
+                            Throw ex
+                        End Try
+                    End Using
+                End If
+                ManageBulb(Color.LawnGreen)
+#End Region
+#End Region
 
 #Region "Future"
 #Region "Intraday"
@@ -1458,13 +1467,59 @@ Public Class frmMain
                     End If
                 Else
                     Select Case instrument.InstrumentType
+                        Case InstrumentDetails.TypeOfInstrument.Cash
+                            If typeOfData = DataType.Intraday Then
+                                If intradayCashErrorList Is Nothing Then intradayCashErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                intradayCashErrorList.Add(instrumentToAdd)
+                            ElseIf typeOfData = DataType.EOD Then
+                                If eodCashErrorList Is Nothing Then eodCashErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                eodCashErrorList.Add(instrumentToAdd)
+                            End If
                         Case InstrumentDetails.TypeOfInstrument.Futures
                             If typeOfData = DataType.Intraday Then
-                                If intradayFutureErrorList Is Nothing Then intradayFutureErrorList = New List(Of InstrumentDetails)
+                                If intradayFutureErrorList Is Nothing Then intradayFutureErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
                                 Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
                                 instrumentToAdd.ErrorMessage = "No data found"
                                 intradayFutureErrorList.Add(instrumentToAdd)
+                            ElseIf typeOfData = DataType.EOD Then
+                                If eodFutureErrorList Is Nothing Then eodFutureErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                eodFutureErrorList.Add(instrumentToAdd)
                             End If
+                        Case InstrumentDetails.TypeOfInstrument.Commodity
+                            If typeOfData = DataType.Intraday Then
+                                If intradayCommodityErrorList Is Nothing Then intradayCommodityErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                intradayCommodityErrorList.Add(instrumentToAdd)
+                            ElseIf typeOfData = DataType.EOD Then
+                                If eodCommodityErrorList Is Nothing Then eodCommodityErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                eodCommodityErrorList.Add(instrumentToAdd)
+                            End If
+                        Case InstrumentDetails.TypeOfInstrument.Currency
+                            If typeOfData = DataType.Intraday Then
+                                If intradayCurrencyErrorList Is Nothing Then intradayCurrencyErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                intradayCurrencyErrorList.Add(instrumentToAdd)
+                            ElseIf typeOfData = DataType.EOD Then
+                                If eodCurrencyErrorList Is Nothing Then eodCurrencyErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                                instrumentToAdd.ErrorMessage = "No data found"
+                                eodCurrencyErrorList.Add(instrumentToAdd)
+                            End If
+                        Case InstrumentDetails.TypeOfInstrument.Positional
+                            If positionalErrorList Is Nothing Then positionalErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                            Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                            instrumentToAdd.ErrorMessage = "No data found"
+                            positionalErrorList.Add(instrumentToAdd)
                     End Select
 
                     Interlocked.Increment(errorGettingData)
@@ -1741,12 +1796,22 @@ Public Class frmMain
                     End If
                     canceller.Token.ThrowIfCancellationRequested()
                 Else
+                    If optionChainErrorList Is Nothing Then optionChainErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                    Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                    instrumentToAdd.ErrorMessage = "No data found"
+                    optionChainErrorList.Add(instrumentToAdd)
+
                     Interlocked.Increment(errorGettingData)
                     Interlocked.Increment(errorCompleted)
                     UpdateLabels()
                 End If
                 canceller.Token.ThrowIfCancellationRequested()
             Else
+                If optionChainErrorList Is Nothing Then optionChainErrorList = New Concurrent.ConcurrentBag(Of InstrumentDetails)
+                Dim instrumentToAdd As InstrumentDetails = Utilities.Strings.DeepClone(Of InstrumentDetails)(instrument)
+                instrumentToAdd.ErrorMessage = "No data found"
+                optionChainErrorList.Add(instrumentToAdd)
+
                 Interlocked.Increment(errorGettingData)
                 Interlocked.Increment(errorCompleted)
                 UpdateLabels()
@@ -2011,4 +2076,53 @@ Public Class frmMain
     End Function
 #End Region
 
+    Private Sub lblIntradayCashErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayCashErrorGettingData.Click
+        Dim newForm As New frmErrorList(intradayCashErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblEODCashErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblEODCashErrorGettingData.Click
+        Dim newForm As New frmErrorList(eodCashErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblIntradayFutureErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayFutureErrorGettingData.Click
+        Dim newForm As New frmErrorList(intradayFutureErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblEODFutureErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblEODFutureErrorGettingData.Click
+        Dim newForm As New frmErrorList(eodFutureErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblIntradayCommodityErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayCommodityErrorGettingData.Click
+        Dim newForm As New frmErrorList(intradayCommodityErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblEODCommodityErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblEODCommodityErrorGettingData.Click
+        Dim newForm As New frmErrorList(eodCommodityErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblIntradayCurrencyErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayCurrencyErrorGettingData.Click
+        Dim newForm As New frmErrorList(intradayCurrencyErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblEODCurrencyErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblEODCurrencyErrorGettingData.Click
+        Dim newForm As New frmErrorList(eodCurrencyErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblPstnlErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblPstnlErrorGettingData.Click
+        Dim newForm As New frmErrorList(positionalErrorList)
+        newForm.Show()
+    End Sub
+
+    Private Sub lblOptnChnErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblOptnChnErrorGettingData.Click
+        Dim newForm As New frmErrorList(optionChainErrorList)
+        newForm.Show()
+    End Sub
 End Class
