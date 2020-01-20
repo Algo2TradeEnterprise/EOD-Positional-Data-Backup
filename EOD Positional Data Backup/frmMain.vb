@@ -2065,6 +2065,7 @@ Public Class frmMain
                     AddHandler browser.Heartbeat, AddressOf OnHeartbeat
                     AddHandler browser.WaitingFor, AddressOf OnWaitingFor
                     AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                    AddHandler browser.FirstError, AddressOf OnFirstErrorGettingData
 
                     Try
                         canceller.Token.ThrowIfCancellationRequested()
@@ -2095,6 +2096,7 @@ Public Class frmMain
                     RemoveHandler browser.Heartbeat, AddressOf OnHeartbeat
                     RemoveHandler browser.WaitingFor, AddressOf OnWaitingFor
                     RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                    RemoveHandler browser.FirstError, AddressOf OnFirstErrorGettingData
                 End Using
             End If
 
