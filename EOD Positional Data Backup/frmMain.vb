@@ -1379,7 +1379,7 @@ Public Class frmMain
                         End Select
                     Case "MCX"
                         Select Case instrument.Segment
-                            Case "MCX"
+                            Case "MCX", "MCX-FUT"
                                 If typeOfData = DataType.Intraday Then
                                     tableName = "intraday_prices_commodity"
                                 ElseIf typeOfData = DataType.EOD Then
