@@ -262,6 +262,7 @@ Public Class frmMain
     Private optionChainErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
 
     Private canceller As CancellationTokenSource
+    Private lastException As Exception = Nothing
 
     Private Sub UpdateErrorList(ByVal instrument As InstrumentDetails, ByVal typeOfData As DataType, ByVal errorMessage As String)
         Select Case instrument.InstrumentType
@@ -555,6 +556,7 @@ Public Class frmMain
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
+        lastException = Nothing
         My.Settings.NumberOfParallelHit = nmrcParallelHit.Value
         My.Settings.HistoricalHitWithAPI = rdbWithAPI.Checked
         My.Settings.HistoricalHitWithoutAPI = rdbWithoutAPI.Checked
@@ -581,6 +583,12 @@ Public Class frmMain
         Me.NumberOfParallelTask = nmrcParallelHit.Value
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
+
+        If lastException IsNot Nothing AndAlso lastException.ToString.ToUpper.Contains("RESPONSE STATUS CODE DOES NOT INDICATE SUCCESS: 403 (FORBIDDEN)") Then
+            OnHeartbeat(String.Format("Waiting for next activation. Next activation time: {0}", Now.AddMilliseconds(3600000).ToString("dd-MM-yyyy HH:mm:ss")))
+            Await Task.Delay(3600000).ConfigureAwait(False)
+            btnStart_Click(sender, e)
+        End If
     End Sub
 
     Private Async Function StartProcessingAsync() As Task
@@ -1283,7 +1291,11 @@ Public Class frmMain
             MsgBox(cex.Message)
         Catch ex As Exception
             SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
-            MsgBox(ex.ToString)
+            If ex.ToString.ToUpper.Contains("RESPONSE STATUS CODE DOES NOT INDICATE SUCCESS: 403 (FORBIDDEN)") Then
+                lastException = ex
+            Else
+                MsgBox(ex.ToString)
+            End If
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
             SetObjectEnableDisable_ThreadSafe(btnStart, True)
