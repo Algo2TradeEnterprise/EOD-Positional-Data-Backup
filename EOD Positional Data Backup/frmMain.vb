@@ -262,7 +262,6 @@ Public Class frmMain
     Private optionChainErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
 
     Private canceller As CancellationTokenSource
-    Private lastException As Exception = Nothing
 
     Private Sub UpdateErrorList(ByVal instrument As InstrumentDetails, ByVal typeOfData As DataType, ByVal errorMessage As String)
         Select Case instrument.InstrumentType
@@ -556,7 +555,6 @@ Public Class frmMain
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
-        lastException = Nothing
         My.Settings.NumberOfParallelHit = nmrcParallelHit.Value
         My.Settings.HistoricalHitWithAPI = rdbWithAPI.Checked
         My.Settings.HistoricalHitWithoutAPI = rdbWithoutAPI.Checked
@@ -583,12 +581,6 @@ Public Class frmMain
         Me.NumberOfParallelTask = nmrcParallelHit.Value
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
-
-        If lastException IsNot Nothing AndAlso lastException.ToString.ToUpper.Contains("RESPONSE STATUS CODE DOES NOT INDICATE SUCCESS: 403 (FORBIDDEN)") Then
-            OnHeartbeat(String.Format("Waiting for next activation. Next activation time: {0}", Now.AddMilliseconds(3600000).ToString("dd-MM-yyyy HH:mm:ss")))
-            Await Task.Delay(3600000).ConfigureAwait(False)
-            btnStart_Click(sender, e)
-        End If
     End Sub
 
     Private Async Function StartProcessingAsync() As Task
@@ -646,6 +638,137 @@ Public Class frmMain
                 CountPerSecond = 0
                 Dim sw As Stopwatch = New Stopwatch
                 sw.Start()
+
+#Region "Option Chain"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.OptionChain
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                errorCompleted = 0
+                ManageBulb(Color.Yellow)
+                If GetCheckBoxChecked_ThreadSafe(chkbOptionChain) AndAlso optionChainStockList IsNot Nothing AndAlso optionChainStockList.Count > 0 Then
+                    total = optionChainStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Try
+                            sw.Start()
+                            For i As Integer = 0 To optionChainStockList.Count - 1 Step Me.NumberOfParallelTask
+                                canceller.Token.ThrowIfCancellationRequested()
+                                Dim numberOfData As Integer = If(optionChainStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, optionChainStockList.Count - i)
+                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                                tasks = optionChainStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                  Try
+                                                                                                      Await ProcessOptionChainData(x, sqlHlpr).ConfigureAwait(False)
+                                                                                                  Catch ex As Exception
+                                                                                                      Throw ex
+                                                                                                  End Try
+                                                                                                  Return True
+                                                                                              End Function)
+
+                                Dim mainTask As Task = Task.WhenAll(tasks)
+                                Await mainTask.ConfigureAwait(False)
+                                If mainTask.Exception IsNot Nothing Then
+                                    Throw mainTask.Exception
+                                End If
+                                InstrumentCounter += numberOfData
+                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                                UpdateLabels()
+                            Next
+                            sw.Stop()
+                        Catch cex As TaskCanceledException
+                            'logger.Error(cex)
+                            Throw cex
+                        Catch aex As AggregateException
+                            'logger.Error(aex)
+                            Throw aex
+                        Catch ex As Exception
+                            'logger.Error(ex)
+                            Throw ex
+                        End Try
+                    End Using
+                End If
+                ManageBulb(Color.LawnGreen)
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
+                'SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")),
+                '                 String.Format("{0}, {1}, {2}",
+                '                               GetLabelText_ThreadSafe(lblOptnChnTotal),
+                '                               GetLabelText_ThreadSafe(lblOptnChnCompleted),
+                '                               GetLabelText_ThreadSafe(lblOptnChnErrorGettingData)))
+#End Region
+
+#Region "Positional"
+                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
+                UpdateDataType = DataType.EOD
+                total = 0
+                queued = 0
+                gettingData = 0
+                errorGettingData = 0
+                writingData = 0
+                errorWritingData = 0
+                completed = 0
+                errorCompleted = 0
+                ManageBulb(Color.Yellow)
+                If GetCheckBoxChecked_ThreadSafe(chkbPositional) AndAlso positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
+                    total = positionalStockList.Count
+                    UpdateLabels()
+                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
+                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
+                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
+                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
+                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
+                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
+
+                        Try
+                            sw.Start()
+                            For i As Integer = 0 To positionalStockList.Count - 1 Step Me.NumberOfParallelTask
+                                canceller.Token.ThrowIfCancellationRequested()
+                                Dim numberOfData As Integer = If(positionalStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, positionalStockList.Count - i)
+                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
+                                tasks = positionalStockList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                 Try
+                                                                                                     Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                 Catch ex As Exception
+                                                                                                     Throw ex
+                                                                                                 End Try
+                                                                                                 Return True
+                                                                                             End Function)
+
+                                Dim mainTask As Task = Task.WhenAll(tasks)
+                                Await mainTask.ConfigureAwait(False)
+                                If mainTask.Exception IsNot Nothing Then
+                                    Throw mainTask.Exception
+                                End If
+                                InstrumentCounter += numberOfData
+                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
+                                UpdateLabels()
+                            Next
+                            sw.Stop()
+                        Catch cex As TaskCanceledException
+                            'logger.Error(cex)
+                            Throw cex
+                        Catch aex As AggregateException
+                            'logger.Error(aex)
+                            Throw aex
+                        Catch ex As Exception
+                            'logger.Error(ex)
+                            Throw ex
+                        End Try
+                    End Using
+                End If
+                ManageBulb(Color.LawnGreen)
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
+#End Region
 
 #Region "Cash"
 #Region "Intraday"
@@ -1151,138 +1274,6 @@ Public Class frmMain
 #End Region
 
                 SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
-
-#Region "Positional"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.Positional
-                UpdateDataType = DataType.EOD
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                errorCompleted = 0
-                ManageBulb(Color.Yellow)
-                If GetCheckBoxChecked_ThreadSafe(chkbPositional) AndAlso positionalStockList IsNot Nothing AndAlso positionalStockList.Count > 0 Then
-                    total = positionalStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
-
-                        Try
-                            sw.Start()
-                            For i As Integer = 0 To positionalStockList.Count - 1 Step Me.NumberOfParallelTask
-                                canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(positionalStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, positionalStockList.Count - i)
-                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = positionalStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                 Try
-                                                                                                     Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                                 Catch ex As Exception
-                                                                                                     Throw ex
-                                                                                                 End Try
-                                                                                                 Return True
-                                                                                             End Function)
-
-                                Dim mainTask As Task = Task.WhenAll(tasks)
-                                Await mainTask.ConfigureAwait(False)
-                                If mainTask.Exception IsNot Nothing Then
-                                    Throw mainTask.Exception
-                                End If
-                                InstrumentCounter += numberOfData
-                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                                UpdateLabels()
-                            Next
-                            sw.Stop()
-                        Catch cex As TaskCanceledException
-                            'logger.Error(cex)
-                            Throw cex
-                        Catch aex As AggregateException
-                            'logger.Error(aex)
-                            Throw aex
-                        Catch ex As Exception
-                            'logger.Error(ex)
-                            Throw ex
-                        End Try
-                    End Using
-                End If
-                ManageBulb(Color.LawnGreen)
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
-#End Region
-
-#Region "Option Chain"
-                UpdateIntrumentType = InstrumentDetails.TypeOfInstrument.OptionChain
-                UpdateDataType = DataType.EOD
-                total = 0
-                queued = 0
-                gettingData = 0
-                errorGettingData = 0
-                writingData = 0
-                errorWritingData = 0
-                completed = 0
-                errorCompleted = 0
-                ManageBulb(Color.Yellow)
-                If GetCheckBoxChecked_ThreadSafe(chkbOptionChain) AndAlso optionChainStockList IsNot Nothing AndAlso optionChainStockList.Count > 0 Then
-                    total = optionChainStockList.Count
-                    UpdateLabels()
-                    Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
-                        AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
-                        AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-                        AddHandler sqlHlpr.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-                        AddHandler sqlHlpr.WaitingFor, AddressOf OnWaitingFor
-                        AddHandler sqlHlpr.FirstError, AddressOf OnFirstErrorWritingData
-
-                        Try
-                            sw.Start()
-                            For i As Integer = 0 To optionChainStockList.Count - 1 Step Me.NumberOfParallelTask
-                                canceller.Token.ThrowIfCancellationRequested()
-                                Dim numberOfData As Integer = If(optionChainStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, optionChainStockList.Count - i)
-                                Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = optionChainStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                  Try
-                                                                                                      Await ProcessOptionChainData(x, sqlHlpr).ConfigureAwait(False)
-                                                                                                  Catch ex As Exception
-                                                                                                      Throw ex
-                                                                                                  End Try
-                                                                                                  Return True
-                                                                                              End Function)
-
-                                Dim mainTask As Task = Task.WhenAll(tasks)
-                                Await mainTask.ConfigureAwait(False)
-                                If mainTask.Exception IsNot Nothing Then
-                                    Throw mainTask.Exception
-                                End If
-                                InstrumentCounter += numberOfData
-                                If sw.Elapsed.TotalSeconds > 0 Then CountPerSecond = InstrumentCounter / sw.Elapsed.TotalSeconds
-                                UpdateLabels()
-                            Next
-                            sw.Stop()
-                        Catch cex As TaskCanceledException
-                            'logger.Error(cex)
-                            Throw cex
-                        Catch aex As AggregateException
-                            'logger.Error(aex)
-                            Throw aex
-                        Catch ex As Exception
-                            'logger.Error(ex)
-                            Throw ex
-                        End Try
-                    End Using
-                End If
-                ManageBulb(Color.LawnGreen)
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
-                'SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")),
-                '                 String.Format("{0}, {1}, {2}",
-                '                               GetLabelText_ThreadSafe(lblOptnChnTotal),
-                '                               GetLabelText_ThreadSafe(lblOptnChnCompleted),
-                '                               GetLabelText_ThreadSafe(lblOptnChnErrorGettingData)))
-#End Region
-
                 SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
             Else
                 Throw New ApplicationException("Zerodha login fail")
@@ -1291,11 +1282,7 @@ Public Class frmMain
             MsgBox(cex.Message)
         Catch ex As Exception
             SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
-            If ex.ToString.ToUpper.Contains("RESPONSE STATUS CODE DOES NOT INDICATE SUCCESS: 403 (FORBIDDEN)") Then
-                lastException = ex
-            Else
-                MsgBox(ex.ToString)
-            End If
+            MsgBox(ex.ToString)
         Finally
             SetObjectEnableDisable_ThreadSafe(btnStop, False)
             SetObjectEnableDisable_ThreadSafe(btnStart, True)

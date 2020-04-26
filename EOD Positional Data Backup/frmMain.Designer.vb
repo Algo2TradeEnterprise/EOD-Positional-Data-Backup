@@ -29,6 +29,7 @@ Partial Class frmMain
         Me.btnStop = New System.Windows.Forms.Button()
         Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
         Me.grpBoxPositional = New System.Windows.Forms.GroupBox()
+        Me.chkbPositional = New System.Windows.Forms.CheckBox()
         Me.blbPositional = New Bulb.LedBulb()
         Me.lblPstnlErrorWritingData = New System.Windows.Forms.Label()
         Me.lblPstnlWritingData = New System.Windows.Forms.Label()
@@ -38,6 +39,7 @@ Partial Class frmMain
         Me.lblPstnlGettingData = New System.Windows.Forms.Label()
         Me.lblPstnlTotal = New System.Windows.Forms.Label()
         Me.grpBoxIntradayCash = New System.Windows.Forms.GroupBox()
+        Me.chkbIntradayCash = New System.Windows.Forms.CheckBox()
         Me.blbIntradayCash = New Bulb.LedBulb()
         Me.lblIntradayCashErrorWritingData = New System.Windows.Forms.Label()
         Me.lblIntradayCashWritingData = New System.Windows.Forms.Label()
@@ -47,6 +49,7 @@ Partial Class frmMain
         Me.lblIntradayCashGettingData = New System.Windows.Forms.Label()
         Me.lblIntradayCashTotal = New System.Windows.Forms.Label()
         Me.grpBoxIntradayFuture = New System.Windows.Forms.GroupBox()
+        Me.chkbIntradayFuture = New System.Windows.Forms.CheckBox()
         Me.blbIntradayFuture = New Bulb.LedBulb()
         Me.lblIntradayFutureErrorWritingData = New System.Windows.Forms.Label()
         Me.lblIntradayFutureWritingData = New System.Windows.Forms.Label()
@@ -56,6 +59,7 @@ Partial Class frmMain
         Me.lblIntradayFutureGettingData = New System.Windows.Forms.Label()
         Me.lblIntradayFutureTotal = New System.Windows.Forms.Label()
         Me.grpBoxIntradayCurrency = New System.Windows.Forms.GroupBox()
+        Me.chkbIntradayCurrency = New System.Windows.Forms.CheckBox()
         Me.blbIntradayCurrency = New Bulb.LedBulb()
         Me.lblIntradayCurrencyErrorWritingData = New System.Windows.Forms.Label()
         Me.lblIntradayCurrencyWritingData = New System.Windows.Forms.Label()
@@ -65,6 +69,7 @@ Partial Class frmMain
         Me.lblIntradayCurrencyGettingData = New System.Windows.Forms.Label()
         Me.lblIntradayCurrencyTotal = New System.Windows.Forms.Label()
         Me.grpBoxIntradayCommodity = New System.Windows.Forms.GroupBox()
+        Me.chkbIntradayCommodity = New System.Windows.Forms.CheckBox()
         Me.blbIntradayCommodity = New Bulb.LedBulb()
         Me.lblIntradayCommodityErrorWritingData = New System.Windows.Forms.Label()
         Me.lblIntradayCommodityWritingData = New System.Windows.Forms.Label()
@@ -74,6 +79,7 @@ Partial Class frmMain
         Me.lblIntradayCommodityGettingData = New System.Windows.Forms.Label()
         Me.lblIntradayCommodityTotal = New System.Windows.Forms.Label()
         Me.grpBoxEODCurrency = New System.Windows.Forms.GroupBox()
+        Me.chkbEODCurrency = New System.Windows.Forms.CheckBox()
         Me.blbEODCurrency = New Bulb.LedBulb()
         Me.lblEODCurrencyErrorWritingData = New System.Windows.Forms.Label()
         Me.lblEODCurrencyWritingData = New System.Windows.Forms.Label()
@@ -83,6 +89,7 @@ Partial Class frmMain
         Me.lblEODCurrencyGettingData = New System.Windows.Forms.Label()
         Me.lblEODCurrencyTotal = New System.Windows.Forms.Label()
         Me.grpBoxEODCommodity = New System.Windows.Forms.GroupBox()
+        Me.chkbEODCommodity = New System.Windows.Forms.CheckBox()
         Me.blbEODCommodity = New Bulb.LedBulb()
         Me.lblEODCommodityErrorWritingData = New System.Windows.Forms.Label()
         Me.lblEODCommodityWritingData = New System.Windows.Forms.Label()
@@ -92,6 +99,7 @@ Partial Class frmMain
         Me.lblEODCommodityGettingData = New System.Windows.Forms.Label()
         Me.lblEODCommodityTotal = New System.Windows.Forms.Label()
         Me.grpBoxEODFuture = New System.Windows.Forms.GroupBox()
+        Me.chkbEODFuture = New System.Windows.Forms.CheckBox()
         Me.blbEODFuture = New Bulb.LedBulb()
         Me.lblEODFutureErrorWritingData = New System.Windows.Forms.Label()
         Me.lblEODFutureWritingData = New System.Windows.Forms.Label()
@@ -101,6 +109,7 @@ Partial Class frmMain
         Me.lblEODFutureGettingData = New System.Windows.Forms.Label()
         Me.lblEODFutureTotal = New System.Windows.Forms.Label()
         Me.grpBoxEODCash = New System.Windows.Forms.GroupBox()
+        Me.chkbEODCash = New System.Windows.Forms.CheckBox()
         Me.blbEODCash = New Bulb.LedBulb()
         Me.lblEODCashErrorWritingData = New System.Windows.Forms.Label()
         Me.lblEODCashWritingData = New System.Windows.Forms.Label()
@@ -110,6 +119,7 @@ Partial Class frmMain
         Me.lblEODCashGettingData = New System.Windows.Forms.Label()
         Me.lblEODCashTotal = New System.Windows.Forms.Label()
         Me.grpBoxOptnChn = New System.Windows.Forms.GroupBox()
+        Me.chkbOptionChain = New System.Windows.Forms.CheckBox()
         Me.blbOptionChain = New Bulb.LedBulb()
         Me.lblOptnChnErrorWritingData = New System.Windows.Forms.Label()
         Me.lblOptnChnWritingData = New System.Windows.Forms.Label()
@@ -127,16 +137,6 @@ Partial Class frmMain
         Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
         Me.lblNumberOfHit = New System.Windows.Forms.Label()
         Me.nmrcParallelHit = New System.Windows.Forms.NumericUpDown()
-        Me.chkbIntradayCash = New System.Windows.Forms.CheckBox()
-        Me.chkbEODCash = New System.Windows.Forms.CheckBox()
-        Me.chkbIntradayFuture = New System.Windows.Forms.CheckBox()
-        Me.chkbEODFuture = New System.Windows.Forms.CheckBox()
-        Me.chkbIntradayCommodity = New System.Windows.Forms.CheckBox()
-        Me.chkbEODCommodity = New System.Windows.Forms.CheckBox()
-        Me.chkbIntradayCurrency = New System.Windows.Forms.CheckBox()
-        Me.chkbEODCurrency = New System.Windows.Forms.CheckBox()
-        Me.chkbPositional = New System.Windows.Forms.CheckBox()
-        Me.chkbOptionChain = New System.Windows.Forms.CheckBox()
         Me.grpBoxPositional.SuspendLayout()
         Me.grpBoxIntradayCash.SuspendLayout()
         Me.grpBoxIntradayFuture.SuspendLayout()
@@ -195,7 +195,7 @@ Partial Class frmMain
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlErrorGettingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlGettingData)
         Me.grpBoxPositional.Controls.Add(Me.lblPstnlTotal)
-        Me.grpBoxPositional.Location = New System.Drawing.Point(15, 442)
+        Me.grpBoxPositional.Location = New System.Drawing.Point(543, 79)
         Me.grpBoxPositional.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxPositional.Name = "grpBoxPositional"
         Me.grpBoxPositional.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -203,6 +203,17 @@ Partial Class frmMain
         Me.grpBoxPositional.TabIndex = 6
         Me.grpBoxPositional.TabStop = False
         Me.grpBoxPositional.Text = "Positional"
+        '
+        'chkbPositional
+        '
+        Me.chkbPositional.AutoSize = True
+        Me.chkbPositional.Checked = True
+        Me.chkbPositional.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbPositional.Location = New System.Drawing.Point(493, 57)
+        Me.chkbPositional.Name = "chkbPositional"
+        Me.chkbPositional.Size = New System.Drawing.Size(18, 17)
+        Me.chkbPositional.TabIndex = 30
+        Me.chkbPositional.UseVisualStyleBackColor = True
         '
         'blbPositional
         '
@@ -291,7 +302,7 @@ Partial Class frmMain
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashErrorGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashGettingData)
         Me.grpBoxIntradayCash.Controls.Add(Me.lblIntradayCashTotal)
-        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(13, 79)
+        Me.grpBoxIntradayCash.Location = New System.Drawing.Point(12, 167)
         Me.grpBoxIntradayCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCash.Name = "grpBoxIntradayCash"
         Me.grpBoxIntradayCash.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -299,6 +310,17 @@ Partial Class frmMain
         Me.grpBoxIntradayCash.TabIndex = 8
         Me.grpBoxIntradayCash.TabStop = False
         Me.grpBoxIntradayCash.Text = "Intraday Cash"
+        '
+        'chkbIntradayCash
+        '
+        Me.chkbIntradayCash.AutoSize = True
+        Me.chkbIntradayCash.Checked = True
+        Me.chkbIntradayCash.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbIntradayCash.Location = New System.Drawing.Point(495, 57)
+        Me.chkbIntradayCash.Name = "chkbIntradayCash"
+        Me.chkbIntradayCash.Size = New System.Drawing.Size(18, 17)
+        Me.chkbIntradayCash.TabIndex = 24
+        Me.chkbIntradayCash.UseVisualStyleBackColor = True
         '
         'blbIntradayCash
         '
@@ -387,7 +409,7 @@ Partial Class frmMain
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureErrorGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureGettingData)
         Me.grpBoxIntradayFuture.Controls.Add(Me.lblIntradayFutureTotal)
-        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(13, 167)
+        Me.grpBoxIntradayFuture.Location = New System.Drawing.Point(12, 255)
         Me.grpBoxIntradayFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayFuture.Name = "grpBoxIntradayFuture"
         Me.grpBoxIntradayFuture.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -395,6 +417,17 @@ Partial Class frmMain
         Me.grpBoxIntradayFuture.TabIndex = 9
         Me.grpBoxIntradayFuture.TabStop = False
         Me.grpBoxIntradayFuture.Text = "Intraday Future"
+        '
+        'chkbIntradayFuture
+        '
+        Me.chkbIntradayFuture.AutoSize = True
+        Me.chkbIntradayFuture.Checked = True
+        Me.chkbIntradayFuture.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbIntradayFuture.Location = New System.Drawing.Point(495, 57)
+        Me.chkbIntradayFuture.Name = "chkbIntradayFuture"
+        Me.chkbIntradayFuture.Size = New System.Drawing.Size(18, 17)
+        Me.chkbIntradayFuture.TabIndex = 30
+        Me.chkbIntradayFuture.UseVisualStyleBackColor = True
         '
         'blbIntradayFuture
         '
@@ -483,7 +516,7 @@ Partial Class frmMain
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyErrorGettingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyGettingData)
         Me.grpBoxIntradayCurrency.Controls.Add(Me.lblIntradayCurrencyTotal)
-        Me.grpBoxIntradayCurrency.Location = New System.Drawing.Point(15, 352)
+        Me.grpBoxIntradayCurrency.Location = New System.Drawing.Point(14, 440)
         Me.grpBoxIntradayCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCurrency.Name = "grpBoxIntradayCurrency"
         Me.grpBoxIntradayCurrency.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -491,6 +524,17 @@ Partial Class frmMain
         Me.grpBoxIntradayCurrency.TabIndex = 13
         Me.grpBoxIntradayCurrency.TabStop = False
         Me.grpBoxIntradayCurrency.Text = "Intraday Currency"
+        '
+        'chkbIntradayCurrency
+        '
+        Me.chkbIntradayCurrency.AutoSize = True
+        Me.chkbIntradayCurrency.Checked = True
+        Me.chkbIntradayCurrency.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbIntradayCurrency.Location = New System.Drawing.Point(493, 57)
+        Me.chkbIntradayCurrency.Name = "chkbIntradayCurrency"
+        Me.chkbIntradayCurrency.Size = New System.Drawing.Size(18, 17)
+        Me.chkbIntradayCurrency.TabIndex = 30
+        Me.chkbIntradayCurrency.UseVisualStyleBackColor = True
         '
         'blbIntradayCurrency
         '
@@ -579,7 +623,7 @@ Partial Class frmMain
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityErrorGettingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityGettingData)
         Me.grpBoxIntradayCommodity.Controls.Add(Me.lblIntradayCommodityTotal)
-        Me.grpBoxIntradayCommodity.Location = New System.Drawing.Point(15, 260)
+        Me.grpBoxIntradayCommodity.Location = New System.Drawing.Point(14, 348)
         Me.grpBoxIntradayCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxIntradayCommodity.Name = "grpBoxIntradayCommodity"
         Me.grpBoxIntradayCommodity.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -587,6 +631,17 @@ Partial Class frmMain
         Me.grpBoxIntradayCommodity.TabIndex = 12
         Me.grpBoxIntradayCommodity.TabStop = False
         Me.grpBoxIntradayCommodity.Text = "Intraday Commodity"
+        '
+        'chkbIntradayCommodity
+        '
+        Me.chkbIntradayCommodity.AutoSize = True
+        Me.chkbIntradayCommodity.Checked = True
+        Me.chkbIntradayCommodity.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbIntradayCommodity.Location = New System.Drawing.Point(493, 57)
+        Me.chkbIntradayCommodity.Name = "chkbIntradayCommodity"
+        Me.chkbIntradayCommodity.Size = New System.Drawing.Size(18, 17)
+        Me.chkbIntradayCommodity.TabIndex = 30
+        Me.chkbIntradayCommodity.UseVisualStyleBackColor = True
         '
         'blbIntradayCommodity
         '
@@ -675,7 +730,7 @@ Partial Class frmMain
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyErrorGettingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyGettingData)
         Me.grpBoxEODCurrency.Controls.Add(Me.lblEODCurrencyTotal)
-        Me.grpBoxEODCurrency.Location = New System.Drawing.Point(545, 352)
+        Me.grpBoxEODCurrency.Location = New System.Drawing.Point(543, 440)
         Me.grpBoxEODCurrency.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCurrency.Name = "grpBoxEODCurrency"
         Me.grpBoxEODCurrency.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -683,6 +738,17 @@ Partial Class frmMain
         Me.grpBoxEODCurrency.TabIndex = 21
         Me.grpBoxEODCurrency.TabStop = False
         Me.grpBoxEODCurrency.Text = "EOD Currency"
+        '
+        'chkbEODCurrency
+        '
+        Me.chkbEODCurrency.AutoSize = True
+        Me.chkbEODCurrency.Checked = True
+        Me.chkbEODCurrency.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbEODCurrency.Location = New System.Drawing.Point(492, 57)
+        Me.chkbEODCurrency.Name = "chkbEODCurrency"
+        Me.chkbEODCurrency.Size = New System.Drawing.Size(18, 17)
+        Me.chkbEODCurrency.TabIndex = 30
+        Me.chkbEODCurrency.UseVisualStyleBackColor = True
         '
         'blbEODCurrency
         '
@@ -771,7 +837,7 @@ Partial Class frmMain
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityErrorGettingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityGettingData)
         Me.grpBoxEODCommodity.Controls.Add(Me.lblEODCommodityTotal)
-        Me.grpBoxEODCommodity.Location = New System.Drawing.Point(545, 260)
+        Me.grpBoxEODCommodity.Location = New System.Drawing.Point(543, 348)
         Me.grpBoxEODCommodity.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCommodity.Name = "grpBoxEODCommodity"
         Me.grpBoxEODCommodity.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -779,6 +845,17 @@ Partial Class frmMain
         Me.grpBoxEODCommodity.TabIndex = 20
         Me.grpBoxEODCommodity.TabStop = False
         Me.grpBoxEODCommodity.Text = "EOD Commodity"
+        '
+        'chkbEODCommodity
+        '
+        Me.chkbEODCommodity.AutoSize = True
+        Me.chkbEODCommodity.Checked = True
+        Me.chkbEODCommodity.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbEODCommodity.Location = New System.Drawing.Point(492, 57)
+        Me.chkbEODCommodity.Name = "chkbEODCommodity"
+        Me.chkbEODCommodity.Size = New System.Drawing.Size(18, 17)
+        Me.chkbEODCommodity.TabIndex = 30
+        Me.chkbEODCommodity.UseVisualStyleBackColor = True
         '
         'blbEODCommodity
         '
@@ -867,7 +944,7 @@ Partial Class frmMain
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureErrorGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureGettingData)
         Me.grpBoxEODFuture.Controls.Add(Me.lblEODFutureTotal)
-        Me.grpBoxEODFuture.Location = New System.Drawing.Point(544, 167)
+        Me.grpBoxEODFuture.Location = New System.Drawing.Point(542, 255)
         Me.grpBoxEODFuture.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODFuture.Name = "grpBoxEODFuture"
         Me.grpBoxEODFuture.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -875,6 +952,17 @@ Partial Class frmMain
         Me.grpBoxEODFuture.TabIndex = 19
         Me.grpBoxEODFuture.TabStop = False
         Me.grpBoxEODFuture.Text = "EOD Future"
+        '
+        'chkbEODFuture
+        '
+        Me.chkbEODFuture.AutoSize = True
+        Me.chkbEODFuture.Checked = True
+        Me.chkbEODFuture.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbEODFuture.Location = New System.Drawing.Point(493, 57)
+        Me.chkbEODFuture.Name = "chkbEODFuture"
+        Me.chkbEODFuture.Size = New System.Drawing.Size(18, 17)
+        Me.chkbEODFuture.TabIndex = 30
+        Me.chkbEODFuture.UseVisualStyleBackColor = True
         '
         'blbEODFuture
         '
@@ -963,7 +1051,7 @@ Partial Class frmMain
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashErrorGettingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashGettingData)
         Me.grpBoxEODCash.Controls.Add(Me.lblEODCashTotal)
-        Me.grpBoxEODCash.Location = New System.Drawing.Point(545, 79)
+        Me.grpBoxEODCash.Location = New System.Drawing.Point(543, 167)
         Me.grpBoxEODCash.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxEODCash.Name = "grpBoxEODCash"
         Me.grpBoxEODCash.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -971,6 +1059,17 @@ Partial Class frmMain
         Me.grpBoxEODCash.TabIndex = 18
         Me.grpBoxEODCash.TabStop = False
         Me.grpBoxEODCash.Text = "EOD Cash"
+        '
+        'chkbEODCash
+        '
+        Me.chkbEODCash.AutoSize = True
+        Me.chkbEODCash.Checked = True
+        Me.chkbEODCash.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbEODCash.Location = New System.Drawing.Point(492, 57)
+        Me.chkbEODCash.Name = "chkbEODCash"
+        Me.chkbEODCash.Size = New System.Drawing.Size(18, 17)
+        Me.chkbEODCash.TabIndex = 30
+        Me.chkbEODCash.UseVisualStyleBackColor = True
         '
         'blbEODCash
         '
@@ -1059,7 +1158,7 @@ Partial Class frmMain
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnErrorGettingData)
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnGettingData)
         Me.grpBoxOptnChn.Controls.Add(Me.lblOptnChnTotal)
-        Me.grpBoxOptnChn.Location = New System.Drawing.Point(544, 442)
+        Me.grpBoxOptnChn.Location = New System.Drawing.Point(14, 79)
         Me.grpBoxOptnChn.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpBoxOptnChn.Name = "grpBoxOptnChn"
         Me.grpBoxOptnChn.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -1067,6 +1166,17 @@ Partial Class frmMain
         Me.grpBoxOptnChn.TabIndex = 22
         Me.grpBoxOptnChn.TabStop = False
         Me.grpBoxOptnChn.Text = "Option Chain"
+        '
+        'chkbOptionChain
+        '
+        Me.chkbOptionChain.AutoSize = True
+        Me.chkbOptionChain.Checked = True
+        Me.chkbOptionChain.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkbOptionChain.Location = New System.Drawing.Point(493, 57)
+        Me.chkbOptionChain.Name = "chkbOptionChain"
+        Me.chkbOptionChain.Size = New System.Drawing.Size(18, 17)
+        Me.chkbOptionChain.TabIndex = 30
+        Me.chkbOptionChain.UseVisualStyleBackColor = True
         '
         'blbOptionChain
         '
@@ -1237,121 +1347,12 @@ Partial Class frmMain
         Me.nmrcParallelHit.Size = New System.Drawing.Size(59, 22)
         Me.nmrcParallelHit.TabIndex = 29
         '
-        'chkbIntradayCash
-        '
-        Me.chkbIntradayCash.AutoSize = True
-        Me.chkbIntradayCash.Checked = True
-        Me.chkbIntradayCash.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbIntradayCash.Location = New System.Drawing.Point(495, 57)
-        Me.chkbIntradayCash.Name = "chkbIntradayCash"
-        Me.chkbIntradayCash.Size = New System.Drawing.Size(18, 17)
-        Me.chkbIntradayCash.TabIndex = 24
-        Me.chkbIntradayCash.UseVisualStyleBackColor = True
-        '
-        'chkbEODCash
-        '
-        Me.chkbEODCash.AutoSize = True
-        Me.chkbEODCash.Checked = True
-        Me.chkbEODCash.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbEODCash.Location = New System.Drawing.Point(492, 57)
-        Me.chkbEODCash.Name = "chkbEODCash"
-        Me.chkbEODCash.Size = New System.Drawing.Size(18, 17)
-        Me.chkbEODCash.TabIndex = 30
-        Me.chkbEODCash.UseVisualStyleBackColor = True
-        '
-        'chkbIntradayFuture
-        '
-        Me.chkbIntradayFuture.AutoSize = True
-        Me.chkbIntradayFuture.Checked = True
-        Me.chkbIntradayFuture.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbIntradayFuture.Location = New System.Drawing.Point(495, 57)
-        Me.chkbIntradayFuture.Name = "chkbIntradayFuture"
-        Me.chkbIntradayFuture.Size = New System.Drawing.Size(18, 17)
-        Me.chkbIntradayFuture.TabIndex = 30
-        Me.chkbIntradayFuture.UseVisualStyleBackColor = True
-        '
-        'chkbEODFuture
-        '
-        Me.chkbEODFuture.AutoSize = True
-        Me.chkbEODFuture.Checked = True
-        Me.chkbEODFuture.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbEODFuture.Location = New System.Drawing.Point(493, 57)
-        Me.chkbEODFuture.Name = "chkbEODFuture"
-        Me.chkbEODFuture.Size = New System.Drawing.Size(18, 17)
-        Me.chkbEODFuture.TabIndex = 30
-        Me.chkbEODFuture.UseVisualStyleBackColor = True
-        '
-        'chkbIntradayCommodity
-        '
-        Me.chkbIntradayCommodity.AutoSize = True
-        Me.chkbIntradayCommodity.Checked = True
-        Me.chkbIntradayCommodity.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbIntradayCommodity.Location = New System.Drawing.Point(493, 57)
-        Me.chkbIntradayCommodity.Name = "chkbIntradayCommodity"
-        Me.chkbIntradayCommodity.Size = New System.Drawing.Size(18, 17)
-        Me.chkbIntradayCommodity.TabIndex = 30
-        Me.chkbIntradayCommodity.UseVisualStyleBackColor = True
-        '
-        'chkbEODCommodity
-        '
-        Me.chkbEODCommodity.AutoSize = True
-        Me.chkbEODCommodity.Checked = True
-        Me.chkbEODCommodity.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbEODCommodity.Location = New System.Drawing.Point(492, 57)
-        Me.chkbEODCommodity.Name = "chkbEODCommodity"
-        Me.chkbEODCommodity.Size = New System.Drawing.Size(18, 17)
-        Me.chkbEODCommodity.TabIndex = 30
-        Me.chkbEODCommodity.UseVisualStyleBackColor = True
-        '
-        'chkbIntradayCurrency
-        '
-        Me.chkbIntradayCurrency.AutoSize = True
-        Me.chkbIntradayCurrency.Checked = True
-        Me.chkbIntradayCurrency.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbIntradayCurrency.Location = New System.Drawing.Point(493, 57)
-        Me.chkbIntradayCurrency.Name = "chkbIntradayCurrency"
-        Me.chkbIntradayCurrency.Size = New System.Drawing.Size(18, 17)
-        Me.chkbIntradayCurrency.TabIndex = 30
-        Me.chkbIntradayCurrency.UseVisualStyleBackColor = True
-        '
-        'chkbEODCurrency
-        '
-        Me.chkbEODCurrency.AutoSize = True
-        Me.chkbEODCurrency.Checked = True
-        Me.chkbEODCurrency.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbEODCurrency.Location = New System.Drawing.Point(492, 57)
-        Me.chkbEODCurrency.Name = "chkbEODCurrency"
-        Me.chkbEODCurrency.Size = New System.Drawing.Size(18, 17)
-        Me.chkbEODCurrency.TabIndex = 30
-        Me.chkbEODCurrency.UseVisualStyleBackColor = True
-        '
-        'chkbPositional
-        '
-        Me.chkbPositional.AutoSize = True
-        Me.chkbPositional.Checked = True
-        Me.chkbPositional.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbPositional.Location = New System.Drawing.Point(493, 57)
-        Me.chkbPositional.Name = "chkbPositional"
-        Me.chkbPositional.Size = New System.Drawing.Size(18, 17)
-        Me.chkbPositional.TabIndex = 30
-        Me.chkbPositional.UseVisualStyleBackColor = True
-        '
-        'chkbOptionChain
-        '
-        Me.chkbOptionChain.AutoSize = True
-        Me.chkbOptionChain.Checked = True
-        Me.chkbOptionChain.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkbOptionChain.Location = New System.Drawing.Point(493, 57)
-        Me.chkbOptionChain.Name = "chkbOptionChain"
-        Me.chkbOptionChain.Size = New System.Drawing.Size(18, 17)
-        Me.chkbOptionChain.TabIndex = 30
-        Me.chkbOptionChain.UseVisualStyleBackColor = True
-        '
         'frmMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(1071, 578)
+        Me.Controls.Add(Me.grpBoxPositional)
         Me.Controls.Add(Me.lblExpctdFnsTm)
         Me.Controls.Add(Me.nmrcParallelHit)
         Me.Controls.Add(Me.lblNumberOfHit)
@@ -1367,7 +1368,6 @@ Partial Class frmMain
         Me.Controls.Add(Me.grpBoxIntradayCurrency)
         Me.Controls.Add(Me.grpBoxIntradayCommodity)
         Me.Controls.Add(Me.grpBoxIntradayFuture)
-        Me.Controls.Add(Me.grpBoxPositional)
         Me.Controls.Add(Me.btnStop)
         Me.Controls.Add(Me.lblProgress)
         Me.Controls.Add(Me.btnStart)
