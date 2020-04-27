@@ -503,9 +503,9 @@ Namespace Network
                         If (response IsNot Nothing AndAlso response.StatusCode = "400") Then
                             Throw New URLMisFormedException(hex.Message, hex, URLMisFormedException.TypeOfException.BadURL)
                         End If
-                        If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
-                            Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
-                        End If
+                        'If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
+                        '    Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
+                        'End If
                         If ExceptionExtensions.GetExceptionMessages(hex).Contains("trust relationship") Then
                             Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleReloginRequired)
                         End If
@@ -522,6 +522,14 @@ Namespace Network
                                              hex.Message)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Waiter.SleepRequiredDuration(WaitDurationOnServiceUnavailbleFailure.TotalSeconds, "Service unavailable(429/503)")
+                                _canceller.Token.ThrowIfCancellationRequested()
+                                'Since site service is blocked, no need to consume retries
+                                retryCtr -= 1
+                            ElseIf hex.Message.Contains("403") Then
+                                logger.Debug("HTTP->403 error without internet problem:{0}",
+                                             hex.Message)
+                                _canceller.Token.ThrowIfCancellationRequested()
+                                Waiter.SleepRequiredDuration(3600, "Service unavailable(403)")
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 'Since site service is blocked, no need to consume retries
                                 retryCtr -= 1
@@ -706,9 +714,9 @@ Namespace Network
                         If (response IsNot Nothing AndAlso response.StatusCode = "400") Then
                             Throw New URLMisFormedException(hex.Message, hex, URLMisFormedException.TypeOfException.BadURL)
                         End If
-                        'If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
-                        '    Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
-                        'End If
+                        If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
+                            Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
+                        End If
                         If ExceptionExtensions.GetExceptionMessages(hex).Contains("trust relationship") Then
                             Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleReloginRequired)
                         End If
@@ -722,14 +730,6 @@ Namespace Network
                                              hex.Message)
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 Waiter.SleepRequiredDuration(WaitDurationOnServiceUnavailbleFailure.TotalSeconds, "Service unavailable(429/503)")
-                                _canceller.Token.ThrowIfCancellationRequested()
-                                'Since site service is blocked, no need to consume retries
-                                retryCtr -= 1
-                            ElseIf hex.Message.Contains("403") Then
-                                logger.Debug("HTTP->403 error without internet problem:{0}",
-                                             hex.Message)
-                                _canceller.Token.ThrowIfCancellationRequested()
-                                Waiter.SleepRequiredDuration(3600, "Service unavailable(403)")
                                 _canceller.Token.ThrowIfCancellationRequested()
                                 'Since site service is blocked, no need to consume retries
                                 retryCtr -= 1

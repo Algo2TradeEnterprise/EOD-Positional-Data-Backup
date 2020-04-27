@@ -596,7 +596,7 @@ Public Class frmMain
             AddHandler zerodhaUser.Heartbeat, AddressOf OnHeartbeat
             'AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
             'AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            'AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
+            AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
             Dim loginSuccesful As Boolean = False
             If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
                 loginSuccesful = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
