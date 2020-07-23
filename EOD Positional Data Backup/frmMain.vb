@@ -590,7 +590,7 @@ Public Class frmMain
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
         If lastException IsNot Nothing Then
-            Await Task.Delay(1000).ConfigureAwait(False)
+            Await Task.Delay(600000).ConfigureAwait(False)
             btnStart_Click(sender, e)
         End If
     End Sub
