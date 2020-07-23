@@ -261,6 +261,14 @@ Public Class frmMain
     Private positionalErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
     Private optionChainErrorList As Concurrent.ConcurrentDictionary(Of String, InstrumentDetails) = Nothing
 
+    Private positionalStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private cashStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private futureStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private commodityStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private currencyStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+    Private optionChainStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
+
+    Private lastException As Exception
     Private canceller As CancellationTokenSource
 
     Private Sub UpdateErrorList(ByVal instrument As InstrumentDetails, ByVal typeOfData As DataType, ByVal errorMessage As String)
@@ -488,8 +496,8 @@ Public Class frmMain
         blbPositional.Color = Color.Red
         blbOptionChain.Color = Color.Red
 
-        lblCountDisplay.Text = "0"
-        lblExpctdFnsTm.Text = "00:00:00"
+        SetLabelText_ThreadSafe(lblCountDisplay, "0")
+        SetLabelText_ThreadSafe(lblExpctdFnsTm, "00:00:00")
 
         CountPerSecond = 0
         total = 0
@@ -581,10 +589,15 @@ Public Class frmMain
         Me.NumberOfParallelTask = nmrcParallelHit.Value
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
+        If lastException IsNot Nothing Then
+            Await Task.Delay(1000).ConfigureAwait(False)
+            btnStart_Click(sender, e)
+        End If
     End Sub
 
     Private Async Function StartProcessingAsync() As Task
         Try
+            lastException = Nothing
             Dim lastDateToCheck As Date = Now
             Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
                                                                password:="Zerodha@123a",
@@ -603,12 +616,12 @@ Public Class frmMain
             End If
 
             If loginSuccesful OrElse GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
-                Dim positionalStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Positional, lastDateToCheck).ConfigureAwait(False)
-                Dim cashStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Cash, lastDateToCheck).ConfigureAwait(False)
-                Dim futureStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
-                Dim commodityStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Commodity, lastDateToCheck).ConfigureAwait(False)
-                Dim currencyStockList As List(Of InstrumentDetails) = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
-                Dim optionChainStockList As List(Of InstrumentDetails) = Await GetAllOptionChainStockListAsync().ConfigureAwait(False)
+                If positionalStockList Is Nothing Then positionalStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Positional, lastDateToCheck).ConfigureAwait(False)
+                If cashStockList Is Nothing Then cashStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Cash, lastDateToCheck).ConfigureAwait(False)
+                If futureStockList Is Nothing Then futureStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
+                If commodityStockList Is Nothing Then commodityStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Commodity, lastDateToCheck).ConfigureAwait(False)
+                If currencyStockList Is Nothing Then currencyStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Currency, lastDateToCheck).ConfigureAwait(False)
+                If optionChainStockList Is Nothing Then optionChainStockList = Await GetAllOptionChainStockListAsync().ConfigureAwait(False)
 
                 Me.TotalInstrumentCount = 0
                 If cashStockList IsNot Nothing Then
@@ -667,14 +680,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(optionChainStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, optionChainStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = optionChainStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                  Try
-                                                                                                      Await ProcessOptionChainData(x, sqlHlpr).ConfigureAwait(False)
-                                                                                                  Catch ex As Exception
-                                                                                                      Throw ex
-                                                                                                  End Try
-                                                                                                  Return True
-                                                                                              End Function)
+                                tasks = optionChainStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                         Try
+                                                                                                             If Not x.OptionChainDone Then
+                                                                                                                 Await ProcessOptionChainData(x, sqlHlpr).ConfigureAwait(False)
+                                                                                                                 x.OptionChainDone = True
+                                                                                                             Else
+                                                                                                                 If optionChainErrorList IsNot Nothing AndAlso optionChainErrorList.Count > 0 AndAlso
+                                                                                                                    optionChainErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                     Interlocked.Increment(errorGettingData)
+                                                                                                                     Interlocked.Increment(errorCompleted)
+                                                                                                                     UpdateLabels()
+                                                                                                                 Else
+                                                                                                                     Interlocked.Increment(completed)
+                                                                                                                     UpdateLabels()
+                                                                                                                 End If
+                                                                                                             End If
+                                                                                                         Catch ex As Exception
+                                                                                                             Throw ex
+                                                                                                         End Try
+                                                                                                         Return True
+                                                                                                     End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -697,14 +723,9 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
                 End If
                 ManageBulb(Color.LawnGreen)
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
-                'SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")),
-                '                 String.Format("{0}, {1}, {2}",
-                '                               GetLabelText_ThreadSafe(lblOptnChnTotal),
-                '                               GetLabelText_ThreadSafe(lblOptnChnCompleted),
-                '                               GetLabelText_ThreadSafe(lblOptnChnErrorGettingData)))
 #End Region
 
 #Region "Positional"
@@ -735,14 +756,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(positionalStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, positionalStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = positionalStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                 Try
-                                                                                                     Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                                 Catch ex As Exception
-                                                                                                     Throw ex
-                                                                                                 End Try
-                                                                                                 Return True
-                                                                                             End Function)
+                                tasks = positionalStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                        Try
+                                                                                                            If Not x.PositionalDone Then
+                                                                                                                Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                                x.PositionalDone = True
+                                                                                                            Else
+                                                                                                                If positionalErrorList IsNot Nothing AndAlso positionalErrorList.Count > 0 AndAlso
+                                                                                                                    positionalErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                    Interlocked.Increment(errorGettingData)
+                                                                                                                    Interlocked.Increment(errorCompleted)
+                                                                                                                    UpdateLabels()
+                                                                                                                Else
+                                                                                                                    Interlocked.Increment(completed)
+                                                                                                                    UpdateLabels()
+                                                                                                                End If
+                                                                                                            End If
+                                                                                                        Catch ex As Exception
+                                                                                                            Throw ex
+                                                                                                        End Try
+                                                                                                        Return True
+                                                                                                    End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -765,9 +799,9 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
                 End If
                 ManageBulb(Color.LawnGreen)
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
 #End Region
 
 #Region "Cash"
@@ -798,14 +832,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                           Try
-                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                                                           Catch ex As Exception
-                                                                                               Throw ex
-                                                                                           End Try
-                                                                                           Return True
-                                                                                       End Function)
+                                tasks = cashStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                  Try
+                                                                                                      If Not x.IntradayDone Then
+                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                          x.IntradayDone = True
+                                                                                                      Else
+                                                                                                          If intradayCashErrorList IsNot Nothing AndAlso intradayCashErrorList.Count > 0 AndAlso
+                                                                                                              intradayCashErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                              Interlocked.Increment(errorGettingData)
+                                                                                                              Interlocked.Increment(errorCompleted)
+                                                                                                              UpdateLabels()
+                                                                                                          Else
+                                                                                                              Interlocked.Increment(completed)
+                                                                                                              UpdateLabels()
+                                                                                                          End If
+                                                                                                      End If
+                                                                                                  Catch ex As Exception
+                                                                                                      Throw ex
+                                                                                                  End Try
+                                                                                                  Return True
+                                                                                              End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -860,14 +907,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(cashStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, cashStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = cashStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                           Try
-                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                           Catch ex As Exception
-                                                                                               Throw ex
-                                                                                           End Try
-                                                                                           Return True
-                                                                                       End Function)
+                                tasks = cashStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                  Try
+                                                                                                      If Not x.EODDone Then
+                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                          x.EODDone = True
+                                                                                                      Else
+                                                                                                          If eodCashErrorList IsNot Nothing AndAlso eodCashErrorList.Count > 0 AndAlso
+                                                                                                              eodCashErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                              Interlocked.Increment(errorGettingData)
+                                                                                                              Interlocked.Increment(errorCompleted)
+                                                                                                              UpdateLabels()
+                                                                                                          Else
+                                                                                                              Interlocked.Increment(completed)
+                                                                                                              UpdateLabels()
+                                                                                                          End If
+                                                                                                      End If
+                                                                                                  Catch ex As Exception
+                                                                                                      Throw ex
+                                                                                                  End Try
+                                                                                                  Return True
+                                                                                              End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -924,14 +984,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = futureStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                             Try
-                                                                                                 Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                                                             Catch ex As Exception
-                                                                                                 Throw ex
-                                                                                             End Try
-                                                                                             Return True
-                                                                                         End Function)
+                                tasks = futureStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                    Try
+                                                                                                        If Not x.IntradayDone Then
+                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                            x.IntradayDone = True
+                                                                                                        Else
+                                                                                                            If intradayFutureErrorList IsNot Nothing AndAlso intradayFutureErrorList.Count > 0 AndAlso
+                                                                                                              intradayFutureErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                Interlocked.Increment(errorGettingData)
+                                                                                                                Interlocked.Increment(errorCompleted)
+                                                                                                                UpdateLabels()
+                                                                                                            Else
+                                                                                                                Interlocked.Increment(completed)
+                                                                                                                UpdateLabels()
+                                                                                                            End If
+                                                                                                        End If
+                                                                                                    Catch ex As Exception
+                                                                                                        Throw ex
+                                                                                                    End Try
+                                                                                                    Return True
+                                                                                                End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -986,14 +1059,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(futureStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, futureStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = futureStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                             Try
-                                                                                                 Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                             Catch ex As Exception
-                                                                                                 Throw ex
-                                                                                             End Try
-                                                                                             Return True
-                                                                                         End Function)
+                                tasks = futureStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                    Try
+                                                                                                        If Not x.EODDone Then
+                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                            x.EODDone = True
+                                                                                                        Else
+                                                                                                            If eodFutureErrorList IsNot Nothing AndAlso eodFutureErrorList.Count > 0 AndAlso
+                                                                                                               eodFutureErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                Interlocked.Increment(errorGettingData)
+                                                                                                                Interlocked.Increment(errorCompleted)
+                                                                                                                UpdateLabels()
+                                                                                                            Else
+                                                                                                                Interlocked.Increment(completed)
+                                                                                                                UpdateLabels()
+                                                                                                            End If
+                                                                                                        End If
+                                                                                                    Catch ex As Exception
+                                                                                                        Throw ex
+                                                                                                    End Try
+                                                                                                    Return True
+                                                                                                End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -1050,14 +1136,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = commodityStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                Try
-                                                                                                    Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                                                                Catch ex As Exception
-                                                                                                    Throw ex
-                                                                                                End Try
-                                                                                                Return True
-                                                                                            End Function)
+                                tasks = commodityStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                       Try
+                                                                                                           If Not x.IntradayDone Then
+                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                               x.IntradayDone = True
+                                                                                                           Else
+                                                                                                               If intradayCommodityErrorList IsNot Nothing AndAlso intradayCommodityErrorList.Count > 0 AndAlso
+                                                                                                                   intradayCommodityErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                   Interlocked.Increment(errorGettingData)
+                                                                                                                   Interlocked.Increment(errorCompleted)
+                                                                                                                   UpdateLabels()
+                                                                                                               Else
+                                                                                                                   Interlocked.Increment(completed)
+                                                                                                                   UpdateLabels()
+                                                                                                               End If
+                                                                                                           End If
+                                                                                                       Catch ex As Exception
+                                                                                                           Throw ex
+                                                                                                       End Try
+                                                                                                       Return True
+                                                                                                   End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -1112,14 +1211,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(commodityStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, commodityStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = commodityStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                                Try
-                                                                                                    Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                                Catch ex As Exception
-                                                                                                    Throw ex
-                                                                                                End Try
-                                                                                                Return True
-                                                                                            End Function)
+                                tasks = commodityStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                       Try
+                                                                                                           If Not x.EODDone Then
+                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                               x.EODDone = True
+                                                                                                           Else
+                                                                                                               If eodCommodityErrorList IsNot Nothing AndAlso eodCommodityErrorList.Count > 0 AndAlso
+                                                                                                                   eodCommodityErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                   Interlocked.Increment(errorGettingData)
+                                                                                                                   Interlocked.Increment(errorCompleted)
+                                                                                                                   UpdateLabels()
+                                                                                                               Else
+                                                                                                                   Interlocked.Increment(completed)
+                                                                                                                   UpdateLabels()
+                                                                                                               End If
+                                                                                                           End If
+                                                                                                       Catch ex As Exception
+                                                                                                           Throw ex
+                                                                                                       End Try
+                                                                                                       Return True
+                                                                                                   End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -1176,14 +1288,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = currencyStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                               Try
-                                                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
-                                                                                               Catch ex As Exception
-                                                                                                   Throw ex
-                                                                                               End Try
-                                                                                               Return True
-                                                                                           End Function)
+                                tasks = currencyStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                      Try
+                                                                                                          If Not x.IntradayDone Then
+                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                              x.IntradayDone = True
+                                                                                                          Else
+                                                                                                              If intradayCurrencyErrorList IsNot Nothing AndAlso intradayCurrencyErrorList.Count > 0 AndAlso
+                                                                                                                  intradayCurrencyErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                  Interlocked.Increment(errorGettingData)
+                                                                                                                  Interlocked.Increment(errorCompleted)
+                                                                                                                  UpdateLabels()
+                                                                                                              Else
+                                                                                                                  Interlocked.Increment(completed)
+                                                                                                                  UpdateLabels()
+                                                                                                              End If
+                                                                                                          End If
+                                                                                                      Catch ex As Exception
+                                                                                                          Throw ex
+                                                                                                      End Try
+                                                                                                      Return True
+                                                                                                  End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -1238,14 +1363,27 @@ Public Class frmMain
                                 canceller.Token.ThrowIfCancellationRequested()
                                 Dim numberOfData As Integer = If(currencyStockList.Count - i > Me.NumberOfParallelTask, Me.NumberOfParallelTask, currencyStockList.Count - i)
                                 Dim tasks As IEnumerable(Of Task(Of Boolean)) = Nothing
-                                tasks = currencyStockList.GetRange(i, numberOfData).Select(Async Function(x)
-                                                                                               Try
-                                                                                                   Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
-                                                                                               Catch ex As Exception
-                                                                                                   Throw ex
-                                                                                               End Try
-                                                                                               Return True
-                                                                                           End Function)
+                                tasks = currencyStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
+                                                                                                      Try
+                                                                                                          If Not x.EODDone Then
+                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                              x.EODDone = True
+                                                                                                          Else
+                                                                                                              If eodCurrencyErrorList IsNot Nothing AndAlso eodCurrencyErrorList.Count > 0 AndAlso
+                                                                                                                  eodCurrencyErrorList.ContainsKey(x.TradingSymbol) Then
+                                                                                                                  Interlocked.Increment(errorGettingData)
+                                                                                                                  Interlocked.Increment(errorCompleted)
+                                                                                                                  UpdateLabels()
+                                                                                                              Else
+                                                                                                                  Interlocked.Increment(completed)
+                                                                                                                  UpdateLabels()
+                                                                                                              End If
+                                                                                                          End If
+                                                                                                      Catch ex As Exception
+                                                                                                          Throw ex
+                                                                                                      End Try
+                                                                                                      Return True
+                                                                                                  End Function)
 
                                 Dim mainTask As Task = Task.WhenAll(tasks)
                                 Await mainTask.ConfigureAwait(False)
@@ -1273,13 +1411,21 @@ Public Class frmMain
 #End Region
 #End Region
 
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
+                If GetCheckBoxChecked_ThreadSafe(chkbIntradayCash) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCash) OrElse
+                    GetCheckBoxChecked_ThreadSafe(chkbIntradayFuture) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODFuture) OrElse
+                    GetCheckBoxChecked_ThreadSafe(chkbIntradayCommodity) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCommodity) OrElse
+                    GetCheckBoxChecked_ThreadSafe(chkbIntradayCurrency) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCurrency) Then
+                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
+                End If
+
                 SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
         Catch cex As OperationCanceledException
             MsgBox(cex.Message)
+        Catch fex As Utilities.ErrorHandlers.ForbiddenException
+            lastException = fex
         Catch ex As Exception
             SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
             MsgBox(ex.ToString)
@@ -1637,12 +1783,12 @@ Public Class frmMain
                 headersToBeSent.Add("Sec-Fetch-Site", "none")
 
                 Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(openPositionDataURL,
-                                                                                    HttpMethod.Get,
-                                                                                    Nothing,
-                                                                                    False,
-                                                                                    headersToBeSent,
-                                                                                    True,
-                                                                                    "text/html").ConfigureAwait(False)
+                                                                                        HttpMethod.Get,
+                                                                                        Nothing,
+                                                                                        False,
+                                                                                        headersToBeSent,
+                                                                                        True,
+                                                                                        "text/html").ConfigureAwait(False)
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     outputResponse = l.Item2
                 End If
@@ -1776,40 +1922,40 @@ Public Class frmMain
                     For Each runningCall In calls
                         canceller.Token.ThrowIfCancellationRequested()
                         insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
-                                                                        insertDataString,
-                                                                        optionDate.ToString("yyyy-MM-dd"),
-                                                                        instrument.TradingSymbol.ToUpper,
-                                                                        runningCall.StrikePrice,
-                                                                        "CE",
-                                                                        If(runningCall.OI <> Decimal.MinValue, runningCall.OI, Nothing),
-                                                                        If(runningCall.ChangeInOI <> Decimal.MinValue, runningCall.ChangeInOI, Nothing),
-                                                                        If(runningCall.Volume <> Decimal.MinValue, runningCall.Volume, Nothing),
-                                                                        If(runningCall.IV <> Decimal.MinValue, runningCall.IV, Nothing),
-                                                                        If(runningCall.LTP <> Decimal.MinValue, runningCall.LTP, Nothing),
-                                                                        If(runningCall.NetChange <> Decimal.MinValue, runningCall.NetChange, Nothing),
-                                                                        If(runningCall.BidQuantity <> Decimal.MinValue, runningCall.BidQuantity, Nothing),
-                                                                        If(runningCall.BidPrice <> Decimal.MinValue, runningCall.BidPrice, Nothing),
-                                                                        If(runningCall.AskPrice <> Decimal.MinValue, runningCall.AskPrice, Nothing),
-                                                                        If(runningCall.AskQuantity <> Decimal.MinValue, runningCall.AskQuantity, Nothing))
+                                                                            insertDataString,
+                                                                            optionDate.ToString("yyyy-MM-dd"),
+                                                                            instrument.TradingSymbol.ToUpper,
+                                                                            runningCall.StrikePrice,
+                                                                            "CE",
+                                                                            If(runningCall.OI <> Decimal.MinValue, runningCall.OI, Nothing),
+                                                                            If(runningCall.ChangeInOI <> Decimal.MinValue, runningCall.ChangeInOI, Nothing),
+                                                                            If(runningCall.Volume <> Decimal.MinValue, runningCall.Volume, Nothing),
+                                                                            If(runningCall.IV <> Decimal.MinValue, runningCall.IV, Nothing),
+                                                                            If(runningCall.LTP <> Decimal.MinValue, runningCall.LTP, Nothing),
+                                                                            If(runningCall.NetChange <> Decimal.MinValue, runningCall.NetChange, Nothing),
+                                                                            If(runningCall.BidQuantity <> Decimal.MinValue, runningCall.BidQuantity, Nothing),
+                                                                            If(runningCall.BidPrice <> Decimal.MinValue, runningCall.BidPrice, Nothing),
+                                                                            If(runningCall.AskPrice <> Decimal.MinValue, runningCall.AskPrice, Nothing),
+                                                                            If(runningCall.AskQuantity <> Decimal.MinValue, runningCall.AskQuantity, Nothing))
                     Next
                     For Each runningPut In puts
                         canceller.Token.ThrowIfCancellationRequested()
                         insertDataString = String.Format("{0},('{1}','{2}',{3},'{4}',{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},TIMESTAMP(CURRENT_TIME))",
-                                                                        insertDataString,
-                                                                        optionDate.ToString("yyyy-MM-dd"),
-                                                                        instrument.TradingSymbol.ToUpper,
-                                                                        runningPut.StrikePrice,
-                                                                        "PE",
-                                                                        If(runningPut.OI <> Decimal.MinValue, runningPut.OI, Nothing),
-                                                                        If(runningPut.ChangeInOI <> Decimal.MinValue, runningPut.ChangeInOI, Nothing),
-                                                                        If(runningPut.Volume <> Decimal.MinValue, runningPut.Volume, Nothing),
-                                                                        If(runningPut.IV <> Decimal.MinValue, runningPut.IV, Nothing),
-                                                                        If(runningPut.LTP <> Decimal.MinValue, runningPut.LTP, Nothing),
-                                                                        If(runningPut.NetChange <> Decimal.MinValue, runningPut.NetChange, Nothing),
-                                                                        If(runningPut.BidQuantity <> Decimal.MinValue, runningPut.BidQuantity, Nothing),
-                                                                        If(runningPut.BidPrice <> Decimal.MinValue, runningPut.BidPrice, Nothing),
-                                                                        If(runningPut.AskPrice <> Decimal.MinValue, runningPut.AskPrice, Nothing),
-                                                                        If(runningPut.AskQuantity <> Decimal.MinValue, runningPut.AskQuantity, Nothing))
+                                                                            insertDataString,
+                                                                            optionDate.ToString("yyyy-MM-dd"),
+                                                                            instrument.TradingSymbol.ToUpper,
+                                                                            runningPut.StrikePrice,
+                                                                            "PE",
+                                                                            If(runningPut.OI <> Decimal.MinValue, runningPut.OI, Nothing),
+                                                                            If(runningPut.ChangeInOI <> Decimal.MinValue, runningPut.ChangeInOI, Nothing),
+                                                                            If(runningPut.Volume <> Decimal.MinValue, runningPut.Volume, Nothing),
+                                                                            If(runningPut.IV <> Decimal.MinValue, runningPut.IV, Nothing),
+                                                                            If(runningPut.LTP <> Decimal.MinValue, runningPut.LTP, Nothing),
+                                                                            If(runningPut.NetChange <> Decimal.MinValue, runningPut.NetChange, Nothing),
+                                                                            If(runningPut.BidQuantity <> Decimal.MinValue, runningPut.BidQuantity, Nothing),
+                                                                            If(runningPut.BidPrice <> Decimal.MinValue, runningPut.BidPrice, Nothing),
+                                                                            If(runningPut.AskPrice <> Decimal.MinValue, runningPut.AskPrice, Nothing),
+                                                                            If(runningPut.AskQuantity <> Decimal.MinValue, runningPut.AskQuantity, Nothing))
                     Next
 
                     If insertDataString IsNot Nothing Then
@@ -1877,8 +2023,8 @@ Public Class frmMain
 #End Region
 
 #Region "Required Functions"
-    Private Async Function GetStockListAsync(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal currentDate As Date) As Task(Of List(Of InstrumentDetails))
-        Dim ret As List(Of InstrumentDetails) = Nothing
+    Private Async Function GetStockListAsync(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal currentDate As Date) As Task(Of Concurrent.ConcurrentBag(Of InstrumentDetails))
+        Dim ret As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
         Dim tableName As String = Nothing
         Select Case instrumentType
             Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Positional
@@ -1922,7 +2068,7 @@ Public Class frmMain
 
                         Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
                         If Regex.Matches(runningInstrument.TradingSymbol, pattern).Count <= 1 Then
-                            If ret Is Nothing Then ret = New List(Of InstrumentDetails)
+                            If ret Is Nothing Then ret = New Concurrent.ConcurrentBag(Of InstrumentDetails)
                             ret.Add(runningInstrument)
                         Else
                             Console.WriteLine(String.Format("Instrument Neglected for {0}: {1}", instrumentType.ToString, runningInstrument.TradingSymbol))
@@ -1934,8 +2080,8 @@ Public Class frmMain
         End Using
         Return ret
     End Function
-    Private Async Function GetAllOptionChainStockListAsync() As Task(Of List(Of InstrumentDetails))
-        Dim ret As List(Of InstrumentDetails) = Nothing
+    Private Async Function GetAllOptionChainStockListAsync() As Task(Of Concurrent.ConcurrentBag(Of InstrumentDetails))
+        Dim ret As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
         Dim selectString As String = "SELECT `TRADING_SYMBOL` FROM `active_instruments_futures` WHERE `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `active_instruments_futures`)"
         Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
             AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
@@ -1966,7 +2112,7 @@ Public Class frmMain
 
                 If stockList IsNot Nothing AndAlso stockList.Count > 0 Then
                     For Each runningStock In stockList
-                        If ret Is Nothing Then ret = New List(Of InstrumentDetails)
+                        If ret Is Nothing Then ret = New Concurrent.ConcurrentBag(Of InstrumentDetails)
                         ret.Add(New InstrumentDetails With {.TradingSymbol = runningStock, .InstrumentType = InstrumentDetails.TypeOfInstrument.OptionChain})
                     Next
                 End If

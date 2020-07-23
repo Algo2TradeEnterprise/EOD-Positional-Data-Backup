@@ -68,7 +68,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("10")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("100")>  _
         Public Property NumberOfParallelHit() As Integer
             Get
                 Return CType(Me("NumberOfParallelHit"),Integer)
@@ -80,7 +80,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
         Public Property HistoricalHitWithAPI() As Boolean
             Get
                 Return CType(Me("HistoricalHitWithAPI"),Boolean)
@@ -92,7 +92,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
         Public Property HistoricalHitWithoutAPI() As Boolean
             Get
                 Return CType(Me("HistoricalHitWithoutAPI"),Boolean)

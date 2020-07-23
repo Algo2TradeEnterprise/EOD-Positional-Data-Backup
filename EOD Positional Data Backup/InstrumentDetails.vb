@@ -16,4 +16,8 @@ Public Class InstrumentDetails
     Public Property Expiry As Date
     Public Property ErrorMessage As String
     Public Property InstrumentType As TypeOfInstrument
+    Public Property OptionChainDone As Boolean
+    Public Property PositionalDone As Boolean
+    Public Property IntradayDone As Boolean
+    Public Property EODDone As Boolean
 End Class
