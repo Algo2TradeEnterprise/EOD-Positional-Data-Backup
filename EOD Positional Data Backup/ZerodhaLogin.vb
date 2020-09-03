@@ -246,7 +246,7 @@ Public Class ZerodhaLogin
                                         Dim queryStrings As NameValueCollection = HttpUtility.ParseQueryString(redirectedURI.Query)
                                         requestToken = queryStrings("request_token")
 
-                                        For Each cookie As Cookie In HttpBrowser.AllCookies.GetCookies(New Uri("http://kite.zerodha.com"))
+                                        For Each cookie As Cookie In HttpBrowser.AllCookies.GetCookies(New Uri("https://kite.zerodha.com"))
                                             Console.WriteLine("Name = {0} ; Value = {1} ; Domain = {2}", cookie.Name, cookie.Value,
                                                       cookie.Domain)
                                             If cookie.Name = "enctoken" Then
