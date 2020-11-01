@@ -1418,7 +1418,7 @@ Public Class frmMain
                     SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
                 End If
 
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "##### All Process Complete #####")
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
