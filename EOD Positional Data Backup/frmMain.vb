@@ -723,7 +723,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
-                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
+                    SendNotification(String.Format("{0} {1} : SUCCESS : Option Chain Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -799,7 +799,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
-                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
+                    SendNotification(String.Format("{0} {1} : SUCCESS : Positional Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1415,10 +1415,10 @@ Public Class frmMain
                     GetCheckBoxChecked_ThreadSafe(chkbIntradayFuture) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODFuture) OrElse
                     GetCheckBoxChecked_ThreadSafe(chkbIntradayCommodity) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCommodity) OrElse
                     GetCheckBoxChecked_ThreadSafe(chkbIntradayCurrency) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCurrency) Then
-                    SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
+                    SendNotification(String.Format("{0} {1} : SUCCESS : All Stock Data Backup Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
                 End If
 
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "##### All Process Complete #####")
+                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : All Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
@@ -2284,9 +2284,11 @@ Public Class frmMain
             AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
             sndr.SendMailAsync(title, message)
         End Using
-        Using sndr As New Utilities.Notification.Telegram("700121864:AAHjes45V0kEPBDLIfnZzsatH5NhRwIjciw", "-326362481", canceller)
+
+        message = String.Format("{0}{1}{2}", title, vbNewLine, message)
+        Using sndr As New Utilities.Notification.Telegram("700121864:AAHjes45V0kEPBDLIfnZzsatH5NhRwIjciw", "-399014165", canceller)
             AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
-            sndr.SendMessageAsync(message)
+            sndr.SendMessageAsync(Utilities.Strings.UrlEncodeString(message))
         End Using
     End Sub
 
