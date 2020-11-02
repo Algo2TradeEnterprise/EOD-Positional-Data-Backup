@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ServerName" Type="System.String" Scope="User">
-      <Value Profile="(Default)">103.57.246.210</Value>
+      <Value Profile="(Default)">localhost</Value>
     </Setting>
     <Setting Name="NumberOfParallelHit" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>

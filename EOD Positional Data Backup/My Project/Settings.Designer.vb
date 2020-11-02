@@ -56,7 +56,7 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("103.57.246.210")>  _
+         Global.System.Configuration.DefaultSettingValueAttribute("localhost")>  _
         Public Property ServerName() As String
             Get
                 Return CType(Me("ServerName"),String)
