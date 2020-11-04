@@ -268,6 +268,8 @@ Public Class frmMain
     Private currencyStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
     Private optionChainStockList As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
 
+    Private sendMessages As List(Of String) = Nothing
+
     Private lastException As Exception
     Private canceller As CancellationTokenSource
 
@@ -590,7 +592,8 @@ Public Class frmMain
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
         If lastException IsNot Nothing Then
-            Await Task.Delay(600000).ConfigureAwait(False)
+            OnHeartbeat(String.Format("Forbidden Exception. So it will wait for 10 mins. Restart Time:{0}", Now.AddMinutes(10).ToString("dd-MMM-yyyy HH:mm:ss")))
+            Await Task.Delay(600000, canceller.Token).ConfigureAwait(False)
             btnStart_Click(sender, e)
         End If
     End Sub
@@ -599,6 +602,9 @@ Public Class frmMain
         Try
             lastException = Nothing
             Dim lastDateToCheck As Date = Now
+
+            SendNotification(String.Format("{0} {1} ->->->->-> Process Start", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "->->->->-> Process Start")
+
             Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
                                                                password:="Zerodha@123a",
                                                                apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
@@ -723,7 +729,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
-                    SendNotification(String.Format("{0} {1} : SUCCESS : Option Chain Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Option Chain Complete")
+                    SendNotification("Option Chain Complete #01/10", "Option Chain Complete #01/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -799,7 +805,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
-                    SendNotification(String.Format("{0} {1} : SUCCESS : Positional Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Positional Complete")
+                    SendNotification("Positional Complete #02/10", "Positional Complete #02/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -875,6 +881,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("Intraday Cash Complete #03/10", "Intraday Cash Complete #03/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -950,6 +957,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("EOD Cash Complete #04/10", "EOD Cash Complete #04/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1027,6 +1035,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("Intraday Futures Complete #05/10", "Intraday Futures Complete #05/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1102,6 +1111,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("EOD Futures Complete #06/10", "EOD Futures Complete #06/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1179,6 +1189,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("Intraday Commodity Complete #07/10", "Intraday Commodity Complete #07/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1254,6 +1265,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("EOD Commodity Complete #08/10", "EOD Commodity Complete #08/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1331,6 +1343,7 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("Intraday Currency Complete #09/10", "Intraday Currency Complete #09/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
@@ -1406,19 +1419,13 @@ Public Class frmMain
                             Throw ex
                         End Try
                     End Using
+                    SendNotification("EOD Currency Complete #10/10", "EOD Currency Complete #10/10")
                 End If
                 ManageBulb(Color.LawnGreen)
 #End Region
 #End Region
 
-                If GetCheckBoxChecked_ThreadSafe(chkbIntradayCash) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCash) OrElse
-                    GetCheckBoxChecked_ThreadSafe(chkbIntradayFuture) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODFuture) OrElse
-                    GetCheckBoxChecked_ThreadSafe(chkbIntradayCommodity) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCommodity) OrElse
-                    GetCheckBoxChecked_ThreadSafe(chkbIntradayCurrency) OrElse GetCheckBoxChecked_ThreadSafe(chkbEODCurrency) Then
-                    SendNotification(String.Format("{0} {1} : SUCCESS : All Stock Data Backup Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Stock Complete")
-                End If
-
-                SendNotification(String.Format("{0} {1} : <<<<< SUCCESS >>>>> : All Data Backup Process Complete", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "All Process Complete")
+                SendNotification(String.Format("{0} {1} Process Complete <-<-<-<-<-", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Process Complete <-<-<-<-<-")
             Else
                 Throw New ApplicationException("Zerodha login fail")
             End If
@@ -1430,23 +1437,25 @@ Public Class frmMain
             SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
             MsgBox(ex.ToString)
         Finally
-            SetObjectEnableDisable_ThreadSafe(btnStop, False)
-            SetObjectEnableDisable_ThreadSafe(btnStart, True)
-            SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, True)
-            SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, True)
+            If lastException Is Nothing Then
+                SetObjectEnableDisable_ThreadSafe(btnStop, False)
+                SetObjectEnableDisable_ThreadSafe(btnStart, True)
+                SetObjectEnableDisable_ThreadSafe(grpHistoricalHitMode, True)
+                SetObjectEnableDisable_ThreadSafe(nmrcParallelHit, True)
 
-            SetObjectEnableDisable_ThreadSafe(chkbIntradayCash, True)
-            SetObjectEnableDisable_ThreadSafe(chkbEODCash, True)
-            SetObjectEnableDisable_ThreadSafe(chkbIntradayFuture, True)
-            SetObjectEnableDisable_ThreadSafe(chkbEODFuture, True)
-            SetObjectEnableDisable_ThreadSafe(chkbIntradayCommodity, True)
-            SetObjectEnableDisable_ThreadSafe(chkbEODCommodity, True)
-            SetObjectEnableDisable_ThreadSafe(chkbIntradayCurrency, True)
-            SetObjectEnableDisable_ThreadSafe(chkbEODCurrency, True)
-            SetObjectEnableDisable_ThreadSafe(chkbPositional, True)
-            SetObjectEnableDisable_ThreadSafe(chkbOptionChain, True)
+                SetObjectEnableDisable_ThreadSafe(chkbIntradayCash, True)
+                SetObjectEnableDisable_ThreadSafe(chkbEODCash, True)
+                SetObjectEnableDisable_ThreadSafe(chkbIntradayFuture, True)
+                SetObjectEnableDisable_ThreadSafe(chkbEODFuture, True)
+                SetObjectEnableDisable_ThreadSafe(chkbIntradayCommodity, True)
+                SetObjectEnableDisable_ThreadSafe(chkbEODCommodity, True)
+                SetObjectEnableDisable_ThreadSafe(chkbIntradayCurrency, True)
+                SetObjectEnableDisable_ThreadSafe(chkbEODCurrency, True)
+                SetObjectEnableDisable_ThreadSafe(chkbPositional, True)
+                SetObjectEnableDisable_ThreadSafe(chkbOptionChain, True)
 
-            SetLabelText_ThreadSafe(lblProgress, "Process Complete")
+                SetLabelText_ThreadSafe(lblProgress, "Process Complete")
+            End If
         End Try
     End Function
 
@@ -2280,16 +2289,21 @@ Public Class frmMain
 #End Region
 
     Private Sub SendNotification(ByVal title As String, ByVal message As String)
-        Using sndr As New Utilities.Notification.Gmail(canceller, "ganeshathelifechanger@gmail.com", "speech123", "shortwire@gmail.com", "kallol@algo2trade.com", "indibar@algo2trade.com")
-            AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
-            sndr.SendMailAsync(title, message)
-        End Using
+        If sendMessages Is Nothing OrElse Not sendMessages.Contains(message) Then
+            If sendMessages Is Nothing Then sendMessages = New List(Of String)
+            sendMessages.Add(message)
 
-        message = String.Format("{0}{1}{2}", title, vbNewLine, message)
-        Using sndr As New Utilities.Notification.Telegram("700121864:AAHjes45V0kEPBDLIfnZzsatH5NhRwIjciw", "-399014165", canceller)
-            AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
-            sndr.SendMessageAsync(Utilities.Strings.UrlEncodeString(message))
-        End Using
+            Using sndr As New Utilities.Notification.Gmail(canceller, "ganeshathelifechanger@gmail.com", "speech123", "shortwire@gmail.com", "kallol@algo2trade.com", "indibar@algo2trade.com")
+                AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
+                sndr.SendMailAsync(title, message)
+            End Using
+
+            'message = String.Format("{0}{1}{2}", title, vbNewLine, message)
+            Using sndr As New Utilities.Notification.Telegram("700121864:AAHjes45V0kEPBDLIfnZzsatH5NhRwIjciw", "-399014165", canceller)
+                AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
+                sndr.SendMessageAsync(Utilities.Strings.UrlEncodeString(message))
+            End Using
+        End If
     End Sub
 
     Private Sub lblIntradayCashErrorGettingData_Click(sender As Object, e As EventArgs) Handles lblIntradayCashErrorGettingData.Click
