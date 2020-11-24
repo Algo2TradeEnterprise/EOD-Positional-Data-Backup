@@ -6,8 +6,13 @@ Imports System.Net
 Imports System.Text
 Imports HtmlAgilityPack
 Imports System.Text.RegularExpressions
+Imports NLog
 
 Public Class frmMain
+
+#Region "Logging and Status Progress"
+    Public Shared logger As Logger = LogManager.GetCurrentClassLogger
+#End Region
 
 #Region "Common Delegates"
     Delegate Sub SetObjectEnableDisable_Delegate(ByVal [obj] As Object, ByVal [value] As Boolean)
@@ -541,6 +546,10 @@ Public Class frmMain
     End Sub
 
     Private Sub frmMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        GlobalDiagnosticsContext.Set("appname", My.Application.Info.AssemblyName)
+        GlobalDiagnosticsContext.Set("version", My.Application.Info.Version.ToString)
+        logger.Trace("*************************** Logging started ***************************")
+
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
 
         nmrcParallelHit.Value = My.Settings.NumberOfParallelHit
@@ -703,6 +712,7 @@ Public Class frmMain
                                                                                                                  End If
                                                                                                              End If
                                                                                                          Catch ex As Exception
+                                                                                                             logger.Error(ex.ToString)
                                                                                                              Throw ex
                                                                                                          End Try
                                                                                                          Return True
@@ -719,13 +729,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -779,6 +789,7 @@ Public Class frmMain
                                                                                                                 End If
                                                                                                             End If
                                                                                                         Catch ex As Exception
+                                                                                                            logger.Error(ex.ToString)
                                                                                                             Throw ex
                                                                                                         End Try
                                                                                                         Return True
@@ -795,13 +806,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -855,6 +866,7 @@ Public Class frmMain
                                                                                                           End If
                                                                                                       End If
                                                                                                   Catch ex As Exception
+                                                                                                      logger.Error(ex.ToString)
                                                                                                       Throw ex
                                                                                                   End Try
                                                                                                   Return True
@@ -871,13 +883,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -931,6 +943,7 @@ Public Class frmMain
                                                                                                           End If
                                                                                                       End If
                                                                                                   Catch ex As Exception
+                                                                                                      logger.Error(ex.ToString)
                                                                                                       Throw ex
                                                                                                   End Try
                                                                                                   Return True
@@ -947,13 +960,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1009,6 +1022,7 @@ Public Class frmMain
                                                                                                             End If
                                                                                                         End If
                                                                                                     Catch ex As Exception
+                                                                                                        logger.Error(ex.ToString)
                                                                                                         Throw ex
                                                                                                     End Try
                                                                                                     Return True
@@ -1025,13 +1039,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1085,6 +1099,7 @@ Public Class frmMain
                                                                                                             End If
                                                                                                         End If
                                                                                                     Catch ex As Exception
+                                                                                                        logger.Error(ex.ToString)
                                                                                                         Throw ex
                                                                                                     End Try
                                                                                                     Return True
@@ -1101,13 +1116,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1163,6 +1178,7 @@ Public Class frmMain
                                                                                                                End If
                                                                                                            End If
                                                                                                        Catch ex As Exception
+                                                                                                           logger.Error(ex.ToString)
                                                                                                            Throw ex
                                                                                                        End Try
                                                                                                        Return True
@@ -1179,13 +1195,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1239,6 +1255,7 @@ Public Class frmMain
                                                                                                                End If
                                                                                                            End If
                                                                                                        Catch ex As Exception
+                                                                                                           logger.Error(ex.ToString)
                                                                                                            Throw ex
                                                                                                        End Try
                                                                                                        Return True
@@ -1255,13 +1272,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1317,6 +1334,7 @@ Public Class frmMain
                                                                                                               End If
                                                                                                           End If
                                                                                                       Catch ex As Exception
+                                                                                                          logger.Error(ex.ToString)
                                                                                                           Throw ex
                                                                                                       End Try
                                                                                                       Return True
@@ -1333,13 +1351,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1393,6 +1411,7 @@ Public Class frmMain
                                                                                                               End If
                                                                                                           End If
                                                                                                       Catch ex As Exception
+                                                                                                          logger.Error(ex.ToString)
                                                                                                           Throw ex
                                                                                                       End Try
                                                                                                       Return True
@@ -1409,13 +1428,13 @@ Public Class frmMain
                             Next
                             sw.Stop()
                         Catch cex As TaskCanceledException
-                            'logger.Error(cex)
+                            logger.Error(cex)
                             Throw cex
                         Catch aex As AggregateException
-                            'logger.Error(aex)
+                            logger.Error(aex)
                             Throw aex
                         Catch ex As Exception
-                            'logger.Error(ex)
+                            logger.Error(ex)
                             Throw ex
                         End Try
                     End Using
@@ -1430,10 +1449,13 @@ Public Class frmMain
                 Throw New ApplicationException("Zerodha login fail")
             End If
         Catch cex As OperationCanceledException
+            logger.Error(cex.ToString)
             MsgBox(cex.Message)
         Catch fex As Utilities.ErrorHandlers.ForbiddenException
+            logger.Error(fex.ToString)
             lastException = fex
         Catch ex As Exception
+            logger.Error(ex.ToString)
             SendNotification(String.Format("{0} {1} : <<<<< ERROR >>>>> : Data Backup Process", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), ex.ToString)
             MsgBox(ex.ToString)
         Finally
@@ -1521,7 +1543,7 @@ Public Class frmMain
                         End Select
                     Case "MCX"
                         Select Case instrument.Segment
-                            Case "MCX", "MCX-FUT"
+                            Case "MCX", "MCX-FUT", "MCX-INDICES", "INDICES"
                                 If typeOfData = DataType.Intraday Then
                                     tableName = "intraday_prices_commodity"
                                 ElseIf typeOfData = DataType.EOD Then
