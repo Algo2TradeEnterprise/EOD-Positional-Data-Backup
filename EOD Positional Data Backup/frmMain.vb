@@ -1764,6 +1764,7 @@ Public Class frmMain
                 Throw New ApplicationException(String.Format("Table name not found: {0}, {1}, {2}", instrument.TradingSymbol, instrument.Segment, instrument.Exchange))
             End If
         Catch ex As Exception
+            logger.Error(ex.ToString)
             Throw ex
         Finally
             Interlocked.Decrement(_internetHitCount)
@@ -2045,6 +2046,7 @@ Public Class frmMain
                 UpdateLabels()
             End If
         Catch ex As Exception
+            logger.Error(ex.ToString)
             Throw ex
         Finally
             Interlocked.Decrement(_optionChainHitCount)
@@ -2217,6 +2219,7 @@ Public Class frmMain
                             historicalCandlesJSONDict = l.Item2
                         End If
                     Catch ex As Exception
+                        logger.Error(ex.ToString)
                         If ex.Message.Contains("400 (Bad Request)") Then
                             If instrument.Expiry.Date >= Now.Date Then
                                 Throw ex
@@ -2257,6 +2260,7 @@ Public Class frmMain
                             historicalCandlesJSONDict = l.Item2
                         End If
                     Catch ex As Exception
+                        logger.Error(ex.ToString)
                         If ex.Message.Contains("400 (Bad Request)") Then
                             If instrument.Expiry.Date >= Now.Date Then
                                 Throw ex
