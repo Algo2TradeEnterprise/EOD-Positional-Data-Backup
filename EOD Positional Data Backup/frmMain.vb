@@ -572,7 +572,7 @@ Public Class frmMain
 
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
         Timer1.Enabled = False
-        btnStart_Click(sender, e)
+        btnStart.PerformClick()
     End Sub
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
