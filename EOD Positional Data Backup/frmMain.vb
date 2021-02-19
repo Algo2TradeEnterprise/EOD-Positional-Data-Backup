@@ -550,6 +550,8 @@ Public Class frmMain
         'GlobalDiagnosticsContext.Set("version", My.Application.Info.Version.ToString)
         'logger.Trace("*************************** Logging started ***************************")
 
+        Me.Text = String.Format("Data Backup - v{0}", My.Application.Info.Version)
+
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
 
         nmrcParallelHit.Value = My.Settings.NumberOfParallelHit
@@ -601,9 +603,9 @@ Public Class frmMain
         canceller = New CancellationTokenSource
         Await Task.Run(AddressOf StartProcessingAsync).ConfigureAwait(False)
         If lastException IsNot Nothing Then
-            OnHeartbeat(String.Format("Forbidden Exception. So it will wait for 10 mins. Restart Time:{0}", Now.AddMinutes(10).ToString("dd-MMM-yyyy HH:mm:ss")))
+            OnHeartbeat(String.Format("Authentication/Forbidden Exception. So it will wait for 10 mins. Restart Time:{0}", Now.AddMinutes(10).ToString("dd-MMM-yyyy HH:mm:ss")))
             Await Task.Delay(600000, canceller.Token).ConfigureAwait(False)
-            btnStart_Click(sender, e)
+            btnStart.PerformClick()
         End If
     End Sub
 
@@ -1451,6 +1453,9 @@ Public Class frmMain
         Catch cex As OperationCanceledException
             'logger.Error(cex.ToString)
             MsgBox(cex.Message)
+        Catch aex As Utilities.ErrorHandlers.AuthenticationException
+            'logger.Error(aex.ToString)
+            lastException = aex
         Catch fex As Utilities.ErrorHandlers.ForbiddenException
             'logger.Error(fex.ToString)
             lastException = fex
