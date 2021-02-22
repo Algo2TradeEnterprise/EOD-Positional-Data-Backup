@@ -605,7 +605,7 @@ Public Class frmMain
         If lastException IsNot Nothing Then
             OnHeartbeat(String.Format("Authentication/Forbidden Exception. So it will wait for 10 mins. Restart Time:{0}", Now.AddMinutes(10).ToString("dd-MMM-yyyy HH:mm:ss")))
             Await Task.Delay(600000, canceller.Token).ConfigureAwait(False)
-            btnStart.PerformClick()
+            btnStart_Click(sender, e)
         End If
     End Sub
 
@@ -617,11 +617,11 @@ Public Class frmMain
             SendNotification(String.Format("{0} {1} ->->->->-> Process Start", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "->->->->-> Process Start")
 
             Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
-                                                               password:="Zerodha@123a",
+                                                               password:="Zerodha@123f",
                                                                apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
                                                                apiKey:="hcwmefsivttbchla",
                                                                apiVersion:="3",
-                                                               _2FA:="111111",
+                                                               _2FA:="000000",
                                                                canceller:=canceller)
             AddHandler zerodhaUser.Heartbeat, AddressOf OnHeartbeat
             'AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
