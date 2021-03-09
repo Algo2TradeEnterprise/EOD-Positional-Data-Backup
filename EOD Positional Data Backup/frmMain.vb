@@ -1794,8 +1794,8 @@ Public Class frmMain
             Await Task.Delay(1, canceller.Token).ConfigureAwait(False)
             Interlocked.Increment(_optionChainHitCount)
 
-            Dim NSEIDXOptionChainURL As String = "https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-0&symbol={0}&symbol={0}&instrument=OPTIDX&date=-&segmentLink=17&segmentLink=17"
-            Dim NSESTKOptionChainURL As String = "https://www.nseindia.com/live_market/dynaContent/live_watch/option_chain/optionKeys.jsp?symbolCode=-0&symbol={0}&symbol={0}&instrument=OPTSTK&date=-&segmentLink=17&segmentLink=17"
+            Dim NSEIDXOptionChainURL As String = "https://www.nseindia.com/api/option-chain-indices?symbol={0}"
+            Dim NSESTKOptionChainURL As String = "https://www.nseindia.com/api/option-chain-equities?symbol={0}"
             Dim openPositionDataURL As String = Nothing
             If instrument.TradingSymbol = "NIFTY" OrElse instrument.TradingSymbol = "BANKNIFTY" OrElse instrument.TradingSymbol = "NIFTYIT" Then
                 openPositionDataURL = String.Format(NSEIDXOptionChainURL, instrument.TradingSymbol)
@@ -1804,7 +1804,7 @@ Public Class frmMain
                 If instrumentName.Contains("&") Then instrumentName = instrumentName.Replace("&", "%26")
                 openPositionDataURL = String.Format(NSESTKOptionChainURL, instrumentName)
             End If
-            Dim outputResponse As HtmlDocument = Nothing
+            Dim outputResponse As Dictionary(Of String, Object) = Nothing
             Dim proxyToBeUsed As HttpProxy = Nothing
             Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), canceller)
                 AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
@@ -1813,19 +1813,25 @@ Public Class frmMain
                 AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
 
                 browser.KeepAlive = True
+                HttpBrowser.KillCookies()
+
+                Dim parentSite As String = "https://www.nseindia.com/option-chain"
+                Await browser.NonPOSTRequestAsync(parentSite, Net.Http.HttpMethod.Get, Nothing, False, Nothing, False, Nothing).ConfigureAwait(False)
+
+
                 Dim headersToBeSent As New Dictionary(Of String, String)
-                headersToBeSent.Add("Host", "www.nseindia.com")
-                headersToBeSent.Add("Upgrade-Insecure-Requests", "1")
-                headersToBeSent.Add("Sec-Fetch-Mode", "navigate")
-                headersToBeSent.Add("Sec-Fetch-Site", "none")
+                headersToBeSent.Add("Accept", "*/*")
+                headersToBeSent.Add("Accept-Encoding", "gzip, deflate, br")
+                headersToBeSent.Add("Accept-Language", "en-US,en;q=0.9")
+                headersToBeSent.Add("Referer", "https://www.nseindia.com/option-chain")
 
                 Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(openPositionDataURL,
-                                                                                        HttpMethod.Get,
-                                                                                        Nothing,
-                                                                                        False,
-                                                                                        headersToBeSent,
-                                                                                        True,
-                                                                                        "text/html").ConfigureAwait(False)
+                                                                                    HttpMethod.Get,
+                                                                                    Nothing,
+                                                                                    False,
+                                                                                    headersToBeSent,
+                                                                                    True,
+                                                                                    "application/json").ConfigureAwait(False)
                 If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
                     outputResponse = l.Item2
                 End If
@@ -1838,113 +1844,58 @@ Public Class frmMain
             Interlocked.Decrement(gettingData)
             UpdateLabels()
 
-            If outputResponse IsNot Nothing AndAlso outputResponse.DocumentNode IsNot Nothing Then
-                OnHeartbeat("Extracting Option Chain from HTML")
+            If outputResponse IsNot Nothing AndAlso outputResponse.Count > 0 AndAlso
+                outputResponse.ContainsKey("records") AndAlso outputResponse.ContainsKey("filtered") Then
+                OnHeartbeat("Extracting Option Chain from JSON")
                 Dim calls As List(Of OptionChain) = Nothing
                 Dim puts As List(Of OptionChain) = Nothing
 
                 Dim optionDate As Date = Now
-                If outputResponse.DocumentNode.SelectNodes("//div[@id='wrapper_btm']") IsNot Nothing Then
-                    For Each div As HtmlNode In outputResponse.DocumentNode.SelectNodes("//div[@id='wrapper_btm']")
-                        If div IsNot Nothing AndAlso div.SelectNodes("table") IsNot Nothing AndAlso div.SelectNodes("table").Count > 0 Then
-                            Dim table As HtmlNode = div.SelectNodes("table")(0)
-                            If table IsNot Nothing And table.SelectNodes("tr") IsNot Nothing AndAlso table.SelectNodes("tr").Count > 0 Then
-                                Dim tr As HtmlNode = table.SelectNodes("tr")(0)
-                                If tr IsNot Nothing And tr.SelectNodes("td") IsNot Nothing AndAlso tr.SelectNodes("td").Count > 1 Then
-                                    Dim td As HtmlNode = tr.SelectNodes("td")(1)
-                                    If td IsNot Nothing And td.SelectNodes("div") IsNot Nothing AndAlso td.SelectNodes("div").Count > 0 Then
-                                        Dim div2 As HtmlNode = td.SelectNodes("div")(0)
-                                        If div2 IsNot Nothing And div2.SelectNodes("span") IsNot Nothing AndAlso div2.SelectNodes("span").Count > 1 Then
-                                            Dim span As HtmlNode = div2.SelectNodes("span")(1)
-                                            If span IsNot Nothing AndAlso span.InnerText IsNot Nothing AndAlso span.InnerText <> "" Then
-                                                Dim dateText As String = Utilities.Strings.GetTextBetween("As on", "IST", span.InnerText).Trim
-                                                optionDate = Convert.ToDateTime(dateText)
-                                            End If
-                                        End If
-                                    End If
-                                End If
-                            End If
-                        End If
-                    Next
+                If outputResponse("records") IsNot Nothing AndAlso outputResponse("records").ContainsKey("timestamp") Then
+                    optionDate = outputResponse("records")("timestamp")
                 End If
 
-                If outputResponse.DocumentNode.SelectNodes("//table[@id='octable']") IsNot Nothing Then
-                    For Each table As HtmlNode In outputResponse.DocumentNode.SelectNodes("//table[@id='octable']")
-                        canceller.Token.ThrowIfCancellationRequested()
-                        If table IsNot Nothing AndAlso table.SelectNodes("tr") IsNot Nothing Then
-                            For Each row As HtmlNode In table.SelectNodes("tr")
-                                canceller.Token.ThrowIfCancellationRequested()
-                                If row IsNot Nothing AndAlso row.SelectNodes("td") IsNot Nothing Then
-                                    Dim callData As OptionChain = Nothing
-                                    Dim putData As OptionChain = Nothing
-                                    Dim counter As Integer = 0
-                                    For Each cell As HtmlNode In row.SelectNodes("td")
-                                        canceller.Token.ThrowIfCancellationRequested()
-                                        If cell IsNot Nothing AndAlso cell.InnerText IsNot Nothing AndAlso cell.InnerText <> "" Then
-                                            If cell.InnerText.Trim = "Total" Then
-                                                Exit For
-                                            End If
-                                            If callData Is Nothing Then callData = New OptionChain
-                                            If putData Is Nothing Then putData = New OptionChain
-                                            counter += 1
-                                            If counter = 1 Then
-                                                callData.OI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 2 Then
-                                                callData.ChangeInOI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 3 Then
-                                                callData.Volume = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 4 Then
-                                                callData.IV = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 5 Then
-                                                callData.LTP = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 6 Then
-                                                callData.NetChange = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 7 Then
-                                                callData.BidQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 8 Then
-                                                callData.BidPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 9 Then
-                                                callData.AskPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 10 Then
-                                                callData.AskQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 11 Then
-                                                callData.StrikePrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                                putData.StrikePrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 12 Then
-                                                putData.BidQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 13 Then
-                                                putData.BidPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 14 Then
-                                                putData.AskPrice = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 15 Then
-                                                putData.AskQuantity = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 16 Then
-                                                putData.NetChange = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 17 Then
-                                                putData.LTP = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 18 Then
-                                                putData.IV = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 19 Then
-                                                putData.Volume = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 20 Then
-                                                putData.ChangeInOI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            ElseIf counter = 21 Then
-                                                putData.OI = If(cell.InnerText.Trim = "-", Decimal.MinValue, cell.InnerText.Trim)
-                                            End If
-                                        End If
-                                    Next
-                                    If callData IsNot Nothing Then
-                                        If calls Is Nothing Then calls = New List(Of OptionChain)
-                                        calls.Add(callData)
-                                    End If
-                                    If putData IsNot Nothing Then
-                                        If puts Is Nothing Then puts = New List(Of OptionChain)
-                                        puts.Add(putData)
-                                    End If
+                If outputResponse("filtered") IsNot Nothing AndAlso outputResponse("filtered").ContainsKey("data") Then
+                    Dim allStrikesData As ArrayList = outputResponse("filtered")("data")
+                    If allStrikesData IsNot Nothing AndAlso allStrikesData.Count > 0 Then
+                        For Each runningStrike As Dictionary(Of String, Object) In allStrikesData
+                            If runningStrike IsNot Nothing AndAlso runningStrike.ContainsKey("strikePrice") AndAlso
+                                runningStrike.ContainsKey("CE") AndAlso runningStrike.ContainsKey("PE") Then
+                                Dim callData As OptionChain = New OptionChain With {.StrikePrice = runningStrike("strikePrice")}
+                                Dim putData As OptionChain = New OptionChain With {.StrikePrice = runningStrike("strikePrice")}
+
+                                Dim ceData As Dictionary(Of String, Object) = runningStrike("CE")
+                                Dim peData As Dictionary(Of String, Object) = runningStrike("PE")
+                                If ceData IsNot Nothing AndAlso peData IsNot Nothing Then
+                                    callData.OI = ceData("openInterest")
+                                    callData.ChangeInOI = ceData("changeinOpenInterest")
+                                    callData.Volume = ceData("totalTradedVolume")
+                                    callData.IV = ceData("impliedVolatility")
+                                    callData.LTP = ceData("lastPrice")
+                                    callData.NetChange = ceData("change")
+                                    callData.BidQuantity = ceData("bidQty")
+                                    callData.BidPrice = ceData("bidprice")
+                                    callData.AskPrice = ceData("askPrice")
+                                    callData.AskQuantity = ceData("askQty")
+                                    putData.OI = peData("openInterest")
+                                    putData.ChangeInOI = peData("changeinOpenInterest")
+                                    putData.Volume = peData("totalTradedVolume")
+                                    putData.IV = peData("impliedVolatility")
+                                    putData.LTP = peData("lastPrice")
+                                    putData.NetChange = peData("change")
+                                    putData.BidQuantity = peData("bidQty")
+                                    putData.BidPrice = peData("bidprice")
+                                    putData.AskPrice = peData("askPrice")
+                                    putData.AskQuantity = peData("askQty")
                                 End If
-                            Next
-                        End If
-                    Next
+
+                                If calls Is Nothing Then calls = New List(Of OptionChain)
+                                calls.Add(callData)
+                                If puts Is Nothing Then puts = New List(Of OptionChain)
+                                puts.Add(putData)
+                            End If
+                        Next
+                    End If
                 End If
                 canceller.Token.ThrowIfCancellationRequested()
 
