@@ -1797,7 +1797,8 @@ Public Class frmMain
             Dim NSEIDXOptionChainURL As String = "https://www.nseindia.com/api/option-chain-indices?symbol={0}"
             Dim NSESTKOptionChainURL As String = "https://www.nseindia.com/api/option-chain-equities?symbol={0}"
             Dim openPositionDataURL As String = Nothing
-            If instrument.TradingSymbol = "NIFTY" OrElse instrument.TradingSymbol = "BANKNIFTY" OrElse instrument.TradingSymbol = "NIFTYIT" Then
+            If instrument.TradingSymbol = "NIFTY" OrElse instrument.TradingSymbol = "BANKNIFTY" OrElse
+                instrument.TradingSymbol = "NIFTYIT" OrElse instrument.TradingSymbol = "FINNIFTY" Then
                 openPositionDataURL = String.Format(NSEIDXOptionChainURL, instrument.TradingSymbol)
             Else
                 Dim instrumentName As String = instrument.TradingSymbol
@@ -1813,7 +1814,6 @@ Public Class frmMain
                 AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
 
                 browser.KeepAlive = True
-                HttpBrowser.KillCookies()
 
                 Dim parentSite As String = "https://www.nseindia.com/option-chain"
                 Await browser.NonPOSTRequestAsync(parentSite, Net.Http.HttpMethod.Get, Nothing, False, Nothing, False, Nothing).ConfigureAwait(False)
