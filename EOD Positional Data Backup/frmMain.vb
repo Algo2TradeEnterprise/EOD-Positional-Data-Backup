@@ -1589,6 +1589,16 @@ Public Class frmMain
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
                 Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument, startDate, endDate, typeOfData, zerodha)
+                Dim deliveryData As Dictionary(Of Date, Decimal) = Nothing
+                If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
+                    Using dlvyPer As New NSEDeliveryPercentageScraping(canceller)
+                        Try
+                            deliveryData = Await dlvyPer.GetDeliveryPercentageDataAsync(instrument.TradingSymbol).ConfigureAwait(False)
+                        Catch ex As Exception
+                            'Do not throw exception
+                        End Try
+                    End Using
+                End If
                 canceller.Token.ThrowIfCancellationRequested()
                 Interlocked.Decrement(gettingData)
                 UpdateLabels()
@@ -1600,7 +1610,21 @@ Public Class frmMain
                     Dim insertDataStringBuilder As New StringBuilder()
 
                     If typeOfData = DataType.EOD Then
-                        insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
+                        If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
+                            insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
+                                                            .Append("(`TradingSymbol`,") _
+                                                            .Append("`Open`,") _
+                                                            .Append("`Low`,") _
+                                                            .Append("`High`,") _
+                                                            .Append("`Close`,") _
+                                                            .Append("`Volume`,") _
+                                                            .Append("`OI`,") _
+                                                            .Append("`DeliveryPercentage`,") _
+                                                            .Append("`SnapshotDate`,") _
+                                                            .Append("`UpdateToDBTime`) ") _
+                                                            .Append("VALUES ")
+                        Else
+                            insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
                                                             .Append("(`TradingSymbol`,") _
                                                             .Append("`Open`,") _
                                                             .Append("`Low`,") _
@@ -1611,6 +1635,7 @@ Public Class frmMain
                                                             .Append("`SnapshotDate`,") _
                                                             .Append("`UpdateToDBTime`) ") _
                                                             .Append("VALUES ")
+                        End If
                     ElseIf typeOfData = DataType.Intraday Then
                         insertDataStringBuilder.Append("INSERT INTO `").Append(tableName).Append("`") _
                                                             .Append("(`TradingSymbol`,") _
@@ -1630,7 +1655,24 @@ Public Class frmMain
                     For Each runningPayload In historicalData.Values
                         canceller.Token.ThrowIfCancellationRequested()
                         If typeOfData = DataType.EOD Then
-                            insertDataStringBuilder.Append("(") _
+                            If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
+                                Dim deliveryPercentage As Decimal = 0
+                                If deliveryData IsNot Nothing AndAlso deliveryData.ContainsKey(runningPayload.PayloadDate) Then
+                                    deliveryPercentage = deliveryData(runningPayload.PayloadDate)
+                                End If
+                                insertDataStringBuilder.Append("(") _
+                                                    .Append("'").Append(runningPayload.TradingSymbol).Append("',") _
+                                                    .Append(runningPayload.Open).Append(",") _
+                                                    .Append(runningPayload.Low).Append(",") _
+                                                    .Append(runningPayload.High).Append(",") _
+                                                    .Append(runningPayload.Close).Append(",") _
+                                                    .Append(runningPayload.Volume).Append(",") _
+                                                    .Append(runningPayload.OI).Append(",") _
+                                                    .Append(deliveryPercentage).Append(",") _
+                                                    .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd")).Append("',") _
+                                                    .Append("TIMESTAMP(CURRENT_TIME)),")
+                            Else
+                                insertDataStringBuilder.Append("(") _
                                                     .Append("'").Append(runningPayload.TradingSymbol).Append("',") _
                                                     .Append(runningPayload.Open).Append(",") _
                                                     .Append(runningPayload.Low).Append(",") _
@@ -1640,17 +1682,7 @@ Public Class frmMain
                                                     .Append(runningPayload.OI).Append(",") _
                                                     .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd")).Append("',") _
                                                     .Append("TIMESTAMP(CURRENT_TIME)),")
-
-                            'insertDataString = String.Format("{0},('{1}',{2},{3},{4},{5},{6},{7},'{8}',TIMESTAMP(CURRENT_TIME))",
-                            '                                 insertDataString,
-                            '                                 runningPayload.TradingSymbol,
-                            '                                 runningPayload.Open,
-                            '                                 runningPayload.Low,
-                            '                                 runningPayload.High,
-                            '                                 runningPayload.Close,
-                            '                                 runningPayload.Volume,
-                            '                                 runningPayload.OI,
-                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"))
+                            End If
                         ElseIf typeOfData = DataType.Intraday Then
                             insertDataStringBuilder.Append("(") _
                                                     .Append("'").Append(runningPayload.TradingSymbol).Append("',") _
@@ -1663,18 +1695,6 @@ Public Class frmMain
                                                     .Append("'").Append(runningPayload.PayloadDate.ToString("yyyy-MM-dd")).Append("',") _
                                                     .Append("'").Append(runningPayload.PayloadDate.ToString("HH:mm:ss")).Append("',") _
                                                     .Append("TIMESTAMP(CURRENT_TIME)),")
-
-                            'insertDataString = String.Format("{0},('{1}','{2}',{3},{4},{5},{6},{7},'{8}','{9}',TIMESTAMP(CURRENT_TIME))",
-                            '                                 insertDataString,
-                            '                                 runningPayload.TradingSymbol,
-                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                            '                                 runningPayload.Open,
-                            '                                 runningPayload.Low,
-                            '                                 runningPayload.High,
-                            '                                 runningPayload.Close,
-                            '                                 runningPayload.Volume,
-                            '                                 runningPayload.PayloadDate.ToString("yyyy-MM-dd"),
-                            '                                 runningPayload.PayloadDate.ToString("HH:mm:ss"))
                         End If
                     Next
                     If insertDataStringBuilder IsNot Nothing Then

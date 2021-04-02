@@ -64,6 +64,12 @@ Namespace Strings
             logger.Debug("Removing beginning and ending blanks")
             Return Regex.Replace(inputStr, "^\s+$[\r\n]*", "", RegexOptions.Multiline)
         End Function
+        Public Function RemoveBeginningAndEndingCLRLFTAB(ByVal inputStr As String) As String
+            Return inputStr.Replace(vbTab, "").Replace(vbCrLf, "").Trim
+        End Function
+        Public Function RemoveBeginningAndEndingQuotes(ByVal inputStr As String) As String
+            Return Regex.Replace(inputStr, "^""|""$", "", RegexOptions.Multiline)
+        End Function
         Public Function ConvertHTMLToReadableText(ByVal inputHTML As String) As String
             logger.Debug("Converting HTMl to readable text")
             Dim result As String = inputHTML
