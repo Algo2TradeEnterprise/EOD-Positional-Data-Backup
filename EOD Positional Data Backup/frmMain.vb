@@ -1701,7 +1701,20 @@ Public Class frmMain
                         insertDataStringBuilder.Remove(insertDataStringBuilder.Length - 1, 1)
                         Dim insertString As String = Nothing
                         If typeOfData = DataType.EOD Then
-                            insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
+                            If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
+                                insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
+                                                            .Append("`TradingSymbol`=VALUES(`TradingSymbol`),") _
+                                                            .Append("`Open`=VALUES(`Open`),") _
+                                                            .Append("`Low`=VALUES(`Low`),") _
+                                                            .Append("`High`=VALUES(`High`),") _
+                                                            .Append("`Close`=VALUES(`Close`),") _
+                                                            .Append("`Volume`=VALUES(`Volume`),") _
+                                                            .Append("`OI`=VALUES(`OI`),") _
+                                                            .Append("`DeliveryPercentage`=VALUES(`DeliveryPercentage`),") _
+                                                            .Append("`SnapshotDate`=VALUES(`SnapshotDate`),") _
+                                                            .Append("`UpdateToDBTime`=VALUES(`UpdateToDBTime`);")
+                            Else
+                                insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
                                                             .Append("`TradingSymbol`=VALUES(`TradingSymbol`),") _
                                                             .Append("`Open`=VALUES(`Open`),") _
                                                             .Append("`Low`=VALUES(`Low`),") _
@@ -1711,28 +1724,7 @@ Public Class frmMain
                                                             .Append("`OI`=VALUES(`OI`),") _
                                                             .Append("`SnapshotDate`=VALUES(`SnapshotDate`),") _
                                                             .Append("`UpdateToDBTime`=VALUES(`UpdateToDBTime`);")
-
-                            'insertString = String.Format("INSERT INTO `{0}` 
-                            '                                (`TradingSymbol`,
-                            '                                `Open`,
-                            '                                `Low`,
-                            '                                `High`,
-                            '                                `Close`,
-                            '                                `Volume`,
-                            '                                `OI`,
-                            '                                `SnapshotDate`,
-                            '                                `UpdateToDBTime`) 
-                            '                                VALUES {1} 
-                            '                                ON DUPLICATE KEY UPDATE 
-                            '                                `TradingSymbol`=VALUES(`TradingSymbol`), 
-                            '                                `Open`=VALUES(`Open`), `Low`=VALUES(`Low`), 
-                            '                                `High`=VALUES(`High`), 
-                            '                                `Close`=VALUES(`Close`), 
-                            '                                `Volume`=VALUES(`Volume`), 
-                            '                                `OI`=VALUES(`OI`), 
-                            '                                `SnapshotDate`=VALUES(`SnapshotDate`), 
-                            '                                `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                            '                             tableName, insertDataString.Substring(1))
+                            End If
                         ElseIf typeOfData = DataType.Intraday Then
                             insertDataStringBuilder.Append(" ON DUPLICATE KEY UPDATE ") _
                                                             .Append("`TradingSymbol`=VALUES(`TradingSymbol`),") _
@@ -1745,32 +1737,6 @@ Public Class frmMain
                                                             .Append("`SnapshotDate`=VALUES(`SnapshotDate`),") _
                                                             .Append("`SnapshotTime`=VALUES(`SnapshotTime`),") _
                                                             .Append("`UpdateToDBTime`=VALUES(`UpdateToDBTime`);")
-
-
-                            'insertString = String.Format("INSERT INTO `{0}` 
-                            '                                (`TradingSymbol`,
-                            '                                `SnapshotDateTime`,
-                            '                                `Open`,
-                            '                                `Low`,
-                            '                                `High`,
-                            '                                `Close`,
-                            '                                `Volume`,
-                            '                                `SnapshotDate`,
-                            '                                `SnapshotTime`,
-                            '                                `UpdateToDBTime`)
-                            '                                VALUES {1}
-                            '                                ON DUPLICATE KEY UPDATE
-                            '                                `TradingSymbol`=VALUES(`TradingSymbol`),
-                            '                                `SnapshotDateTime`=VALUES(`SnapshotDateTime`),
-                            '                                `Open`=VALUES(`Open`),
-                            '                                `Low`=VALUES(`Low`),
-                            '                                `High`=VALUES(`High`),
-                            '                                `Close`=VALUES(`Close`),
-                            '                                `Volume`=VALUES(`Volume`),
-                            '                                `SnapshotDate`=VALUES(`SnapshotDate`),
-                            '                                `SnapshotTime`=VALUES(`SnapshotTime`),
-                            '                                `UpdateToDBTime`=VALUES(`UpdateToDBTime`);",
-                            '                             tableName, insertDataString.Substring(1))
                         End If
                         insertString = insertDataStringBuilder.ToString
                         canceller.Token.ThrowIfCancellationRequested()
