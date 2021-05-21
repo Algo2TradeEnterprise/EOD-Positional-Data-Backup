@@ -20,4 +20,5 @@ Public Class InstrumentDetails
     Public Property PositionalDone As Boolean
     Public Property IntradayDone As Boolean
     Public Property EODDone As Boolean
+    Public Property PriceDivisor As Long
 End Class

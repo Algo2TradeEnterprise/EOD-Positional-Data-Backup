@@ -649,11 +649,17 @@ Namespace Network
                     response = Nothing
 
                     RaiseEvent DocumentRetryStatus(retryCtr, MaxReTries)
+
+                    Dim contentType As String = "application/x-www-form-urlencoded"
+                    If headers IsNot Nothing AndAlso headers.ContainsKey("a2tContent") Then
+                        contentType = headers("a2tContent")
+                        headers.Remove("a2tContent")
+                    End If
                     request = New HttpRequestMessage() With
                     {
                         .RequestUri = New Uri(postURL),
                         .Method = HttpMethod.Post,
-                        .Content = New StringContent(postString, Text.Encoding.UTF8, "application/x-www-form-urlencoded")
+                        .Content = New StringContent(postString, Text.Encoding.UTF8, contentType)
                     }
                     OnHeartbeat(String.Format("Opening URL using POST request (URL:{0}, content:{1})", postURL, Await request.Content.ReadAsStringAsync().ConfigureAwait(False)))
                     Try

@@ -80,25 +80,25 @@ Namespace My
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
-        Public Property HistoricalHitWithAPI() As Boolean
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+        Public Property HistoricalHitWithZerodha() As Boolean
             Get
-                Return CType(Me("HistoricalHitWithAPI"),Boolean)
+                Return CType(Me("HistoricalHitWithZerodha"),Boolean)
             End Get
             Set
-                Me("HistoricalHitWithAPI") = value
+                Me("HistoricalHitWithZerodha") = value
             End Set
         End Property
         
         <Global.System.Configuration.UserScopedSettingAttribute(),  _
          Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
-         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
-        Public Property HistoricalHitWithoutAPI() As Boolean
+         Global.System.Configuration.DefaultSettingValueAttribute("True")>  _
+        Public Property HistoricalHitWithAlice() As Boolean
             Get
-                Return CType(Me("HistoricalHitWithoutAPI"),Boolean)
+                Return CType(Me("HistoricalHitWithAlice"),Boolean)
             End Get
             Set
-                Me("HistoricalHitWithoutAPI") = value
+                Me("HistoricalHitWithAlice") = value
             End Set
         End Property
     End Class

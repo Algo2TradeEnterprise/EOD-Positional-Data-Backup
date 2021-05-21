@@ -53,6 +53,11 @@ Namespace Time
             dateTime = dateTime.AddSeconds(unixTimeStamp)
             Return dateTime
         End Function
+        Public Function DateTimeToUnix(ByVal timeStamp As Date) As UInt64
+            'logger.Debug("Converting normal datetime to Unix time")
+            Dim dateTime As Date = New DateTime(1970, 1, 1, 5, 30, 0, 0, DateTimeKind.Unspecified)
+            Return timeStamp.Subtract(dateTime).TotalSeconds
+        End Function
         Public Function IsTimeEqualTillSeconds(ByVal timespan1 As TimeSpan, ByVal timespan2 As TimeSpan) As Boolean
             'logger.Debug("Checking if time is equal till seconds")
             Return Math.Floor(timespan1.TotalSeconds) = Math.Floor(timespan2.TotalSeconds)

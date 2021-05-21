@@ -9,32 +9,12 @@ Imports Utilities
 Imports System.Net.Http
 
 Public Class ZerodhaLogin
-    Implements IDisposable
-
-#Region "Events/Event handlers"
-    Public Event DocumentDownloadComplete()
-    Public Event DocumentRetryStatus(ByVal currentTry As Integer, ByVal totalTries As Integer)
-    Public Event Heartbeat(ByVal msg As String)
-    Public Event WaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
-    'The below functions are needed to allow the derived classes to raise the above two events
-    Protected Overridable Sub OnDocumentDownloadComplete()
-        RaiseEvent DocumentDownloadComplete()
-    End Sub
-    Protected Overridable Sub OnDocumentRetryStatus(ByVal currentTry As Integer, ByVal totalTries As Integer)
-        RaiseEvent DocumentRetryStatus(currentTry, totalTries)
-    End Sub
-    Protected Overridable Sub OnHeartbeat(ByVal msg As String)
-        RaiseEvent Heartbeat(msg)
-    End Sub
-    Protected Overridable Sub OnWaitingFor(ByVal elapsedSecs As Integer, ByVal totalSecs As Integer, ByVal msg As String)
-        RaiseEvent WaitingFor(elapsedSecs, totalSecs, msg)
-    End Sub
-#End Region
+    Inherits Login
 
     Public Property RequestToken As String
     Public Property AccessToken As String
     Public Property PublicToken As String
-    Public Property ENCToken As String
+    'Public Property ENCToken As String
 
     Public ReadOnly Property UserId As String
     Public ReadOnly Property Password As String
@@ -84,7 +64,7 @@ Public Class ZerodhaLogin
         Return ret
     End Function
 
-    Public Async Function LoginAsync() As Task(Of Boolean)
+    Public Overrides Async Function LoginAsync() As Task(Of Boolean)
         Dim ret As Boolean = False
         While True
             _cts.Token.ThrowIfCancellationRequested()
@@ -482,36 +462,4 @@ Public Class ZerodhaLogin
         If Not allOKWithoutException Then Throw lastException
         Return ret
     End Function
-
-#Region "IDisposable Support"
-    Private disposedValue As Boolean ' To detect redundant calls
-
-    ' IDisposable
-    Protected Overridable Sub Dispose(disposing As Boolean)
-        If Not disposedValue Then
-            If disposing Then
-                ' TODO: dispose managed state (managed objects).
-            End If
-
-            ' TODO: free unmanaged resources (unmanaged objects) and override Finalize() below.
-            ' TODO: set large fields to null.
-        End If
-        disposedValue = True
-    End Sub
-
-    ' TODO: override Finalize() only if Dispose(disposing As Boolean) above has code to free unmanaged resources.
-    'Protected Overrides Sub Finalize()
-    '    ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-    '    Dispose(False)
-    '    MyBase.Finalize()
-    'End Sub
-
-    ' This code added by Visual Basic to correctly implement the disposable pattern.
-    Public Sub Dispose() Implements IDisposable.Dispose
-        ' Do not change this code.  Put cleanup code in Dispose(disposing As Boolean) above.
-        Dispose(True)
-        ' TODO: uncomment the following line if Finalize() is overridden above.
-        ' GC.SuppressFinalize(Me)
-    End Sub
-#End Region
 End Class

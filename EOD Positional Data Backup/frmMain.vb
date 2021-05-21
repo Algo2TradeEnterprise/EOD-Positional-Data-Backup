@@ -7,6 +7,7 @@ Imports System.Text
 Imports HtmlAgilityPack
 Imports System.Text.RegularExpressions
 Imports NLog
+Imports Utilities.Time
 
 Public Class frmMain
 
@@ -555,8 +556,8 @@ Public Class frmMain
         SetObjectEnableDisable_ThreadSafe(btnStop, False)
 
         nmrcParallelHit.Value = My.Settings.NumberOfParallelHit
-        rdbWithAPI.Checked = My.Settings.HistoricalHitWithAPI
-        rdbWithoutAPI.Checked = My.Settings.HistoricalHitWithoutAPI
+        rdbZerodha.Checked = My.Settings.HistoricalHitWithZerodha
+        rdbAlice.Checked = My.Settings.HistoricalHitWithAlice
 
         Dim arguments As String() = Environment.GetCommandLineArgs()
         If arguments.Length > 1 Then
@@ -577,8 +578,8 @@ Public Class frmMain
 
     Private Async Sub btnStart_Click(sender As Object, e As EventArgs) Handles btnStart.Click
         My.Settings.NumberOfParallelHit = nmrcParallelHit.Value
-        My.Settings.HistoricalHitWithAPI = rdbWithAPI.Checked
-        My.Settings.HistoricalHitWithoutAPI = rdbWithoutAPI.Checked
+        My.Settings.HistoricalHitWithZerodha = rdbZerodha.Checked
+        My.Settings.HistoricalHitWithAlice = rdbAlice.Checked
         My.Settings.Save()
 
         SetObjectEnableDisable_ThreadSafe(btnStop, True)
@@ -616,23 +617,30 @@ Public Class frmMain
 
             SendNotification(String.Format("{0} {1} ->->->->-> Process Start", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "->->->->-> Process Start")
 
-            Dim zerodhaUser As ZerodhaLogin = New ZerodhaLogin(userId:="DK4056",
-                                                               password:="Zerodha@123f",
-                                                               apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
-                                                               apiKey:="hcwmefsivttbchla",
-                                                               apiVersion:="3",
-                                                               _2FA:="000000",
-                                                               canceller:=canceller)
-            AddHandler zerodhaUser.Heartbeat, AddressOf OnHeartbeat
-            'AddHandler zerodhaUser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
-            'AddHandler zerodhaUser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
-            AddHandler zerodhaUser.WaitingFor, AddressOf OnWaitingFor
+            Dim user As Login = Nothing
             Dim loginSuccesful As Boolean = False
-            If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
-                loginSuccesful = Await zerodhaUser.LoginAsync().ConfigureAwait(False)
+            If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+                user = New ZerodhaLogin(userId:="DK4056",
+                                        password:="Zerodha@123f",
+                                        apiSecret:="t9rd8wut44ija2vp15y87hln28h5oppb",
+                                        apiKey:="hcwmefsivttbchla",
+                                        apiVersion:="3",
+                                        _2FA:="000000",
+                                        canceller:=canceller)
+                AddHandler user.Heartbeat, AddressOf OnHeartbeat
+                AddHandler user.WaitingFor, AddressOf OnWaitingFor
+                loginSuccesful = Await user.LoginAsync().ConfigureAwait(False)
+            Else
+                user = New AliceLogin(userId:="AB096403",
+                                      password:="Alice@123c",
+                                      _2FA:="a",
+                                      canceller:=canceller)
+                AddHandler user.Heartbeat, AddressOf OnHeartbeat
+                AddHandler user.WaitingFor, AddressOf OnWaitingFor
+                loginSuccesful = Await user.LoginAsync().ConfigureAwait(False)
             End If
 
-            If loginSuccesful OrElse GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
+            If loginSuccesful Then
                 If positionalStockList Is Nothing Then positionalStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Positional, lastDateToCheck).ConfigureAwait(False)
                 If cashStockList Is Nothing Then cashStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Cash, lastDateToCheck).ConfigureAwait(False)
                 If futureStockList Is Nothing Then futureStockList = Await GetStockListAsync(InstrumentDetails.TypeOfInstrument.Futures, lastDateToCheck).ConfigureAwait(False)
@@ -777,7 +785,7 @@ Public Class frmMain
                                 tasks = positionalStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                         Try
                                                                                                             If Not x.PositionalDone Then
-                                                                                                                Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                                Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.EOD).ConfigureAwait(False)
                                                                                                                 x.PositionalDone = True
                                                                                                             Else
                                                                                                                 If positionalErrorList IsNot Nothing AndAlso positionalErrorList.Count > 0 AndAlso
@@ -854,7 +862,7 @@ Public Class frmMain
                                 tasks = cashStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                   Try
                                                                                                       If Not x.IntradayDone Then
-                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.Intraday).ConfigureAwait(False)
                                                                                                           x.IntradayDone = True
                                                                                                       Else
                                                                                                           If intradayCashErrorList IsNot Nothing AndAlso intradayCashErrorList.Count > 0 AndAlso
@@ -931,7 +939,7 @@ Public Class frmMain
                                 tasks = cashStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                   Try
                                                                                                       If Not x.EODDone Then
-                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                          Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.EOD).ConfigureAwait(False)
                                                                                                           x.EODDone = True
                                                                                                       Else
                                                                                                           If eodCashErrorList IsNot Nothing AndAlso eodCashErrorList.Count > 0 AndAlso
@@ -1010,7 +1018,7 @@ Public Class frmMain
                                 tasks = futureStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                     Try
                                                                                                         If Not x.IntradayDone Then
-                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.Intraday).ConfigureAwait(False)
                                                                                                             x.IntradayDone = True
                                                                                                         Else
                                                                                                             If intradayFutureErrorList IsNot Nothing AndAlso intradayFutureErrorList.Count > 0 AndAlso
@@ -1087,7 +1095,7 @@ Public Class frmMain
                                 tasks = futureStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                     Try
                                                                                                         If Not x.EODDone Then
-                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                            Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.EOD).ConfigureAwait(False)
                                                                                                             x.EODDone = True
                                                                                                         Else
                                                                                                             If eodFutureErrorList IsNot Nothing AndAlso eodFutureErrorList.Count > 0 AndAlso
@@ -1166,7 +1174,7 @@ Public Class frmMain
                                 tasks = commodityStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                        Try
                                                                                                            If Not x.IntradayDone Then
-                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.Intraday).ConfigureAwait(False)
                                                                                                                x.IntradayDone = True
                                                                                                            Else
                                                                                                                If intradayCommodityErrorList IsNot Nothing AndAlso intradayCommodityErrorList.Count > 0 AndAlso
@@ -1243,7 +1251,7 @@ Public Class frmMain
                                 tasks = commodityStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                        Try
                                                                                                            If Not x.EODDone Then
-                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                               Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.EOD).ConfigureAwait(False)
                                                                                                                x.EODDone = True
                                                                                                            Else
                                                                                                                If eodCommodityErrorList IsNot Nothing AndAlso eodCommodityErrorList.Count > 0 AndAlso
@@ -1322,7 +1330,7 @@ Public Class frmMain
                                 tasks = currencyStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                       Try
                                                                                                           If Not x.IntradayDone Then
-                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.Intraday).ConfigureAwait(False)
+                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.Intraday).ConfigureAwait(False)
                                                                                                               x.IntradayDone = True
                                                                                                           Else
                                                                                                               If intradayCurrencyErrorList IsNot Nothing AndAlso intradayCurrencyErrorList.Count > 0 AndAlso
@@ -1399,7 +1407,7 @@ Public Class frmMain
                                 tasks = currencyStockList.ToList.GetRange(i, numberOfData).Select(Async Function(x)
                                                                                                       Try
                                                                                                           If Not x.EODDone Then
-                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, zerodhaUser, DataType.EOD).ConfigureAwait(False)
+                                                                                                              Await ProcessData(lastDateToCheck, x, sqlHlpr, user, DataType.EOD).ConfigureAwait(False)
                                                                                                               x.EODDone = True
                                                                                                           Else
                                                                                                               If eodCurrencyErrorList IsNot Nothing AndAlso eodCurrencyErrorList.Count > 0 AndAlso
@@ -1448,7 +1456,7 @@ Public Class frmMain
 
                 SendNotification(String.Format("{0} {1} Process Complete <-<-<-<-<-", Now.DayOfWeek, Now.ToString("dd-MMM-yyyy")), "Process Complete <-<-<-<-<-")
             Else
-                Throw New ApplicationException("Zerodha login fail")
+                Throw New ApplicationException("Login fail")
             End If
         Catch cex As OperationCanceledException
             'logger.Error(cex.ToString)
@@ -1488,7 +1496,7 @@ Public Class frmMain
 
 #Region "Main Task"
     Private _internetHitCount As Integer = 0
-    Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal zerodha As ZerodhaLogin, ByVal typeOfData As DataType) As Task
+    Private Async Function ProcessData(ByVal currentDate As Date, ByVal instrument As InstrumentDetails, ByVal dbHlpr As MySQLDBHelper, ByVal user As Login, ByVal typeOfData As DataType) As Task
         Try
             canceller.Token.ThrowIfCancellationRequested()
             While _internetHitCount >= Me.NumberOfParallelTask
@@ -1588,7 +1596,7 @@ Public Class frmMain
 
             If startDate <> Date.MinValue AndAlso endDate <> Date.MinValue AndAlso tableName IsNot Nothing Then
                 UpdateLabels()
-                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument, startDate, endDate, typeOfData, zerodha)
+                Dim historicalData As Dictionary(Of Date, Payload) = Await GetHistoricalDataAsync(instrument, startDate, endDate, typeOfData, user)
                 Dim deliveryData As Dictionary(Of Date, Decimal) = Nothing
                 If instrument.InstrumentType = InstrumentDetails.TypeOfInstrument.Positional Then
                     Using dlvyPer As New NSEDeliveryPercentageScraping(canceller)
@@ -2001,16 +2009,35 @@ Public Class frmMain
     Private Async Function GetStockListAsync(ByVal instrumentType As InstrumentDetails.TypeOfInstrument, ByVal currentDate As Date) As Task(Of Concurrent.ConcurrentBag(Of InstrumentDetails))
         Dim ret As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
         Dim tableName As String = Nothing
-        Select Case instrumentType
-            Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Positional
-                tableName = "active_instruments_cash"
-            Case InstrumentDetails.TypeOfInstrument.Commodity
-                tableName = "active_instruments_commodity"
-            Case InstrumentDetails.TypeOfInstrument.Currency
-                tableName = "active_instruments_currency"
-            Case InstrumentDetails.TypeOfInstrument.Futures
-                tableName = "active_instruments_futures"
-        End Select
+        Dim priceDivisor As Long = 1
+        If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+            Select Case instrumentType
+                Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Positional
+                    tableName = "active_instruments_cash"
+                Case InstrumentDetails.TypeOfInstrument.Commodity
+                    tableName = "active_instruments_commodity"
+                Case InstrumentDetails.TypeOfInstrument.Currency
+                    tableName = "active_instruments_currency"
+                Case InstrumentDetails.TypeOfInstrument.Futures
+                    tableName = "active_instruments_futures"
+            End Select
+        Else
+            Select Case instrumentType
+                Case InstrumentDetails.TypeOfInstrument.Cash, InstrumentDetails.TypeOfInstrument.Positional
+                    tableName = "alice_active_instruments_cash"
+                    priceDivisor = 100
+                Case InstrumentDetails.TypeOfInstrument.Commodity
+                    tableName = "alice_active_instruments_commodity"
+                    priceDivisor = 100
+                Case InstrumentDetails.TypeOfInstrument.Currency
+                    tableName = "alice_active_instruments_currency"
+                    priceDivisor = 10000000
+                Case InstrumentDetails.TypeOfInstrument.Futures
+                    tableName = "alice_active_instruments_futures"
+                    priceDivisor = 100
+            End Select
+        End If
+
 
         Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
             AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
@@ -2040,6 +2067,7 @@ Public Class frmMain
                             runningInstrument.Expiry = Date.MaxValue
                         End If
                         runningInstrument.InstrumentType = instrumentType
+                        runningInstrument.PriceDivisor = priceDivisor
 
                         Dim pattern As String = "([0-9][0-9]JAN)|([0-9][0-9]FEB)|([0-9][0-9]MAR)|([0-9][0-9]APR)|([0-9][0-9]MAY)|([0-9][0-9]JUN)|([0-9][0-9]JUL)|([0-9][0-9]AUG)|([0-9][0-9]SEP)|([0-9][0-9]OCT)|([0-9][0-9]NOV)|([0-9][0-9]DEC)"
                         If Regex.Matches(runningInstrument.TradingSymbol, pattern).Count <= 1 Then
@@ -2048,7 +2076,6 @@ Public Class frmMain
                         Else
                             Console.WriteLine(String.Format("Instrument Neglected for {0}: {1}", instrumentType.ToString, runningInstrument.TradingSymbol))
                         End If
-                        'If i >= 99 Then Exit For
                     End If
                 Next
             End If
@@ -2057,7 +2084,14 @@ Public Class frmMain
     End Function
     Private Async Function GetAllOptionChainStockListAsync() As Task(Of Concurrent.ConcurrentBag(Of InstrumentDetails))
         Dim ret As Concurrent.ConcurrentBag(Of InstrumentDetails) = Nothing
-        Dim selectString As String = "SELECT `TRADING_SYMBOL` FROM `active_instruments_futures` WHERE `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `active_instruments_futures`)"
+        Dim selectString As String = Nothing
+        Dim priceDivisor As Long = 1
+        If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+            selectString = "SELECT `TRADING_SYMBOL` FROM `active_instruments_futures` WHERE `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `active_instruments_futures`)"
+        Else
+            selectString = "SELECT `TRADING_SYMBOL` FROM `alice_active_instruments_futures` WHERE `SEGMENT`='NFO-FUT' AND `AS_ON_DATE`=(SELECT MAX(`AS_ON_DATE`) FROM `active_instruments_futures`)"
+            priceDivisor = 100
+        End If
         Using sqlHlpr As New MySQLDBHelper(My.Settings.ServerName, "local_stock", "3306", "rio", "speech123", canceller)
             AddHandler sqlHlpr.Heartbeat, AddressOf OnHeartbeat
             AddHandler sqlHlpr.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
@@ -2088,37 +2122,35 @@ Public Class frmMain
                 If stockList IsNot Nothing AndAlso stockList.Count > 0 Then
                     For Each runningStock In stockList
                         If ret Is Nothing Then ret = New Concurrent.ConcurrentBag(Of InstrumentDetails)
-                        ret.Add(New InstrumentDetails With {.TradingSymbol = runningStock, .InstrumentType = InstrumentDetails.TypeOfInstrument.OptionChain})
+                        ret.Add(New InstrumentDetails With {.TradingSymbol = runningStock, .InstrumentType = InstrumentDetails.TypeOfInstrument.OptionChain, .PriceDivisor = priceDivisor})
                     Next
                 End If
             End If
         End Using
         Return ret
     End Function
-    Private Async Function GetHistoricalDataAsync(ByVal instrument As InstrumentDetails, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal zerodhaDetails As ZerodhaLogin) As Task(Of Dictionary(Of Date, Payload))
+    Private Async Function GetHistoricalDataAsync(ByVal instrument As InstrumentDetails, ByVal startDate As Date, ByVal endDate As Date, ByVal typeOfData As DataType, ByVal userDetails As Login) As Task(Of Dictionary(Of Date, Payload))
         Dim ret As Dictionary(Of Date, Payload) = Nothing
-        Dim AWSZerodhaEODHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/day?oi=1&api_key=kitefront&access_token=K&from={1}&to={2}"
-        Dim AWSZerodhaIntradayHistoricalURL As String = "https://kitecharts-aws.zerodha.com/api/chart/{0}/minute?oi=1&api_key=kitefront&access_token=K&from={1}&to={2}"
+        Dim AliceEODHistoricalURL As String = "https://ant.aliceblueonline.com/api/v1/charts?exchange={0}&token={1}&candletype=3&starttime={2}&endtime={3}&type=all"
+        Dim AliceIntradayHistoricalURL As String = "https://ant.aliceblueonline.com/api/v1/charts?exchange={0}&token={1}&candletype=1&starttime={2}&endtime={3}&type=all"
         Dim ZerodhaEODHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/day?&oi=1&from={1}&to={2}"
         Dim ZerodhaIntradayHistoricalURL As String = "https://kite.zerodha.com/oms/instruments/historical/{0}/minute?oi=1&from={1}&to={2}"
-        Dim ZerodhaHistoricalURL As String = Nothing
+        Dim historicalURL As String = Nothing
         Select Case typeOfData
             Case DataType.EOD
-                If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
-                    ZerodhaHistoricalURL = ZerodhaEODHistoricalURL
-                ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
-                    ZerodhaHistoricalURL = AWSZerodhaEODHistoricalURL
+                If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+                    historicalURL = ZerodhaEODHistoricalURL
+                ElseIf GetRadioButtonChecked_ThreadSafe(rdbAlice) Then
+                    historicalURL = AliceEODHistoricalURL
                 End If
             Case DataType.Intraday
-                If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
-                    ZerodhaHistoricalURL = ZerodhaIntradayHistoricalURL
-                ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
-                    ZerodhaHistoricalURL = AWSZerodhaIntradayHistoricalURL
+                If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+                    historicalURL = ZerodhaIntradayHistoricalURL
+                ElseIf GetRadioButtonChecked_ThreadSafe(rdbAlice) Then
+                    historicalURL = AliceIntradayHistoricalURL
                 End If
         End Select
-        If ZerodhaHistoricalURL IsNot Nothing AndAlso instrument.InstrumentToken IsNot Nothing AndAlso instrument.InstrumentToken <> "" Then
-            Dim historicalDataURL As String = String.Format(ZerodhaHistoricalURL, instrument.InstrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
-            OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
+        If historicalURL IsNot Nothing AndAlso instrument.InstrumentToken IsNot Nothing AndAlso instrument.InstrumentToken <> "" Then
             Dim historicalCandlesJSONDict As Dictionary(Of String, Object) = Nothing
 
             ServicePointManager.Expect100Continue = False
@@ -2127,7 +2159,9 @@ Public Class frmMain
                                                                           Return True
                                                                       End Function
 
-            If GetRadioButtonChecked_ThreadSafe(rdbWithAPI) Then
+            If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+                Dim historicalDataURL As String = String.Format(historicalURL, instrument.InstrumentToken, startDate.ToString("yyyy-MM-dd"), endDate.ToString("yyyy-MM-dd"))
+                OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
                 Dim proxyToBeUsed As HttpProxy = Nothing
                 Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip Or DecompressionMethods.Deflate Or DecompressionMethods.None, New TimeSpan(0, 1, 0), canceller)
                     AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
@@ -2141,7 +2175,7 @@ Public Class frmMain
                     headers.Add("Accept", "*/*")
                     headers.Add("Accept-Encoding", "gzip, deflate")
                     headers.Add("Accept-Language", "en-US,en;q=0.9,hi;q=0.8,ko;q=0.7")
-                    headers.Add("Authorization", String.Format("enctoken {0}", zerodhaDetails.ENCToken))
+                    headers.Add("Authorization", String.Format("enctoken {0}", CType(userDetails, ZerodhaLogin).ENCToken))
                     headers.Add("Referer", "https://kite.zerodha.com/static/build/chart.html?v=2.4.0")
                     headers.Add("sec-fetch-mode", "cors")
                     headers.Add("sec-fetch-site", "same-origin")
@@ -2179,7 +2213,15 @@ Public Class frmMain
                     RemoveHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
                     RemoveHandler browser.FirstError, AddressOf OnFirstErrorGettingData
                 End Using
-            ElseIf GetRadioButtonChecked_ThreadSafe(rdbWithoutAPI) Then
+            ElseIf GetRadioButtonChecked_ThreadSafe(rdbAlice) Then
+                Dim historicalDataURL As String = Nothing
+                If instrument.Segment.ToUpper = "INDICES" Then
+                    historicalDataURL = String.Format(historicalURL.Replace("token", "name"), String.Format("{0}_{1}", instrument.Exchange.ToUpper, instrument.Segment.ToUpper), instrument.TradingSymbol.ToUpper, DateTimeToUnix(startDate), DateTimeToUnix(endDate))
+                Else
+                    historicalDataURL = String.Format(historicalURL, instrument.Exchange.ToUpper, instrument.InstrumentToken, DateTimeToUnix(startDate), DateTimeToUnix(endDate))
+                End If
+                OnHeartbeat(String.Format("Fetching historical Data: {0}", historicalDataURL))
+
                 Dim proxyToBeUsed As HttpProxy = Nothing
                 Using browser As New HttpBrowser(proxyToBeUsed, Net.DecompressionMethods.GZip, New TimeSpan(0, 1, 0), canceller)
                     AddHandler browser.DocumentDownloadComplete, AddressOf OnDocumentDownloadComplete
@@ -2188,18 +2230,27 @@ Public Class frmMain
                     AddHandler browser.DocumentRetryStatus, AddressOf OnDocumentRetryStatus
                     AddHandler browser.FirstError, AddressOf OnFirstErrorGettingData
 
+                    Dim headers As New Dictionary(Of String, String)
+                    headers.Add("X-Authorization-Token", CType(userDetails, AliceLogin).ENCToken)
+
                     Try
                         canceller.Token.ThrowIfCancellationRequested()
                         Dim l As Tuple(Of Uri, Object) = Await browser.NonPOSTRequestAsync(historicalDataURL,
                                                                                         HttpMethod.Get,
                                                                                         Nothing,
                                                                                         True,
-                                                                                        Nothing,
+                                                                                        headers,
                                                                                         True,
                                                                                         "application/json").ConfigureAwait(False)
                         canceller.Token.ThrowIfCancellationRequested()
                         If l IsNot Nothing AndAlso l.Item2 IsNot Nothing Then
-                            historicalCandlesJSONDict = l.Item2
+                            Dim dataDictionary As Dictionary(Of String, Object) = l.Item2
+                            If dataDictionary IsNot Nothing AndAlso dataDictionary.ContainsKey("data") Then
+                                Dim candles As ArrayList = dataDictionary("data")
+                                Dim candlesDict As Dictionary(Of String, Object) = New Dictionary(Of String, Object) From {{"candles", candles}}
+                                dataDictionary = New Dictionary(Of String, Object) From {{"data", candlesDict}}
+                                historicalCandlesJSONDict = dataDictionary
+                            End If
                         End If
                     Catch ex As Exception
                         'logger.Error(ex.ToString)
@@ -2223,24 +2274,32 @@ Public Class frmMain
             End If
 
             If historicalCandlesJSONDict IsNot Nothing AndAlso historicalCandlesJSONDict.Count > 0 AndAlso
-                historicalCandlesJSONDict.ContainsKey("data") Then
-                Dim historicalCandlesDict As Dictionary(Of String, Object) = historicalCandlesJSONDict("data")
+            historicalCandlesJSONDict.ContainsKey("data") Then
+                Dim historicalCandlesDict As Dictionary(Of String, Object) = TryCast(historicalCandlesJSONDict("data"), Dictionary(Of String, Object))
                 If historicalCandlesDict.ContainsKey("candles") AndAlso historicalCandlesDict("candles").count > 0 Then
                     Dim historicalCandles As ArrayList = historicalCandlesDict("candles")
                     OnHeartbeat(String.Format("Generating Payload for {0}", instrument.TradingSymbol))
                     Dim previousPayload As Payload = Nothing
                     For Each historicalCandle As ArrayList In historicalCandles
                         canceller.Token.ThrowIfCancellationRequested()
-                        Dim runningSnapshotTime As Date = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+                        Dim runningSnapshotTime As Date = Date.MinValue
+                        If GetRadioButtonChecked_ThreadSafe(rdbZerodha) Then
+                            runningSnapshotTime = GetDateTimeTillMinutes(historicalCandle(0))
+                        Else
+                            runningSnapshotTime = UnixToDateTime(historicalCandle(0))
+                            If typeOfData = DataType.EOD Then
+                                runningSnapshotTime = runningSnapshotTime.Date
+                            End If
+                        End If
 
                         Dim runningPayload As Payload = New Payload
                         With runningPayload
-                            .PayloadDate = Utilities.Time.GetDateTimeTillMinutes(historicalCandle(0))
+                            .PayloadDate = runningSnapshotTime
                             .TradingSymbol = instrument.TradingSymbol
-                            .Open = historicalCandle(1)
-                            .High = historicalCandle(2)
-                            .Low = historicalCandle(3)
-                            .Close = historicalCandle(4)
+                            .Open = historicalCandle(1) / instrument.PriceDivisor
+                            .High = historicalCandle(2) / instrument.PriceDivisor
+                            .Low = historicalCandle(3) / instrument.PriceDivisor
+                            .Close = historicalCandle(4) / instrument.PriceDivisor
                             .Volume = historicalCandle(5)
                             If historicalCandle.Count > 6 Then
                                 .OI = historicalCandle(6)

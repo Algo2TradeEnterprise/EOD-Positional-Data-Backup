@@ -8,11 +8,11 @@
     <Setting Name="NumberOfParallelHit" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">100</Value>
     </Setting>
-    <Setting Name="HistoricalHitWithAPI" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="HistoricalHitWithoutAPI" Type="System.Boolean" Scope="User">
+    <Setting Name="HistoricalHitWithZerodha" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="HistoricalHitWithAlice" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
     </Setting>
   </Settings>
 </SettingsFile>

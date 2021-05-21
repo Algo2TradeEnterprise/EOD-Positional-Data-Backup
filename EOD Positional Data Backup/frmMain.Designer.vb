@@ -133,8 +133,8 @@ Partial Class frmMain
         Me.lblExpctdFnsTm = New System.Windows.Forms.Label()
         Me.lblExpFnsTmLbl = New System.Windows.Forms.Label()
         Me.grpHistoricalHitMode = New System.Windows.Forms.GroupBox()
-        Me.rdbWithoutAPI = New System.Windows.Forms.RadioButton()
-        Me.rdbWithAPI = New System.Windows.Forms.RadioButton()
+        Me.rdbAlice = New System.Windows.Forms.RadioButton()
+        Me.rdbZerodha = New System.Windows.Forms.RadioButton()
         Me.lblNumberOfHit = New System.Windows.Forms.Label()
         Me.nmrcParallelHit = New System.Windows.Forms.NumericUpDown()
         Me.grpBoxPositional.SuspendLayout()
@@ -207,8 +207,6 @@ Partial Class frmMain
         'chkbPositional
         '
         Me.chkbPositional.AutoSize = True
-        Me.chkbPositional.Checked = True
-        Me.chkbPositional.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkbPositional.Location = New System.Drawing.Point(493, 57)
         Me.chkbPositional.Name = "chkbPositional"
         Me.chkbPositional.Size = New System.Drawing.Size(18, 17)
@@ -1170,8 +1168,6 @@ Partial Class frmMain
         'chkbOptionChain
         '
         Me.chkbOptionChain.AutoSize = True
-        Me.chkbOptionChain.Checked = True
-        Me.chkbOptionChain.CheckState = System.Windows.Forms.CheckState.Checked
         Me.chkbOptionChain.Location = New System.Drawing.Point(493, 57)
         Me.chkbOptionChain.Name = "chkbOptionChain"
         Me.chkbOptionChain.Size = New System.Drawing.Size(18, 17)
@@ -1295,9 +1291,9 @@ Partial Class frmMain
         '
         'grpHistoricalHitMode
         '
-        Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithoutAPI)
-        Me.grpHistoricalHitMode.Controls.Add(Me.rdbWithAPI)
-        Me.grpHistoricalHitMode.Location = New System.Drawing.Point(544, -1)
+        Me.grpHistoricalHitMode.Controls.Add(Me.rdbAlice)
+        Me.grpHistoricalHitMode.Controls.Add(Me.rdbZerodha)
+        Me.grpHistoricalHitMode.Location = New System.Drawing.Point(544, 2)
         Me.grpHistoricalHitMode.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
         Me.grpHistoricalHitMode.Name = "grpHistoricalHitMode"
         Me.grpHistoricalHitMode.Padding = New System.Windows.Forms.Padding(3, 2, 3, 2)
@@ -1306,29 +1302,29 @@ Partial Class frmMain
         Me.grpHistoricalHitMode.TabStop = False
         Me.grpHistoricalHitMode.Text = "Historical Hit Mode"
         '
-        'rdbWithoutAPI
+        'rdbAlice
         '
-        Me.rdbWithoutAPI.AutoSize = True
-        Me.rdbWithoutAPI.Checked = True
-        Me.rdbWithoutAPI.Location = New System.Drawing.Point(11, 44)
-        Me.rdbWithoutAPI.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
-        Me.rdbWithoutAPI.Name = "rdbWithoutAPI"
-        Me.rdbWithoutAPI.Size = New System.Drawing.Size(102, 21)
-        Me.rdbWithoutAPI.TabIndex = 1
-        Me.rdbWithoutAPI.TabStop = True
-        Me.rdbWithoutAPI.Text = "Without API"
-        Me.rdbWithoutAPI.UseVisualStyleBackColor = True
+        Me.rdbAlice.AutoSize = True
+        Me.rdbAlice.Checked = True
+        Me.rdbAlice.Location = New System.Drawing.Point(11, 44)
+        Me.rdbAlice.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
+        Me.rdbAlice.Name = "rdbAlice"
+        Me.rdbAlice.Size = New System.Drawing.Size(59, 21)
+        Me.rdbAlice.TabIndex = 1
+        Me.rdbAlice.TabStop = True
+        Me.rdbAlice.Text = "Alice"
+        Me.rdbAlice.UseVisualStyleBackColor = True
         '
-        'rdbWithAPI
+        'rdbZerodha
         '
-        Me.rdbWithAPI.AutoSize = True
-        Me.rdbWithAPI.Location = New System.Drawing.Point(11, 21)
-        Me.rdbWithAPI.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
-        Me.rdbWithAPI.Name = "rdbWithAPI"
-        Me.rdbWithAPI.Size = New System.Drawing.Size(82, 21)
-        Me.rdbWithAPI.TabIndex = 0
-        Me.rdbWithAPI.Text = "With API"
-        Me.rdbWithAPI.UseVisualStyleBackColor = True
+        Me.rdbZerodha.AutoSize = True
+        Me.rdbZerodha.Location = New System.Drawing.Point(11, 21)
+        Me.rdbZerodha.Margin = New System.Windows.Forms.Padding(3, 2, 3, 2)
+        Me.rdbZerodha.Name = "rdbZerodha"
+        Me.rdbZerodha.Size = New System.Drawing.Size(83, 21)
+        Me.rdbZerodha.TabIndex = 0
+        Me.rdbZerodha.Text = "Zerodha"
+        Me.rdbZerodha.UseVisualStyleBackColor = True
         '
         'lblNumberOfHit
         '
@@ -1505,8 +1501,8 @@ Partial Class frmMain
     Friend WithEvents lblExpctdFnsTm As Label
     Friend WithEvents lblExpFnsTmLbl As Label
     Friend WithEvents grpHistoricalHitMode As GroupBox
-    Friend WithEvents rdbWithoutAPI As RadioButton
-    Friend WithEvents rdbWithAPI As RadioButton
+    Friend WithEvents rdbAlice As RadioButton
+    Friend WithEvents rdbZerodha As RadioButton
     Friend WithEvents lblNumberOfHit As Label
     Friend WithEvents nmrcParallelHit As NumericUpDown
     Friend WithEvents chkbIntradayCash As CheckBox
