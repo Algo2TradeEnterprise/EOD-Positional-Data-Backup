@@ -2306,7 +2306,11 @@ Public Class frmMain
                             End If
                         End With
                         If ret Is Nothing Then ret = New Dictionary(Of Date, Payload)
-                        ret.Add(runningSnapshotTime, runningPayload)
+                        If Not ret.ContainsKey(runningSnapshotTime) Then
+                            If runningPayload.Open >= 0 AndAlso runningPayload.High >= 0 AndAlso runningPayload.Low >= 0 AndAlso runningPayload.Close >= 0 Then
+                                ret.Add(runningSnapshotTime, runningPayload)
+                            End If
+                        End If
                     Next
                 End If
             End If
