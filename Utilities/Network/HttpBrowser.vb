@@ -503,6 +503,9 @@ Namespace Network
                         If (response IsNot Nothing AndAlso response.StatusCode = "400") Then
                             Throw New URLMisFormedException(hex.Message, hex, URLMisFormedException.TypeOfException.BadURL)
                         End If
+                        If (response IsNot Nothing AndAlso response.StatusCode = "401") Then
+                            Throw New AuthenticationException(hex.Message, hex)
+                        End If
                         If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
                             Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
                         End If
@@ -711,6 +714,9 @@ Namespace Network
                         'Need to relogin, no point retrying
                         If (response IsNot Nothing AndAlso response.StatusCode = "400") Then
                             Throw New URLMisFormedException(hex.Message, hex, URLMisFormedException.TypeOfException.BadURL)
+                        End If
+                        If (response IsNot Nothing AndAlso response.StatusCode = "401") Then
+                            Throw New AuthenticationException(hex.Message, hex)
                         End If
                         If (response IsNot Nothing AndAlso response.StatusCode = "403") Then
                             Throw New ForbiddenException(hex.Message, hex, ForbiddenException.TypeOfException.PossibleCaptcha)
