@@ -632,7 +632,7 @@ Public Class frmMain
                 loginSuccesful = Await user.LoginAsync().ConfigureAwait(False)
             Else
                 user = New AliceLogin(userId:="AB096403",
-                                      password:="Alice@123c",
+                                      password:="Alice@123d",
                                       _2FA:="a",
                                       canceller:=canceller)
                 AddHandler user.Heartbeat, AddressOf OnHeartbeat
