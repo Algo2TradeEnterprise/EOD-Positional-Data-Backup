@@ -2324,7 +2324,7 @@ Public Class frmMain
             If sendMessages Is Nothing Then sendMessages = New List(Of String)
             sendMessages.Add(message)
 
-            Using sndr As New Utilities.Notification.Gmail(canceller, "ganeshathelifechanger@gmail.com", "speech123", "shortwire@gmail.com", "kallol@algo2trade.com", "indibar@algo2trade.com")
+            Using sndr As New Utilities.Notification.Gmail(canceller, "ganeshathelifechanger@gmail.com", "speech123", "shortwire@gmail.com", "kallol@algo2trade.com")
                 AddHandler sndr.Heartbeat, AddressOf OnHeartbeat
                 sndr.SendMailAsync(title, message)
             End Using
